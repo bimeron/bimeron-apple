@@ -21,8 +21,10 @@ struct AddProfileView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.t("Add profile")).font(.headline)
-            Text(model.t("Paste a key starting with ss://, ssconf://, socks5:// or vless://"))
-            TextField("ss://, ssconf://, socks5:// or vless://", text: $key)
+            Text(model.t("Paste an access link"))
+            Text(model.t("Supported protocols") + ": " + AccessProtocol.allCases.map(\.title).joined(separator: ", "))
+                .font(.caption).foregroundStyle(.secondary)
+            TextField(model.t("Access key"), text: $key)
                 .textFieldStyle(.roundedBorder)
                 .focused($keyFocused)
                 .onChange(of: key) { _, value in
@@ -41,6 +43,7 @@ struct AddProfileView: View {
             }
 
             if validKey {
+                LabeledContent(model.t("Protocol"), value: ConfigDocument.protocolName(for: key.trimmingCharacters(in: .whitespacesAndNewlines)))
                 Text(model.t("Profile name"))
                 TextField(model.t("Profile name"), text: Binding(
                     get: { name },
@@ -65,17 +68,12 @@ struct AddProfileView: View {
                         busy = false
                     }
                 } label: {
-                    Text(model.t("Save")).opacity(0)
+                    Text(model.t("Save"))
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppPalette.blue)
                 .disabled(!canSave)
                 .keyboardShortcut(.defaultAction)
-                .overlay {
-                    Text(model.t("Save"))
-                        .foregroundStyle(.white)
-                        .allowsHitTesting(false)
-                }
                 Button(model.t("Cancel")) { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
@@ -92,9 +90,8 @@ struct AddProfileView: View {
         }
     }
 
-    private static func accepts(_ value: String) -> Bool {
+    static func accepts(_ value: String) -> Bool {
         let key = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard ["ss://", "ssconf://", "socks5://", "vless://"].contains(where: key.lowercased().hasPrefix) else { return false }
         return (try? ConfigDocument.validateKey(key)) != nil
     }
 
