@@ -1,0 +1,17 @@
+name: macOS UI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: swift test
+      - name: Build app
+        run: sh scripts/build-app.sh
+      - name: Check bundle
+        run: test -x dist/Bimeron.app/Contents/MacOS/Bimeron
