@@ -14,13 +14,23 @@ struct AddProfileView: View {
     @State private var issue: String?
     @State private var clipboardKey: String?
     @State private var pasteboardChangeCount = -1
+    @State private var sshIdentityFile: URL?
 
     private var validKey: Bool { Self.accepts(key) }
+    private var isSSH: Bool { AccessProtocol(key: key.trimmingCharacters(in: .whitespacesAndNewlines)) == .ssh }
     private var canSave: Bool { !busy && validKey && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.t("Add profile")).font(.headline)
+            if validKey {
+                Text(model.t("Profile name"))
+                TextField(model.t("Profile name"), text: Binding(
+                    get: { name },
+                    set: { name = $0; nameEdited = true }
+                ))
+                    .textFieldStyle(.roundedBorder)
+            }
             Text(model.t("Paste an access link"))
             Text(model.t("Supported protocols") + ": " + AccessProtocol.allCases.map(\.title).joined(separator: ", "))
                 .font(.caption).foregroundStyle(.secondary)
@@ -44,12 +54,22 @@ struct AddProfileView: View {
 
             if validKey {
                 LabeledContent(model.t("Protocol"), value: ConfigDocument.protocolName(for: key.trimmingCharacters(in: .whitespacesAndNewlines)))
-                Text(model.t("Profile name"))
-                TextField(model.t("Profile name"), text: Binding(
-                    get: { name },
-                    set: { name = $0; nameEdited = true }
-                ))
-                    .textFieldStyle(.roundedBorder)
+            }
+
+            if isSSH {
+                Text(model.t("SSH private key file (optional)"))
+                HStack {
+                    Text(sshIdentityFile?.lastPathComponent ?? model.t("No file selected"))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(sshIdentityFile?.path ?? "")
+                    Spacer()
+                    Button(model.t("Choose file…"), action: chooseSSHIdentityFile)
+                    if sshIdentityFile != nil {
+                        Button(model.t("Remove")) { sshIdentityFile = nil }
+                    }
+                }
             }
 
             if let issue { Text(issue).font(.subheadline).foregroundStyle(.red) }
@@ -60,7 +80,7 @@ struct AddProfileView: View {
                     guard canSave else { return }
                     busy = true
                     Task {
-                        if await model.add(name: name, key: key) { dismiss() }
+                        if await model.add(name: name, key: key, sshIdentityFile: isSSH ? sshIdentityFile : nil) { dismiss() }
                         else {
                             issue = model.alertMessage
                             model.alertMessage = nil
@@ -93,6 +113,17 @@ struct AddProfileView: View {
     static func accepts(_ value: String) -> Bool {
         let key = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return (try? ConfigDocument.validateKey(key)) != nil
+    }
+
+    private func chooseSSHIdentityFile() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.showsHiddenFiles = true
+        panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh", directoryHint: .isDirectory)
+        panel.begin { response in
+            if response == .OK { sshIdentityFile = panel.url }
+        }
     }
 
     private static func suggestedName(for value: String) -> String? {

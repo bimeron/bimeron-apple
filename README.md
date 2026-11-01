@@ -20,6 +20,10 @@ Trojan, NaiveProxy HTTP/2 and HTTP/3, Hysteria2 (including `hy2://`), AnyTLS,
 SSH, and TUIC v5. These are editable profile formats; this app does not yet
 connect through them.
 
+When a supported link is entered, the profile name appears above the link. SSH
+links also reveal an optional private-key file picker below it; only the file
+path is stored in the profile, not the private-key contents.
+
 The Protocol tab edits complete links without decoding and rewriting their
 parameters. This preserves encoded VMess JSON, QUIC options, and extended
 XHTTP settings. Access links and passwords are masked by default. Imported

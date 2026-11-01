@@ -170,3 +170,5 @@
 "VPN domain rules depend on Core-observed DNS. DoH, cached DNS and direct IP connections may not match them." = "VPN domain rules depend on Core-observed DNS. DoH, cached DNS and direct IP connections may not match them.";
 "Tunnel interface, MTU and IPv6 controls apply to VPN mode only." = "Tunnel interface, MTU and IPv6 controls apply to VPN mode only.";
 "On macOS, the system assigns utunN; the interface name is a logical label." = "On macOS, the system assigns utunN; the interface name is a logical label.";
+"SSH private key file (optional)" = "SSH private key file (optional)";
+"No file selected" = "No file selected";
