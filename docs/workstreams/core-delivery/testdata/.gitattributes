@@ -1,0 +1,4 @@
+# Signature verification uses exact bytes on every checkout, regardless of autocrlf.
+synthetic-reviewed-manifest.json -text
+synthetic-reviewed-manifest.json.sig -text
+synthetic-vector.json text eol=lf
