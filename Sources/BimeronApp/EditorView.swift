@@ -11,6 +11,7 @@ struct EditorView: View {
     @State private var tab: EditorTab
     @State private var issue: String?
     @State private var busy = false
+    @State private var saveTask: Task<Void, Never>?
     @State private var revealKey = false
     @State private var selectedRule: Int?
     @State private var confirmCancel = false
@@ -38,6 +39,7 @@ struct EditorView: View {
                         }
                 }
             }
+            .disabled(busy)
             Divider()
 
             Group {
@@ -49,15 +51,17 @@ struct EditorView: View {
                 case .raw: raw
                 }
             }
+            .disabled(busy)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             if let issue { Text(issue).foregroundStyle(.red).font(.subheadline).lineLimit(2) }
             HStack {
-                Text(model.t("Only basic checks are available. Core validation and connections are not integrated."))
+                Text(model.t("Core validates saved configurations. Live connections are not checked."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button(model.t("Cancel")) {
+                    saveTask?.cancel()
                     if rawText != profile.document.text { confirmCancel = true } else { dismiss() }
                 }
                 .keyboardShortcut(.cancelAction)
@@ -77,6 +81,7 @@ struct EditorView: View {
         .frame(minWidth: 680, minHeight: 520)
         .frame(idealWidth: 760, idealHeight: 600)
         .background(AppPalette.surface(colorScheme))
+        .onDisappear { saveTask?.cancel() }
         .confirmationDialog(model.t("Discard changes?"), isPresented: $confirmCancel) {
             Button(model.t("Discard changes"), role: .destructive) { dismiss() }
             Button(model.t("Keep editing"), role: .cancel) {}
@@ -198,7 +203,7 @@ struct EditorView: View {
                 panel.canChooseDirectories = false
                 panel.allowsMultipleSelection = false
                 panel.begin { response in
-                    if response == .OK, let url = panel.url {
+                    if !busy, response == .OK, let url = panel.url {
                         document.set("AccessKey", key, url.path)
                         rawText = document.text
                         issue = nil
@@ -353,9 +358,10 @@ struct EditorView: View {
             let parsed = try ConfigDocument(rawText)
             try parsed.validateLocally()
             busy = true
-            Task {
-                let ok = await model.save(StoredProfile(id: profile.id, document: parsed))
+            saveTask = Task {
+                let ok = await model.save(StoredProfile(id: profile.id, document: parsed), original: profile)
                 busy = false
+                // A committed save remains successful even if cancellation arrives during reload.
                 if ok { dismiss() }
                 else {
                     issue = model.alertMessage

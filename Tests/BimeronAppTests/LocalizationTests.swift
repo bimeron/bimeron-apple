@@ -30,7 +30,9 @@ import Testing
                 "Paste an access link", "Supported protocols", "Show access key", "Choose file…",
                 "SSH identity file", "SSH known_hosts file", "Enable ShadowTLS wrapper", "Plugin options",
                 "CA certificate file", "CONNECT-UDP path", "SSH private key file (optional)", "No file selected", "File path", "Use default", "SSH known_hosts file (optional)",
-                "Only basic checks are available. Core validation and connections are not integrated."] {
+                "Core validates saved configurations. Live connections are not checked.",
+                "Core validation is unavailable", "Core validation cancelled", "Core validation timed out",
+                "Core rejected the configuration", "Profile changed; reopen it before saving"] {
         #expect(Localization.text(key, language: "en") == key)
         #expect(Localization.text(key, language: "ru") != key)
     }

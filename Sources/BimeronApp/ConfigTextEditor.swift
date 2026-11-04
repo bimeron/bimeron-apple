@@ -13,6 +13,7 @@ struct ConfigTextEditor: NSViewRepresentable {
     func makeNSView(context: Context) -> NSScrollView {
         let view = NSTextView()
         view.delegate = context.coordinator
+        view.isEditable = context.environment.isEnabled
         view.isRichText = false
         view.allowsUndo = true
         view.font = Self.editorFont
@@ -33,7 +34,9 @@ struct ConfigTextEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
-        guard let view = scroll.documentView as? NSTextView, view.string != text else { return }
+        guard let view = scroll.documentView as? NSTextView else { return }
+        view.isEditable = context.environment.isEnabled
+        guard view.string != text else { return }
         let selection = view.selectedRange()
         view.string = text
         view.setSelectedRange(NSRange(location: min(selection.location, (text as NSString).length), length: 0))
