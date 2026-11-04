@@ -47,8 +47,8 @@ escaped and casing aliases), malformed JSON, extra lines and incomplete frames a
 
 ## Local checks and dependency boundaries
 
-Integrated main `d879fd6ba992faaa4fc359bbaeb5fcee8e8a2f88` includes B (#4)
-and merged D (#5). Merge commit `27501da435dfda27a614b934ffbf3135a215d920`
+Integrated main `34e90e00c114f9748e41ccc2b4a67c48c678fbf6` includes merged A (#7),
+B (#4) and D (#5). Final merge `db9835bb59f5de066105bbfd030d2cb9344034a3`
 preserves both modules and their tests. D's fixtures and checker are inherited
 unchanged from main; fixtures are not copied from another worktree.
 The adapter reads repository `fixtures/acceptance` by default. Missing fixtures

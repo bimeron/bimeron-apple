@@ -4,13 +4,14 @@ Date: 2026-11-04. Branch: `feat/daemon-utun-lifecycle`.
 
 ## Integrated revisions
 
-- Original C head: `292a8e9056d6a0a22e1cb786587ccb934d8dc0cc`.
-- Fetched main: `d879fd6ba992faaa4fc359bbaeb5fcee8e8a2f88`, including B (#4)
-  and merged D (#5).
-- Integration merge: `27501da435dfda27a614b934ffbf3135a215d920`.
-  Package.swift was the only conflict; both BimeronDaemon and BimeronCoreCLI
-  module/test target pairs are retained. No C implementation or test changes
-  were needed. B sources/tests and D checker/fixtures/docs/CI match main.
+- Previous published C head: `6ab1c1a6b01d304d62e985e2ab03f105b84017a3` (PR #9).
+- Fetched main: `34e90e00c114f9748e41ccc2b4a67c48c678fbf6`, including
+  merged A (#7), B (#4) and D (#5).
+- Final integration merge: `db9835bb59f5de066105bbfd030d2cb9344034a3`.
+  This merge was conflict-free. All A/B/C targets and tests remain present.
+  A/B app/model/CLI sources and tests, plus D fixtures and CI workflow, match
+  main exactly; C daemon sources/tests match the previous published C head.
+  No production changes or duplicate fixtures were needed.
 - Final handoff head is the documentation commit containing this report; obtain
   its full ID with `git rev-parse HEAD` (also supplied in the handoff).
 
@@ -18,7 +19,7 @@ Date: 2026-11-04. Branch: `feat/daemon-utun-lifecycle`.
 
 - `env -u BIMERON_ACCEPTANCE_FIXTURE_ROOT swift test`: passed, zero failures.
   XCTest reports 15 daemon tests: 3 client, 10 lifecycle and 2 protocol tests.
-  Swift Testing separately reports 38 tests (24 baseline plus 14 B declarations,
+  Swift Testing separately reports 52 tests (24 baseline plus 14 A preservation and 14 B declarations,
   including parameterized cases). These are framework-reported counts, not a
   count of acceptance scenarios or parameter invocations.
   `testSharedAcceptanceScriptsAtEveryBoundary` passes using repository fixtures
@@ -30,7 +31,9 @@ Date: 2026-11-04. Branch: `feat/daemon-utun-lifecycle`.
   26 additional Swift tests or proof of full application acceptance.
 - `sh scripts/build-app.sh`: passed, including `swift build -c release`.
 - `test -x dist/Bimeron.app/Contents/MacOS/Bimeron`: passed.
-- `git diff --check`: passed.
+- `/Users/wrk/.local/bin/git diff --check`: passed.
+- `/Users/wrk/.local/bin/git diff --check origin/main`: passed across the full
+  C-versus-main diff.
 - The merged `.github/workflows/macos.yml` runs the fixture checker, Swift tests,
   release app build and executable check. Local equivalents passed; no hosted CI
   run is claimed. The former missing-D/default-path blocker is resolved.
@@ -52,5 +55,7 @@ subprocess fixtures, not a real Core binary. App/UI hookup, protected installati
 launchd and live acceptance remain later work. No benchmark is warranted for the
 small reducer; I/O remains bounded and cancellable.
 
-Only this C branch/worktree was changed. No push, PR creation, account switch or
-privileged operation ran. The parent reviews and publishes the prepared PR draft.
+Only this C branch/worktree was changed. No push, PR merge, PR creation, account switch or
+privileged operation ran. PR #9 already exists; its draft below is local documentation only. The parent
+owns publication and merge after current combined hosted CI. This local final
+head has not been pushed and has no hosted CI result.
