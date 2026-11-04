@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import BimeronModel
-import BimeronCoreCLI
+@testable import BimeronCoreCLI
 @testable import BimeronApp
 
 @Test @MainActor func editorSaveUsesProtectedExactBytesAndPreservesFailures() async throws {
@@ -27,19 +27,38 @@ import BimeronCoreCLI
     let defaults = try #require(UserDefaults(suiteName: suite))
     defer { defaults.removePersistentDomain(forName: suite) }
     defaults.set("en", forKey: "language")
+    let stage = root.appending(path: "stage")
+    let evidence = EditorSaveEvidence(stage: stage)
     let success = try cli("""
+    test "$1" = validate || exit 1
+    printf dirname > '\(stage.path)'
+    test "$(dirname "$2")" = '\(directory.path)' || exit 2
+    printf stat > '\(stage.path)'
+    test "$(stat -f %Lp "$2")" = 600 || exit 3
+    printf cmp > '\(stage.path)'
+    cmp "$2" '\(expected.path)' || exit 4
+    printf cp > '\(stage.path)'
+    cp "$2" '\(captured.path)' || exit 5
+    printf done > '\(stage.path)'
+    """)
+    var observedSuccess = success
+    observedSuccess.observer = { evidence.record($0) }
+    var model = AppModel(library: library, coreCLI: observedSuccess, defaults: defaults)
+    // No-op, BOM, CRLF and missing final newline pass through the actual model path.
+    try Data(text.utf8).write(to: expected)
+    let saved = await model.save(original, original: original)
+    print(evidence.finish())
+    try #require(saved,
+                 "No-op save failed:\n\(model.diagnosticSnapshot().text(includeFreeText: false))")
+    #expect(try Data(contentsOf: destination) == Data(text.utf8))
+    _ = try cli("""
     test "$1" = validate || exit 1
     test "$(dirname "$2")" = '\(directory.path)' || exit 2
     test "$(stat -f %Lp "$2")" = 600 || exit 3
     cmp "$2" '\(expected.path)' || exit 4
     cp "$2" '\(captured.path)'
     """)
-    let model = AppModel(library: library, coreCLI: success, defaults: defaults)
-    // No-op, BOM, CRLF and missing final newline pass through the actual model path.
-    try Data(text.utf8).write(to: expected)
-    try #require(await model.save(original, original: original),
-                 "No-op save failed:\n\(model.diagnosticSnapshot().text(includeFreeText: false))")
-    #expect(try Data(contentsOf: destination) == Data(text.utf8))
+    model = AppModel(library: library, coreCLI: success, defaults: defaults)
     try Data(draft.document.text.utf8).write(to: expected)
     try #require(await model.save(draft, original: original),
                  "Draft save failed:\n\(model.diagnosticSnapshot().text(includeFreeText: false))")

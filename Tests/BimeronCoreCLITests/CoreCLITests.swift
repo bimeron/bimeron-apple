@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import Darwin
-import BimeronCoreCLI
+@testable import BimeronCoreCLI
 
 private struct Fixture {
     let directory: URL
@@ -242,6 +242,47 @@ struct CoreCLITests {
         do {
             _ = try await task.value
             Issue.record("Expected cancellation")
+        } catch CoreCLIError.cancelled { }
+        try fixture.unchanged()
+    }
+}
+
+@Test func observationDoesNotChangeDefaultSuccessOrLateTimeout() async throws {
+    let success = try Fixture("printf password-secret")
+    defer { success.cleanup() }
+    let plain = success.client()
+    #expect(plain.observer == nil)
+    let observed = CoreCLI(executableURL: success.executable, timeout: .seconds(3), observer: { _ in })
+    let plainOutput = try await plain.validate(fileURL: success.input)
+    let observedOutput = try await observed.validate(fileURL: success.input)
+    #expect(plainOutput.stdout == observedOutput.stdout)
+    #expect(plainOutput.stderr == observedOutput.stderr)
+    let late = try Fixture("exit 0")
+    defer { late.cleanup() }
+    for observe in [false, true] {
+        var client = late.client(timeout: .nanoseconds(1))
+        if observe { client.observer = { _ in } }
+        do {
+            _ = try await client.validate(fileURL: late.input)
+            Issue.record("Late completion accepted")
+        } catch CoreCLIError.timedOut { }
+    }
+}
+
+@Test func observationPreservesCancellationBeforeLaunch() async throws {
+    let fixture = try Fixture("echo launched > \"$2\"")
+    defer { fixture.cleanup() }
+    for observe in [false, true] {
+        var client = fixture.client()
+        if observe { client.observer = { _ in } }
+        let selected = client
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await selected.validate(fileURL: fixture.input)
+        }
+        do {
+            _ = try await task.value
+            Issue.record("Cancellation accepted")
         } catch CoreCLIError.cancelled { }
         try fixture.unchanged()
     }
