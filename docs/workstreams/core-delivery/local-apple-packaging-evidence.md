@@ -59,6 +59,8 @@ BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-final" swift test
 cd .build/apple-interop/core-notags
 "$GO" run "$ROOT/scripts/apple-local-parity.go" "$ROOT/.build/apple-interop/vectors-final"
 cd "$ROOT"
+# Verify exact deterministic Go-signed bytes in the final consumer pass.
+BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-final" swift test
 swift build -c release
 python3 fixtures/acceptance/check.py
 "$GIT" diff --check
@@ -71,11 +73,15 @@ are identical; the final archive-producing checkout had clean tracked source.
 
 `apple-local-vectors.py` reads trusted source-built archives and creates bounded
 positive/negative ZIPs without executing them. Swift emits exact signed manifest
-bytes and signatures beside every ZIP. For the two original positives, each
+bytes and initial signatures beside every ZIP. The Go parity harness verifies
+them and emits deterministic signatures using the synthetic all-zero seed. The
+second Swift pass preserves and verifies those exact Go-signed bytes. CryptoKit
+signatures were observed to vary for identical bytes and seed, so deterministic
+signing evidence comes from pinned Go, not CryptoKit. For the two original positives, each
 manifest contains the real hashes/sizes of both actual architecture archives.
 Every negative is rehashed and synthetically signed to reach packaging checks;
 a separate tampering assertion checks archive authentication rejection.
-The Core parity harness independently authenticates those exact Swift-emitted
+The Core parity harness independently authenticates those exact initial
 manifest/signature bytes with the synthetic public key and runs `CheckArchive`
 for every same ZIP against the same expected result. The index records every
 vector's SHA-256, architecture and expected disposition. Large generated ZIPs,
@@ -83,29 +89,33 @@ signed manifests, logs and working index remain ignored under `.build/apple-inte
 
 ## Results and remaining gates
 
-Final results: all 94 archive vectors have identical expected dispositions in
+Final results: all 130 archive vectors have identical expected dispositions in
 Swift and Core, including exact Swift-signed manifest verification, complete
 Core archive-pair verification and tampering rejection. Full `swift test` with
 the corpus passed: 26 XCTest tests and 59 Swift Testing tests. `swift build -c
 release` passed. `python3 fixtures/acceptance/check.py` passed 26 scenarios and
 29 fixture files, including its corruption/coverage/lifecycle rejection controls.
 Offline Core `go test ./internal/appleversion ./release/...` passed all three
-packages (0.761s, 4.222s and 10.246s). Scoped `git diff --check` passed.
+packages (0.677s, 2.521s and 6.156s). Scoped `git diff --check` passed.
 
-Final logs: `.build/apple-interop/swift-final.log`, `parity-final.log`,
-`release-final.log`, `fixtures-final.log`, `core-tests.log`, `builder-notags.log`.
-The opt-in Swift corpus completed in 4.297 seconds; complete XCTest execution
-was 4.334 seconds and Swift Testing execution was 5.960 seconds. No runtime
-performance benchmark is claimed for this validation-only change.
+Review-fix logs: `.build/apple-interop/review-fix-swift.log`,
+`review-fix-parity.log`, `review-fix-release.log`, `review-fix-fixtures.log`,
+`review-fix-core-tests.log`, `review-fix-targeted.log`. Archive-build evidence
+remains in `builder-notags.log`. No runtime performance benchmark is claimed
+for this validation-only change. The review-fix run used the existing exact
+source-built archives and `vectors-review-fix` instead of `vectors-final` in
+the commands above. The final deterministic-signature Swift pass completed
+26 XCTest tests in 6.614 seconds and 59 Swift Testing tests in 5.936 seconds.
+The release build completed in 3.73 seconds.
 
 The sorted index is retained as
 `testdata/local-full-archive-vector-index.json`, SHA-256
-`cc7935002301537afa48e05a5bf65351f2737c9b661f7a8259ecbf74578ce981`.
+`826273adee719e4a0725b1289f5768f11499c2c3371f91273cc38634660884ef`.
 The deterministic full-archive synthetic-reviewed manifest is retained as
 `testdata/local-full-archive-synthetic-reviewed.json`, SHA-256
 `32627976fae87ed9407dbe27f781b414904830914567e0c1ad475ef6390b4bf9`,
 and its detached signature has SHA-256
-`140ebe76f7c19cbb65a05d3985fd91955dbcf5587cc207a77f506508dbca2ece`.
+`e63867eb737871bd37a9a03d3c3e9cd6a3fdc95d7cd8f4102d47309e71ab488a`.
 These authenticate both actual source-built archive descriptors using the fixed
 synthetic public key `O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik=`;
 they confer no production trust or Apple compatibility approval.
@@ -128,6 +138,50 @@ OS/architecture/revision/dirty/missing-clean/Git/trimpath metadata and duplicate
 decoded provenance. Canonical record tests cover arbitrary decimal components
 above UInt64, total 128-byte boundary and no build suffix. App numeric ranges
 retain UInt64 bounds and compare decimal strings.
+
+## Independent review disposition at 686415c
+
+The parent independently passed the prior 94-vector Swift corpus. A separate
+Sol MEDIUM read-only review nevertheless found two P2 parity bugs. Both findings
+are accepted; passing the old corpus did not cover these cases. Reviewer
+artifacts were supplied at `/tmp/apple-review.gTYXNO/`. This implementation
+turn did not perform or delegate independent review. A new parent-owned review
+round is still pending.
+
+1. The descriptor CRC was ignored when central flag 3 was set. The amd64
+   regression flips byte 9,981,277 in the original ZIP; its SHA-256 is
+   `2d33b8cccecd90ec7495de55ab4a61268c46ec4d9f7d7be7c30c499f37a3b650`.
+   The regenerated regression matches the reviewer artifact byte-for-byte.
+   Swift now checks descriptor CRC and the decompressed-content CRC as Core does.
+2. Local-header name/flags/method equality was stricter than Core's central
+   directory reader. The amd64 regression flips byte 30; SHA-256 is
+   `8a1ba6193b2e6cd689dfe89bbb4d50076ec34fc53993edb5598b926f9d3f0f38`.
+   It also matches the reviewer artifact byte-for-byte. Swift now checks the
+   bounded 30-byte local header and its signature, then uses only its name/extra
+   lengths to locate payload bytes. Exact accepted names, type, permissions,
+   compression, flags, CRC and size limits still come from the authenticated
+   central directory. Local naming cannot redirect a path because this gate
+   never extracts or writes entries. Any future extractor needs its own safe
+   extraction policy. As in Core, the optional empty parent is not opened.
+
+The implementation follows installed Go 1.26.9
+`src/archive/zip/reader.go`: `findBodyOffset`, `checksumReader.Read` and
+`readDataDescriptor`. With central flag 3, Go consumes 12 descriptor bytes without
+signature or 16 with `0x08074b50`, compares descriptor CRC to central CRC and then
+compares actual content CRC. Size words are intentionally ignored, including
+ZIP64 words; central sizes remain authoritative. Without flag 3, a nonzero
+central CRC is checked and zero is treated as unspecified, matching Go.
+No manifest signature/hash, central path/type/limit or binary evidence check was
+removed. Decompressed-size validation remains mandatory.
+
+The expanded corpus adds 18 vectors per architecture: the original descriptor
+CRC regression; local name/method/flags acceptance; signed/unsigned descriptors;
+signed/unsigned ZIP64 descriptors; EOF truncation below minimum reads; ZIP64
+frames shortened to Go's accepted minimum; empty/four-byte descriptors; bad CRC
+in unsigned/ZIP64 forms; ignored descriptor sizes; and no-descriptor zero CRC.
+Descriptors are placed at true EOF in the EOCD comment for truncation controls,
+preventing accidental reads from the next header. Every vector is synthetically
+signed and checked by Swift and Core with full archive-pair verification.
 
 The bounded reader supports thin 64-bit little-endian Mach-O and inline Go build
 information emitted by the pinned compiler. Unsupported layouts fail closed and

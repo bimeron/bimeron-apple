@@ -49,11 +49,19 @@ final class AppleArchiveGateTests: XCTestCase {
                     return ["os": "macos", "arch": arch, "name": "bimeron-v0.1.0-beta.1-macos-\(arch).zip", "size": bytes.count, "sha256": digest]
                 }]
             let manifest = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]) + Data([10])
-            let signature = Data((try key.signature(for: manifest).base64EncodedString() + "\n").utf8)
+            let manifestURL = root.appendingPathComponent(vector.file + ".manifest.json")
+            let signatureURL = root.appendingPathComponent(vector.file + ".manifest.sig")
+            // Preserve the deterministic Go-signed handoff on the consumer verification pass.
+            let signature: Data
+            if (try? Data(contentsOf: manifestURL)) == manifest, let existing = try? Data(contentsOf: signatureURL) {
+                signature = existing
+            } else {
+                signature = Data((try key.signature(for: manifest).base64EncodedString() + "\n").utf8)
+            }
             let descriptor = try AppleCoreRelease.verifyManifest(manifest, signature: signature, trustedPublicKey: key.publicKey.rawRepresentation, approval: .init(tag: "v0.1.0-beta.1", sourceRevision: revision), appVersion: "0.1.0", channel: "beta", architecture: vector.arch)
             let accepted = (try? AppleCoreRelease.verifyArchive(archive, manifest: descriptor)) != nil
             XCTAssertEqual(accepted, vector.accept, vector.file)
-            // Save exact deterministic signed full-archive evidence for parent inspection.
+            // Save the exact signed full-archive handoff bytes for parent inspection.
             try manifest.write(to: root.appendingPathComponent(vector.file + ".manifest.json"))
             try signature.write(to: root.appendingPathComponent(vector.file + ".manifest.sig"))
             XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(archive + Data([0]), manifest: descriptor), vector.file)

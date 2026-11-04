@@ -60,6 +60,90 @@
     "sha256": "6147f53aad5a6c61501db5e9825d686c8c908d8663ad815950aedb681cb5170c"
   },
   {
+    "file": "amd64-descriptor-crc.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "2d33b8cccecd90ec7495de55ab4a61268c46ec4d9f7d7be7c30c499f37a3b650"
+  },
+  {
+    "file": "amd64-descriptor-empty.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "155d47a8f717e5f1037088cb81a3686a05cde820b3b021266ba211d04a0550c5"
+  },
+  {
+    "file": "amd64-descriptor-four-bytes.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "95085c6d8859cbbd30646fc26384d8cff055e18768ae57b3e2dff4f22056da77"
+  },
+  {
+    "file": "amd64-descriptor-ignored-sizes.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "29ad6c1948620657fb4d1883be356b244521e0da2f77d53bdd5cd7607efe9cfa"
+  },
+  {
+    "file": "amd64-descriptor-signed-short.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "fd6f26269b7bfd93bf4a8d9c9f1547a6cb69ff8283a15db13ca3bb0cf61d20bb"
+  },
+  {
+    "file": "amd64-descriptor-signed.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "29ad6c1948620657fb4d1883be356b244521e0da2f77d53bdd5cd7607efe9cfa"
+  },
+  {
+    "file": "amd64-descriptor-unsigned-bad-crc.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "408c485fdd55a14c7a57c4190dea8969ac7a9b6382d96ab419b8990246d79afa"
+  },
+  {
+    "file": "amd64-descriptor-unsigned-short.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "70fa35fd1d7fb5c7711040f5aedbbbe52dd70470abae261e56735ddf1cf6eb0d"
+  },
+  {
+    "file": "amd64-descriptor-unsigned.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "ca4b49c00c6d75eda5481507f0483328df06b5cbf01ecaf64670ea68c72c8417"
+  },
+  {
+    "file": "amd64-descriptor-zip64-bad-crc.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "e68d8e9d6ef27ef6515c99e71bfe0d1e32f8a1b5dffae8bed1bb033ce255225b"
+  },
+  {
+    "file": "amd64-descriptor-zip64-short-signed.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "29ad6c1948620657fb4d1883be356b244521e0da2f77d53bdd5cd7607efe9cfa"
+  },
+  {
+    "file": "amd64-descriptor-zip64-short-unsigned.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "ca4b49c00c6d75eda5481507f0483328df06b5cbf01ecaf64670ea68c72c8417"
+  },
+  {
+    "file": "amd64-descriptor-zip64-signed.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "7b75791a823c89f4ee2c8b35c82f8ebf218ef416f86133652402d654bf37b122"
+  },
+  {
+    "file": "amd64-descriptor-zip64-unsigned.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "c3cb55da70e2b5494094b3f94bf45e5e2894ceb8824abb49296c1fcbc62d2e35"
+  },
+  {
     "file": "amd64-dirty.zip",
     "arch": "amd64",
     "accept": false,
@@ -102,6 +186,24 @@
     "sha256": "56c8f6d43dc31d77e0d4e3fdedc38c41f6ea16747e3a3248063994e922e56149"
   },
   {
+    "file": "amd64-local-flags.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "333f3949345a9dcf6e9326ef8e1140f5cee14b0cb03c0cc18045d7c712f71bcc"
+  },
+  {
+    "file": "amd64-local-method.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "b95f84fb068c8abcf7d177a8dfe3e3728db6229845cefc54a35d151e956b23a1"
+  },
+  {
+    "file": "amd64-local-name.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "8a1ba6193b2e6cd689dfe89bbb4d50076ec34fc53993edb5598b926f9d3f0f38"
+  },
+  {
     "file": "amd64-malformed.zip",
     "arch": "amd64",
     "accept": false,
@@ -118,6 +220,12 @@
     "arch": "amd64",
     "accept": false,
     "sha256": "918e446c895e253ce3a02254770ac826db5f993c6fc00080acc58aa012b31c93"
+  },
+  {
+    "file": "amd64-no-descriptor-zero-crc.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "6d94b84ede2df040a3bde6e7813e489333e5165d802d2a0d81797894c1b42d1e"
   },
   {
     "file": "amd64-no-exec.zip",
@@ -342,6 +450,90 @@
     "sha256": "d5f4af3f06e03086d38286d3b3108883376ccd71a486ef877a774fe0f635fbe7"
   },
   {
+    "file": "arm64-descriptor-crc.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "1a1aa10de8c1a52cec9a61797bb1d27706bc12a870a142fc0c645eb8bb6fc926"
+  },
+  {
+    "file": "arm64-descriptor-empty.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "b102ae1c5b417a1fff2c711c666eb8be0e5ce8da381af56659b192606840163f"
+  },
+  {
+    "file": "arm64-descriptor-four-bytes.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "e9ba80ea2544d1b27c33aace2f5f431211bccce706884f87c16b9dc6707b44a9"
+  },
+  {
+    "file": "arm64-descriptor-ignored-sizes.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "86ec41eaabbf1fb541d90a59ca109ee2087d91c37ab5fb0c687e46d30cc0faa7"
+  },
+  {
+    "file": "arm64-descriptor-signed-short.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "4f4f46b2556ee253f79795999b6efe79a31458611843dce2c8d1b062c028af88"
+  },
+  {
+    "file": "arm64-descriptor-signed.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "86ec41eaabbf1fb541d90a59ca109ee2087d91c37ab5fb0c687e46d30cc0faa7"
+  },
+  {
+    "file": "arm64-descriptor-unsigned-bad-crc.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "1b8c76ca9b867e3fe0cde2dd76fd3e53e8aac2af259d0ddc11e0fdeb85c86398"
+  },
+  {
+    "file": "arm64-descriptor-unsigned-short.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "3cef39182ac17b124d86d42c5c0b6f0dcc5ffc96350b68f082970a310565844d"
+  },
+  {
+    "file": "arm64-descriptor-unsigned.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "1ca1f7caf09140759bb2dd8f78b2a4a59104e00ec8231fc2d577fe585cbe27a2"
+  },
+  {
+    "file": "arm64-descriptor-zip64-bad-crc.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "46637af2bbf81db4d703426ff4409438f055c5e473dfda1faebc0012d1128898"
+  },
+  {
+    "file": "arm64-descriptor-zip64-short-signed.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "86ec41eaabbf1fb541d90a59ca109ee2087d91c37ab5fb0c687e46d30cc0faa7"
+  },
+  {
+    "file": "arm64-descriptor-zip64-short-unsigned.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "1ca1f7caf09140759bb2dd8f78b2a4a59104e00ec8231fc2d577fe585cbe27a2"
+  },
+  {
+    "file": "arm64-descriptor-zip64-signed.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "9ec869be9a087070b06b16dc759795ddadd43c87f6da2286c6a83c0bf0b12a11"
+  },
+  {
+    "file": "arm64-descriptor-zip64-unsigned.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "85d1cc62100811bfb6267055cf3d79696a19ade96029662816a68a0554aa9203"
+  },
+  {
     "file": "arm64-dirty.zip",
     "arch": "arm64",
     "accept": false,
@@ -384,6 +576,24 @@
     "sha256": "476b5ed83e5167dd3188196d49666df7b4484d211424d619082aaa7b05e7bbab"
   },
   {
+    "file": "arm64-local-flags.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "d73be66145e0a4bc8bc7f3babaec49a9131cc732f0690dbfd3d239a91ad03bac"
+  },
+  {
+    "file": "arm64-local-method.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "16c5f30f8f34e2b002911dfd72105001edaef4001a2c44d32a3a8c96788f6c39"
+  },
+  {
+    "file": "arm64-local-name.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "8e0985e644f27ca3787e092dc180eedbb31d5feadf3d198a0da81001e808bab5"
+  },
+  {
     "file": "arm64-malformed.zip",
     "arch": "arm64",
     "accept": false,
@@ -400,6 +610,12 @@
     "arch": "arm64",
     "accept": false,
     "sha256": "d777ddc624d14004e5f5de514b01ed7a1a3674af4bbd5a1814d40a3a03ece4b3"
+  },
+  {
+    "file": "arm64-no-descriptor-zero-crc.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "1c19cfd01e5dbb43c5a9516340de571efe093bf1b5b92dc037faae522b01115b"
   },
   {
     "file": "arm64-no-exec.zip",

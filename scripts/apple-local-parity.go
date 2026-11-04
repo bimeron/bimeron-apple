@@ -3,6 +3,7 @@ package main
 import (
 	"bimeron/release/applemanifest"
 	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -38,6 +39,14 @@ func main() {
 		public := ed25519.NewKeyFromSeed(make([]byte, 32)).Public().(ed25519.PublicKey)
 		verified, err := applemanifest.VerifyManifest(manifest, signature, public, "v0.1.0-beta.1", "e8de4354e2dc5d0364a2fb93119c50971cdf8a5c")
 		if err != nil {
+			panic(err)
+		}
+
+		// CryptoKit may randomize signatures. Emit a deterministic synthetic Go
+		// signature for the next Swift pass and retained reproducible evidence.
+		private := ed25519.NewKeyFromSeed(make([]byte, 32))
+		deterministic := []byte(base64.StdEncoding.EncodeToString(ed25519.Sign(private, manifest)) + "\n")
+		if err = os.WriteFile(filepath.Join(root, v.File+".manifest.sig"), deterministic, 0600); err != nil {
 			panic(err)
 		}
 

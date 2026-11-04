@@ -8,6 +8,7 @@ import struct
 import sys
 import warnings
 import zipfile
+import zlib
 
 source, output = map(pathlib.Path, sys.argv[1:])
 output.mkdir(parents=True, exist_ok=True)
@@ -67,6 +68,54 @@ for arch in ('amd64', 'arm64'):
     for label, offset, fmt, value in [('encrypted', central + 8, '<H', 1), ('compression', central + 10, '<H', 99), ('crc', central + 16, '<I', 0), ('bad-local-offset', central + 42, '<I', 0xfffffffe), ('bad-local-header', local, '<I', 0), ('oversized-binary', central + 24, '<I', 268435457)]:
         modified = bytearray(original); struct.pack_into(fmt, modified, offset, value)
         write(arch, label, modified)
+    # Go uses central metadata; local fields other than signature and lengths are ignored.
+    for label, offset, fmt, value in [('local-name', local + 30, '<B', original[local + 30] ^ 1), ('local-method', local + 8, '<H', 99), ('local-flags', local + 6, '<H', 0xffff)]:
+        modified = bytearray(original); struct.pack_into(fmt, modified, offset, value)
+        write(arch, label, modified, True)
+    descriptor = local + 30 + sum(struct.unpack_from('<HH', original, local + 26)) + struct.unpack_from('<I', original, central + 20)[0]
+    assert original[descriptor:descriptor + 4] == b'PK\x07\x08'
+    modified = bytearray(original); modified[descriptor + 4] ^= 1
+    write(arch, 'descriptor-crc', modified)
+
+    # Put a stored notice and descriptor at true EOF inside the EOCD comment so
+    # short descriptors cannot accidentally read bytes from the next ZIP header.
+    notice_central = central
+    while True:
+        n, e, c = struct.unpack_from('<HHH', original, notice_central + 28)
+        notice_name = original[notice_central + 46:notice_central + 46 + n]
+        if notice_name.endswith(b'/LICENSE'): break
+        notice_central += 46 + n + e + c
+    notice_crc = zlib.crc32(b'x')
+    for label, signature, wide, descriptor_bytes, accept in [
+        ('descriptor-signed', True, False, None, True),
+        ('descriptor-unsigned', False, False, None, True),
+        ('descriptor-zip64-signed', True, True, None, True),
+        ('descriptor-zip64-unsigned', False, True, None, True),
+        ('descriptor-signed-short', True, False, 15, False),
+        ('descriptor-unsigned-short', False, False, 11, False),
+        ('descriptor-zip64-short-signed', True, True, 16, True),
+        ('descriptor-zip64-short-unsigned', False, True, 12, True),
+        ('descriptor-empty', False, False, 0, False),
+        ('descriptor-four-bytes', False, False, 4, False),
+        ('descriptor-unsigned-bad-crc', False, False, -1, False),
+        ('descriptor-zip64-bad-crc', True, True, -1, False),
+        ('descriptor-ignored-sizes', True, False, -2, True),
+        ('no-descriptor-zero-crc', False, False, -3, True),
+    ]:
+        checksum = notice_crc ^ (1 if descriptor_bytes == -1 else 0)
+        sizes = (0xffffffffffffffff, 0xffffffffffffffff) if wide else (0xffffffff, 0xffffffff)
+        frame = (b'PK\x07\x08' if signature else b'') + struct.pack('<I', checksum) + struct.pack('<QQ' if wide else '<II', *sizes)
+        if descriptor_bytes is not None and descriptor_bytes >= 0: frame = frame[:descriptor_bytes]
+        if descriptor_bytes == -3: frame = b''
+        flags = 0 if descriptor_bytes == -3 else 8
+        header = struct.pack('<IHHHHHIIIHH', 0x04034b50, 20, flags, 0, 0, 0, 0, 0, 0, len(notice_name), 0)
+        tail = header + notice_name + b'x' + frame
+        modified = bytearray(original)
+        struct.pack_into('<HH', modified, notice_central + 8, flags, 0)
+        struct.pack_into('<III', modified, notice_central + 16, 0 if descriptor_bytes == -3 else notice_crc, 1, 1)
+        struct.pack_into('<I', modified, notice_central + 42, len(original))
+        struct.pack_into('<H', modified, end + 20, len(tail))
+        write(arch, label, modified + tail, accept)
     write(arch, 'truncated', original[:-1])
     for label, extra_name in [('absolute', '/escape'), ('backslash', 'macos-' + arch + '\\LICENSE'), ('alias', f'macos-{arch}/./LICENSE')]:
         write(arch, label, pack(entries + [(extra_name, b'x', 0o100644)]))

@@ -89,14 +89,29 @@ enum AppleArchiveGate {
                 try require(size > 0 && size <= (name == parent + "bimeron" ? 268_435_456 : 4_194_304))
                 if name == parent + "bimeron" { try require(mode & 0o111 != 0) }
             }
-            try require(try b.number(local, 4) == 0x04034b50 && b.int(local + 8, 2) == method && b.int(local + 6, 2) == flags)
-            let localNameSize = try b.int(local + 26, 2), localExtra = try b.int(local + 28, 2)
-            try require(try b.slice(local + 30, localNameSize) == nameBytes)
-            let payload = try b.slice(local + 30 + localNameSize + localExtra, compressed)
-            let contents = try inflate(payload, size: size, method: method)
-            let actualCRC = contents.withUnsafeBytes { crc32(0, $0.bindMemory(to: Bytef.self).baseAddress, uInt(contents.count)) }
-            try require(UInt64(actualCRC) == crc)
-            if name == parent + "bimeron" { try binary(contents, architecture: architecture, revision: revision, version: version) }
+            // Core skips directory payloads. Local names/flags/methods never select paths or decoding.
+            if name != parent {
+                _ = try b.slice(local, 30)
+                try require(try b.number(local, 4) == 0x04034b50)
+                let localNameSize = try b.int(local + 26, 2), localExtra = try b.int(local + 28, 2)
+                let payloadOffset = local + 30 + localNameSize + localExtra
+                let payload = try b.slice(payloadOffset, compressed)
+                let contents = try inflate(payload, size: size, method: method)
+                let actualCRC = contents.withUnsafeBytes { crc32(0, $0.bindMemory(to: Bytef.self).baseAddress, uInt(contents.count)) }
+                if flags & 8 != 0 {
+                    // archive/zip.readDataDescriptor consumes 12 bytes, or 16 with signature.
+                    // Its size words are ignored, including ZIP64 descriptors; central sizes govern.
+                    let descriptor = payloadOffset + compressed
+                    let signed = try b.number(descriptor, 4) == 0x08074b50
+                    let crcOffset = descriptor + (signed ? 4 : 0)
+                    _ = try b.slice(crcOffset, 12)
+                    try require(try b.number(crcOffset, 4) == crc)
+                    try require(UInt64(actualCRC) == crc)
+                } else if crc != 0 {
+                    try require(UInt64(actualCRC) == crc)
+                }
+                if name == parent + "bimeron" { try binary(contents, architecture: architecture, revision: revision, version: version) }
+            }
             p += 46 + nameSize + extra + comment
             try require(p <= directoryEnd)
         }
