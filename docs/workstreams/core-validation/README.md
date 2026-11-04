@@ -59,3 +59,42 @@ These are regression tests of orchestration, not live Core validation evidence.
 SwiftUI dismissal and discard interactions are code-reviewed rather than driven
 by UI automation. The document bridge and runtime/service acceptance remain
 unimplemented and unverified.
+
+## Combined C and F integration evidence
+
+Integrated fetched main `5a008fe6848fb353f77a5b70a230b17871c96d7e`
+(C, PR #9) into F baseline `532e12f0d3199669a8c10b304c9ccc09b8e64da7`
+(PR #11) on 2026-11-04. The merge had no textual conflicts. All eight
+package targets remain: BimeronModel, BimeronDaemon, BimeronCoreCLI,
+BimeronApp, BimeronModelTests, BimeronDaemonTests, BimeronCoreCLITests and
+BimeronAppTests. The app explicitly depends on model, daemon lifecycle and
+CoreCLI modules.
+
+C has no AppModel/UI integration or executable resolver: its transport attaches
+to the fixed privileged daemon socket. F's AppModel continues to resolve one
+CoreCLI executable from `BIMERON_CORE_EXECUTABLE` or the bundled auxiliary
+executable for editor validation. There is no competing configured executable
+location to reconcile. Absent or unlaunchable Core explicitly blocks editor save;
+add, import and restore retain their existing local-validation scope. No new
+runtime wiring or architecture was introduced: privileged daemon/utun ownership
+remains with Core, with no Network Extension or unguarded/local-only fallback.
+
+Combined local checks (default fixture root; no fixture override):
+
+- `swift test`: passed, 15 XCTest tests and 58 Swift Testing tests (73 total),
+  zero failures. This includes all C lifecycle/client/protocol tests and F editor
+  save regression coverage.
+- `python3 fixtures/acceptance/check.py`: passed, 26 scenarios and 29 fixture
+  files; also rejected byte corruption, missing coverage and unsafe lifecycle
+  expectations. This is offline integrity evidence only.
+- `sh scripts/build-app.sh`: passed, release build completed in 8.89 seconds.
+- `test -x dist/Bimeron.app/Contents/MacOS/Bimeron`: passed.
+- `plutil -lint dist/Bimeron.app/Contents/Info.plist`: OK.
+- `git diff --check` and `git diff --cached --check`: passed.
+
+These checks do not establish live acceptance. CoreCLI shell-fake validation is
+not live Core acceptance; daemon tests use synthetic exchanges. No Core edits,
+installation, production socket access, live networking or runtime sessions were
+performed. Privileged peer authentication, utun/routes/DNS cleanup, protected
+installation/launchd, SwiftUI interaction automation and hosted CI remain
+unverified here. The document API remains deferred under the contract above.
