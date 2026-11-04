@@ -57,3 +57,18 @@ Proposed maintenance_status/shutdown/recover/release and durable cleanup result 
 Recommended next proposal, requiring separate approval: implement and review Core-side contracts first, with pure contract/fault tests and a specified committed-reboot reconciliation path, before any macOS privileged owner or installer adapter. Then review actual authorization/filesystem/service adapters and obtain separately authorized disposable-Mac acceptance. This report authorizes none of those steps. Delivery trust remains blocked pending the independent provenance/pin/candidate work; no weaker policy is substituted.
 
 No remote writes, push, issue/PR, CI, merge, release, installation, launchctl, real daemon startup, network, keys or system settings/service changes were performed. Paused owners were not contacted. No UI observations were collected; no product defect or live acceptance is claimed from the model findings.
+
+## Publication readiness
+
+The user subsequently authorized publication of completed bounded work. Integrated
+`origin/main` at `859f15b33e915be75506faf6409488da2936dccb` with a normal merge,
+preserving the original three S commits. Integration had no conflicts; the net
+PR diff contains only the three design/report documents and three offline model
+files. The 27 model tests and diff whitespace check passed again after integration.
+The prior independent review remains applicable because model code is unchanged.
+No production implementation or architecture expansion is included.
+
+Existing CI and runner allowlists are unchanged. The inherited workflow does not
+run the Python model suite; its local result above is separate from hosted CI.
+Hosted status must be reported from the PR, not inferred from these local checks.
+Publication authorization does not authorize merge, install, release or live tests.
