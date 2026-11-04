@@ -190,3 +190,9 @@
 "Profile changed; reopen it before saving" = "Профиль изменился; откройте его заново перед сохранением";
 
 "Core validates saved configurations. Live connections are not checked." = "Core проверяет сохраняемые конфигурации. Подключения не проверяются.";
+
+"Review diagnostics export" = "Проверка экспорта диагностики";
+"Only the preview below will be saved. Nothing is sent over the network." = "Будет сохранён только показанный ниже текст. Ничего не отправляется по сети.";
+"Include raw Core and user text" = "Включить исходный текст Core и пользователя";
+"Raw text may contain passwords, keys, links, paths, or other sensitive data. Review it before saving; no redaction is performed." = "Исходный текст может содержать пароли, ключи, ссылки, пути и другие конфиденциальные данные. Проверьте его перед сохранением: данные не скрываются.";
+"Save reviewed snapshot…" = "Сохранить проверенный снимок…";
