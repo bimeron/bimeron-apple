@@ -115,7 +115,6 @@ struct ProfilesView: View {
         .padding(.bottom, 18)
         .background(AppPalette.canvas(colorScheme))
         .focusable()
-        .focusEffectDisabled()
         .focused($keyboardFocused)
         .onAppear { keyboardFocused = true }
         .onKeyPress(keys: [.upArrow, .downArrow, .escape, .space]) { press in
@@ -179,6 +178,8 @@ struct ProfilesView: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
+            .accessibilityAddTraits(model.selectedID == profile.id ? .isSelected : [])
+            .help(profile.document.name)
             if model.selectedID == profile.id {
                 Button { edit(profile) } label: {
                     Image(systemName: "pencil")
