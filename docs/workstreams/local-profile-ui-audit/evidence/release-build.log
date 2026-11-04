@@ -1,0 +1,18 @@
+Building for production...
+[0/13] Copying menu-disconnected-44.png
+[0/13] Copying bimeron.icns
+[0/13] Copying Localizable.strings
+[0/13] Write sources
+[0/13] Copying Info.plist
+[0/13] Write sources
+[0/13] Copying Localizable.strings
+[1/13] Write sources
+[1/13] Copying blue-64.png
+[10/13] Write swift-version--58304C5D6DBC2206.txt
+[12/16] Compiling BimeronCoreCLI CLIBuildInfo.swift
+[13/16] Compiling BimeronDaemon DaemonClient.swift
+[14/16] Compiling BimeronModel AccessProtocol.swift
+[15/17] Compiling BimeronApp AboutView.swift
+[15/17] Write Objects.LinkFileList
+[16/17] Linking Bimeron
+Build complete! (28.04s)

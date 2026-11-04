@@ -1,0 +1,52 @@
+Another instance of SwiftPM is already running using '/Users/wrk/.t3/worktrees/bimeron-macos/test-local-profile-ui-audit/.build', waiting until that process has finished execution...[0/1] Planning build
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.27s)
+Test Suite 'Selected tests' started at 2026-11-04 17:59:49.995.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-04 17:59:49.996.
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-04 17:59:49.996.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-04 17:59:49.996.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite CoreCLITests started.
+◇ Test "B-VERSION-SUPPORTED: source-derived Core build schema" started.
+✔ Test "B-VERSION-SUPPORTED: source-derived Core build schema" passed after 0.315 seconds.
+◇ Test "B-VERSION-UNSUPPORTED: unknown version decodes; compatibility policy pending" started.
+✔ Test "B-VERSION-UNSUPPORTED: unknown version decodes; compatibility policy pending" passed after 0.229 seconds.
+◇ Test "B-CAPABILITIES-SUPPORTED: source-derived macOS declarations" started.
+✔ Test "B-CAPABILITIES-SUPPORTED: source-derived macOS declarations" passed after 0.284 seconds.
+◇ Test "B-CAPABILITIES-UNSUPPORTED: all false flags decode without changing config" started.
+✔ Test "B-CAPABILITIES-UNSUPPORTED: all false flags decode without changing config" passed after 0.227 seconds.
+◇ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields" started.
+◇ Passing 1 argument command → "version" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields"
+◇ Passing 1 argument command → "capabilities" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields"
+✔ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields" passed after 0.523 seconds.
+◇ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON" started.
+◇ Passing 1 argument command → "version" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON"
+◇ Passing 1 argument command → "capabilities" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON"
+✔ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON" passed after 0.527 seconds.
+◇ Test "B-VALIDATE-VALID" started.
+✔ Test "B-VALIDATE-VALID" passed after 0.301 seconds.
+◇ Test "B-NONZERO-STDERR" started.
+✔ Test "B-NONZERO-STDERR" passed after 0.232 seconds.
+◇ Test "B-VALIDATE-INVALID: exit one preserves editable input" started.
+✔ Test "B-VALIDATE-INVALID: exit one preserves editable input" passed after 0.283 seconds.
+◇ Test "B-MISSING" started.
+✔ Test "B-MISSING" passed after 0.006 seconds.
+◇ Test concurrentOutputIsDrainedAndBounded(limit:) started.
+◇ Passing 1 argument limit → 1024 to concurrentOutputIsDrainedAndBounded(limit:)
+◇ Passing 1 argument limit → 1048576 to concurrentOutputIsDrainedAndBounded(limit:)
+✔ Test concurrentOutputIsDrainedAndBounded(limit:) passed after 0.579 seconds.
+◇ Test "B-TRUNCATED" started.
+✔ Test "B-TRUNCATED" passed after 0.224 seconds.
+◇ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" started.
+◇ Passing 1 argument cancel → false to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+◇ Passing 1 argument cancel → true to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+✔ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" passed after 2.125 seconds.
+◇ Test "B-CANCEL" started.
+✔ Test "B-CANCEL" passed after 0.001 seconds.
+✔ Suite CoreCLITests passed after 5.863 seconds.
+✔ Test run with 14 tests passed after 5.863 seconds.

@@ -1,0 +1,238 @@
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.22s)
+Test Suite 'All tests' started at 2026-11-04 18:34:48.131.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-04 18:34:48.135.
+Test Suite 'DaemonClientTests' started at 2026-11-04 18:34:48.135.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testCancellationDoesNotBecomeStopped]' started.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testCancellationDoesNotBecomeStopped]' passed (0.001 seconds).
+Test Case '-[BimeronDaemonTests.DaemonClientTests testInvalidationDiscardsLateSuccessfulResponse]' started.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testInvalidationDiscardsLateSuccessfulResponse]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonClientTests testTimeoutCoalescesClicksAndRequiresExplicitReconciliation]' started.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testTimeoutCoalescesClicksAndRequiresExplicitReconciliation]' passed (0.000 seconds).
+Test Suite 'DaemonClientTests' passed at 2026-11-04 18:34:48.137.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'DaemonLifecycleTests' started at 2026-11-04 18:34:48.137.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAcceptedConnectingCanStopButUnidentifiedStartCannot]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAcceptedConnectingCanStopButUnidentifiedStartCannot]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptionUnknownProfileFailedStopAndOldDaemon]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptionUnknownProfileFailedStopAndOldDaemon]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptsCoreStatesAndStopsKnownActiveSessions]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptsCoreStatesAndStopsKnownActiveSessions]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCleanupRequiresDisconnectedAndInactive]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCleanupRequiresDisconnectedAndInactive]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCoreGuardRejectionsNeverRetryOrResumeSwitch]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCoreGuardRejectionsNeverRetryOrResumeSwitch]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testFailedStopAllowsExplicitRecoveryWithoutResumingReplacement]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testFailedStopAllowsExplicitRecoveryWithoutResumingReplacement]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testPendingClicksRestartAndAmbiguousTimeoutNeverRetry]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testPendingClicksRestartAndAmbiguousTimeoutNeverRetry]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSharedAcceptanceScriptsAtEveryBoundary]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSharedAcceptanceScriptsAtEveryBoundary]' passed (0.001 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testStopRequiresConfirmedActiveSessionIdentity]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testStopRequiresConfirmedActiveSessionIdentity]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSwitchWaitsForConfirmedCleanupAcrossCoreStates]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSwitchWaitsForConfirmedCleanupAcrossCoreStates]' passed (0.000 seconds).
+Test Suite 'DaemonLifecycleTests' passed at 2026-11-04 18:34:48.141.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'DaemonProtocolTests' started at 2026-11-04 18:34:48.141.
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testGuardHandshakeCannotDowngradeOrCrossInstances]' started.
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testGuardHandshakeCannotDowngradeOrCrossInstances]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testRejectsMalformedMaliciousOversizedAndMismatchedResponses]' started.
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testRejectsMalformedMaliciousOversizedAndMismatchedResponses]' passed (0.001 seconds).
+Test Suite 'DaemonProtocolTests' passed at 2026-11-04 18:34:48.142.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-04 18:34:48.142.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.007 (0.007) seconds
+Test Suite 'All tests' passed at 2026-11-04 18:34:48.142.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.007 (0.011) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test importResolvesRelativeFileWithoutTouchingOriginal() started.
+◇ Test preservationEmptyShadowTLSRemovalRetainsOriginalComments() started.
+◇ Test preservationNoOpRetainsEveryByte() started.
+◇ Test preservationRulesKeepQuotesCommentsAndBoundaries() started.
+◇ Suite CoreCLITests started.
+◇ Test removingOptionalFieldsAndShadowTLSKeepsSurroundingConfig() started.
+◇ Test preservationLibraryNoOpAfterExplicitImportTransformation() started.
+◇ Test rejectBadDNSAndOversizedConfig() started.
+◇ Test cancellationAfterEditorCommitPreservesSuccessAndReload() started.
+◇ Test incompatibleExplicitOptionsRetainDraftAndOfferFeedback() started.
+◇ Test orderFailureAfterCommitReturnsCreatedProfileAndWarning() started.
+◇ Test preservationDisabledEmptyAssignmentsAreOmittedAndIncompatibleDraftRetained() started.
+◇ Test profileOrderSurvivesReloadAndRestore() started.
+◇ Test preservationLibraryReopensDisabledDraftAndProtectsDuplicateSections() started.
+◇ Test editorVariantsKeepIndependentDrafts() started.
+◇ Test profileRoundTripAndPrivateStorage() started.
+◇ Test validatorRewritingStagedBytesKeepsOriginalAndCleansUp() started.
+◇ Test sshFilePathsAcceptTypedAndPastedLocations() started.
+◇ Test mixedSourcesWrongSchemesAndUnsupportedExplicitTypesAreRejected() started.
+◇ Test shadowTLSGateAndDisabledDraftRestoreExactBytes() started.
+◇ Test generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() started.
+◇ Test cancellationImmediatelyBeforeCommitKeepsOriginal() started.
+◇ Test generatedURIContractsEscapeCredentialsAndIPv6() started.
+◇ Test addingSSHProfilePersistsOnlyTheOptionalFilePaths() started.
+◇ Test rawFieldsAndRuleOrderSurviveFormChange() started.
+◇ Test generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() started.
+◇ Test addDialogAcceptsCurrentCoreSchemesIncludingTrojan() started.
+◇ Test vlessInspectionAndUnrelatedEditPreserveOpaqueURI() started.
+◇ Test sshDefaultsSuggestOnlyExistingFiles() started.
+◇ Test preservationPointEditKeepsMixedEndingsAndUnknownContent() started.
+◇ Test editorCreationRequiresActualCLIAndRetainsDraftOnFailure() started.
+◇ Test stagedReadFailureKeepsOriginalAndCleansUp() started.
+◇ Test languageSelectionAndPersistence() started.
+◇ Test rawEditorTracksDisabledEnvironmentWithoutChangingTextOrSelection() started.
+◇ Test generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() started.
+◇ Test preservationFieldInsertionStaysOutsideDisabledDraft() started.
+◇ Test unifiedAddImportsQuotedFileAndAddsQuotedURIWithLocalChecks() started.
+◇ Test preservationAmbiguityLoadsInProtectedRaw() started.
+◇ Test protocolFieldMetadataMasksPluginOptionsAndNamesGeneratedFields() started.
+◇ Test generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() started.
+◇ Test legacyProfilesKeepAlphabeticalOrderOnFirstAdd() started.
+◇ Test concurrentEditorReplacementRejectsStaleOriginal() started.
+◇ Test preservationPartialDisabledDraftCanBeEditedAndCleared() started.
+✘ Test offlineCoreAcceptsCreationVariant(_:) skipped: "Set BIMERON_CORE_EXECUTABLE to an absolute offline Core CLI path"
+◇ Test localUIAuditRendering() started.
+◇ Test preservationAcceptanceByteFixture(_:) started.
+◇ Test editorSaveUsesProtectedExactBytesAndPreservesFailures() started.
+◇ Test inactiveDraftEditsSurviveReturningToInitialProtocol() started.
+◇ Test editorCreationValidatesProtectedExactBytesAndCommits() started.
+◇ Test translationResourcesResolve() started.
+◇ Test preservationOptionalClearingAndRequiredFieldValidation() started.
+◇ Test failedImportLeavesNoProfile() started.
+◇ Test noPersistedChangeBeforeUpdate() started.
+◇ Test selectingProxyModeRemovesIncompatibleVPNOptions() started.
+◇ Test accessLinksSurviveCreationEditingAndReload() started.
+◇ Test restoredProfileReturnsToOriginalPosition() started.
+◇ Test preservationShadowTLSRoundTripKeepsSecretsAndComments() started.
+◇ Test importedSSHAndMASQUEKeepFileReferencesAfterRelocation() started.
+◇ Test validatedCreationAppendsToVisibleOrder() started.
+◇ Test profilesKeepCreationOrderAfterRename() started.
+◇ Test tcpVLESSAllowsFalseGRPCMultiMode() started.
+◇ Test currentCoreExamplesImportWithoutLosingFields() started.
+◇ Test editorCreationFailureLeavesNoPartialProfile(_:) started.
+◇ Test preservationOmittedDefaultsAndDecodedRuleNoOp() started.
+◇ Test dynamicShadowsocksIsDistinguishedFromStatic() started.
+◇ Test fileBackedNewProtocolsImportWithoutChangingKeyFiles() started.
+◇ Test unifiedInputNormalizesOnlyMatchingQuotes() started.
+◇ Test generatedValuesValidateNamesAndEncodedLinks() started.
+◇ Passing 1 argument scenarioID → "A-BOM-CRLF-EDIT" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-BOM-CRLF-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-UNKNOWN-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-UNKNOWN-EDIT" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-AMBIGUOUS-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-AMBIGUOUS-RAW" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-DISABLED-SHADOWTLS-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-DISABLED-SHADOWTLS-EDIT" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument mode → "reject" to editorCreationFailureLeavesNoPartialProfile(_:)
+◇ Passing 1 argument mode → "tamper" to editorCreationFailureLeavesNoPartialProfile(_:)
+◇ Passing 1 argument mode → "cancel" to editorCreationFailureLeavesNoPartialProfile(_:)
+◇ Test "B-VERSION-SUPPORTED: source-derived Core build schema" started.
+✔ Test preservationNoOpRetainsEveryByte() passed after 0.058 seconds.
+✔ Test preservationRulesKeepQuotesCommentsAndBoundaries() passed after 0.058 seconds.
+✔ Test rejectBadDNSAndOversizedConfig() passed after 0.058 seconds.
+✔ Test incompatibleExplicitOptionsRetainDraftAndOfferFeedback() passed after 0.058 seconds.
+✔ Test preservationEmptyShadowTLSRemovalRetainsOriginalComments() passed after 0.058 seconds.
+✔ Test removingOptionalFieldsAndShadowTLSKeepsSurroundingConfig() passed after 0.058 seconds.
+✔ Test preservationDisabledEmptyAssignmentsAreOmittedAndIncompatibleDraftRetained() passed after 0.058 seconds.
+✔ Test editorVariantsKeepIndependentDrafts() passed after 0.058 seconds.
+✔ Test orderFailureAfterCommitReturnsCreatedProfileAndWarning() passed after 0.060 seconds.
+✔ Test importResolvesRelativeFileWithoutTouchingOriginal() passed after 0.061 seconds.
+✔ Test validatorRewritingStagedBytesKeepsOriginalAndCleansUp() passed after 0.060 seconds.
+✔ Test mixedSourcesWrongSchemesAndUnsupportedExplicitTypesAreRejected() passed after 0.060 seconds.
+✔ Test generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() passed after 0.062 seconds.
+✔ Test preservationPointEditKeepsMixedEndingsAndUnknownContent() passed after 0.062 seconds.
+✔ Test shadowTLSGateAndDisabledDraftRestoreExactBytes() passed after 0.062 seconds.
+✔ Test rawFieldsAndRuleOrderSurviveFormChange() passed after 0.062 seconds.
+✔ Test generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() passed after 0.062 seconds.
+✔ Test preservationFieldInsertionStaysOutsideDisabledDraft() passed after 0.062 seconds.
+✔ Test preservationLibraryNoOpAfterExplicitImportTransformation() passed after 0.063 seconds.
+✔ Test stagedReadFailureKeepsOriginalAndCleansUp() passed after 0.062 seconds.
+✔ Test generatedURIContractsEscapeCredentialsAndIPv6() passed after 0.062 seconds.
+✔ Test preservationAmbiguityLoadsInProtectedRaw() passed after 0.062 seconds.
+✔ Test protocolFieldMetadataMasksPluginOptionsAndNamesGeneratedFields() passed after 0.062 seconds.
+✔ Test generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() passed after 0.062 seconds.
+✔ Test preservationLibraryReopensDisabledDraftAndProtectsDuplicateSections() passed after 0.062 seconds.
+✔ Test vlessInspectionAndUnrelatedEditPreserveOpaqueURI() passed after 0.062 seconds.
+✔ Test profileOrderSurvivesReloadAndRestore() passed after 0.063 seconds.
+✔ Test profileRoundTripAndPrivateStorage() passed after 0.063 seconds.
+✔ Test preservationPartialDisabledDraftCanBeEditedAndCleared() passed after 0.062 seconds.
+✔ Test preservationAcceptanceByteFixture(_:) passed after 0.062 seconds.
+✔ Test generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() passed after 0.062 seconds.
+✔ Test concurrentEditorReplacementRejectsStaleOriginal() passed after 0.062 seconds.
+✔ Test translationResourcesResolve() passed after 0.062 seconds.
+✔ Test inactiveDraftEditsSurviveReturningToInitialProtocol() passed after 0.062 seconds.
+✔ Test preservationOptionalClearingAndRequiredFieldValidation() passed after 0.062 seconds.
+✔ Test failedImportLeavesNoProfile() passed after 0.062 seconds.
+✔ Test editorCreationValidatesProtectedExactBytesAndCommits() passed after 0.062 seconds.
+✔ Test legacyProfilesKeepAlphabeticalOrderOnFirstAdd() passed after 0.063 seconds.
+✔ Test noPersistedChangeBeforeUpdate() passed after 0.062 seconds.
+✔ Test selectingProxyModeRemovesIncompatibleVPNOptions() passed after 0.062 seconds.
+✔ Test preservationShadowTLSRoundTripKeepsSecretsAndComments() passed after 0.062 seconds.
+✔ Test tcpVLESSAllowsFalseGRPCMultiMode() passed after 0.063 seconds.
+✔ Test preservationOmittedDefaultsAndDecodedRuleNoOp() passed after 0.063 seconds.
+✔ Test dynamicShadowsocksIsDistinguishedFromStatic() passed after 0.063 seconds.
+✔ Test generatedValuesValidateNamesAndEncodedLinks() passed after 0.064 seconds.
+✔ Test unifiedInputNormalizesOnlyMatchingQuotes() passed after 0.064 seconds.
+✔ Test importedSSHAndMASQUEKeepFileReferencesAfterRelocation() passed after 0.064 seconds.
+✔ Test profilesKeepCreationOrderAfterRename() passed after 0.064 seconds.
+✔ Test sshFilePathsAcceptTypedAndPastedLocations() passed after 0.065 seconds.
+✔ Test addDialogAcceptsCurrentCoreSchemesIncludingTrojan() passed after 0.065 seconds.
+✔ Test validatedCreationAppendsToVisibleOrder() passed after 0.065 seconds.
+✔ Test sshDefaultsSuggestOnlyExistingFiles() passed after 0.065 seconds.
+✔ Test restoredProfileReturnsToOriginalPosition() passed after 0.065 seconds.
+✔ Test editorCreationFailureLeavesNoPartialProfile(_:) passed after 0.066 seconds.
+✔ Test cancellationImmediatelyBeforeCommitKeepsOriginal() passed after 0.067 seconds.
+✔ Test cancellationAfterEditorCommitPreservesSuccessAndReload() passed after 0.068 seconds.
+✔ Test fileBackedNewProtocolsImportWithoutChangingKeyFiles() passed after 0.121 seconds.
+✔ Test languageSelectionAndPersistence() passed after 0.174 seconds.
+✔ Test accessLinksSurviveCreationEditingAndReload() passed after 0.183 seconds.
+✔ Test currentCoreExamplesImportWithoutLosingFields() passed after 0.227 seconds.
+✔ Test "B-VERSION-SUPPORTED: source-derived Core build schema" passed after 0.249 seconds.
+◇ Test "B-VERSION-UNSUPPORTED: unknown version decodes; compatibility policy pending" started.
+✔ Test "B-VERSION-UNSUPPORTED: unknown version decodes; compatibility policy pending" passed after 0.433 seconds.
+◇ Test "B-CAPABILITIES-SUPPORTED: source-derived macOS declarations" started.
+✔ Test "B-CAPABILITIES-SUPPORTED: source-derived macOS declarations" passed after 0.221 seconds.
+◇ Test "B-CAPABILITIES-UNSUPPORTED: all false flags decode without changing config" started.
+✔ Test "B-CAPABILITIES-UNSUPPORTED: all false flags decode without changing config" passed after 0.278 seconds.
+◇ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields" started.
+◇ Passing 1 argument command → "version" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields"
+◇ Passing 1 argument command → "capabilities" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields"
+✔ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields" passed after 0.528 seconds.
+◇ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON" started.
+◇ Passing 1 argument command → "version" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON"
+◇ Passing 1 argument command → "capabilities" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON"
+✔ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON" passed after 0.528 seconds.
+◇ Test "B-VALIDATE-VALID" started.
+✔ Test "B-VALIDATE-VALID" passed after 0.228 seconds.
+◇ Test "B-NONZERO-STDERR" started.
+✔ Test "B-NONZERO-STDERR" passed after 0.752 seconds.
+◇ Test "B-VALIDATE-INVALID: exit one preserves editable input" started.
+✔ Test "B-VALIDATE-INVALID: exit one preserves editable input" passed after 0.225 seconds.
+◇ Test "B-MISSING" started.
+✔ Test "B-MISSING" passed after 0.002 seconds.
+◇ Test concurrentOutputIsDrainedAndBounded(limit:) started.
+◇ Passing 1 argument limit → 1024 to concurrentOutputIsDrainedAndBounded(limit:)
+◇ Passing 1 argument limit → 1048576 to concurrentOutputIsDrainedAndBounded(limit:)
+✔ Test concurrentOutputIsDrainedAndBounded(limit:) passed after 0.601 seconds.
+◇ Test "B-TRUNCATED" started.
+✔ Test localUIAuditRendering() passed after 4.156 seconds.
+✔ Test "B-TRUNCATED" passed after 0.283 seconds.
+◇ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" started.
+◇ Passing 1 argument cancel → false to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+✔ Test unifiedAddImportsQuotedFileAndAddsQuotedURIWithLocalChecks() passed after 4.428 seconds.
+✔ Test addingSSHProfilePersistsOnlyTheOptionalFilePaths() passed after 4.436 seconds.
+✔ Test rawEditorTracksDisabledEnvironmentWithoutChangingTextOrSelection() passed after 4.573 seconds.
+✔ Test editorCreationRequiresActualCLIAndRetainsDraftOnFailure() passed after 4.997 seconds.
+TRACE: elapsed=1.005646667 seconds, running=true, pid=69726, bytes=12, started=true
+✔ Test editorSaveUsesProtectedExactBytesAndPreservesFailures() passed after 5.412 seconds.
+EXPERIMENT: cancel=false, started="69726\n", ready=true, output="69726\nready\n"
+◇ Passing 1 argument cancel → true to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+TRACE: elapsed=0.703795375 seconds, running=true, pid=69745, bytes=12, started=true
+EXPERIMENT: cancel=true, started="69745\n", ready=true, output="69745\nready\n"
+✔ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" passed after 2.129 seconds.
+◇ Test "B-CANCEL" started.
+✔ Test "B-CANCEL" passed after 0.001 seconds.
+✔ Suite CoreCLITests passed after 6.523 seconds.
+✔ Test run with 81 tests passed after 6.523 seconds.
