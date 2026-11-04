@@ -7,6 +7,8 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [.executable(name: "Bimeron", targets: ["BimeronApp"])],
     targets: [
+        .target(name: "BimeronGeoData"),
+        .testTarget(name: "BimeronGeoDataTests", dependencies: ["BimeronGeoData"]),
         .target(name: "BimeronModel"),
         .target(name: "BimeronSSHAuth"),
         .testTarget(name: "BimeronSSHAuthTests", dependencies: ["BimeronSSHAuth"]),
