@@ -1,0 +1,97 @@
+import CryptoKit
+import Foundation
+import XCTest
+@testable import BimeronCoreCLI
+
+final class AppleCoreReleaseTests: XCTestCase {
+    private let key = Curve25519.Signing.PrivateKey()
+    private let archive = Data("synthetic archive".utf8)
+    private let revision = String(repeating: "a", count: 40)
+
+    private func fixture() -> [String: Any] {
+        let hash = SHA256.hash(data: archive).map { String(format: "%02x", $0) }.joined()
+        let id = SHA256.hash(data: key.publicKey.rawRepresentation).map { String(format: "%02x", $0) }.joined()
+        return ["schema": 1, "product": "bimeron-apple-core", "tag": "v1.2.3-rc.1", "core_version": "1.2.3-rc.1",
+                "channel": "candidate", "source_revision": revision, "key_id": String(id.prefix(8)),
+                "compatibility": ["schema": 1, "app_min": "0.1.0", "app_max_exclusive": "0.1.1", "apple_reviewed": true,
+                                  "ipc_min": 1, "ipc_max": 1, "profile_format": 1, "daemon_session_guards": true],
+                "archives": ["amd64", "arm64"].map { ["os": "macos", "arch": $0, "name": "bimeron-v1.2.3-rc.1-macos-\($0).zip", "size": archive.count, "sha256": hash] as [String: Any] }]
+    }
+    private func bytes(_ object: [String: Any]) throws -> Data {
+        var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        data.append(10)
+        return data
+    }
+    private func verify(_ data: Data, publicKey: Data? = nil, approval: AppleCoreReleaseApproval? = nil,
+                        app: String = "0.1.0", signature: Data? = nil) throws -> AppleCoreReleaseManifest {
+        let sig = try signature ?? Data((key.signature(for: data).base64EncodedString() + "\n").utf8)
+        return try AppleCoreRelease.verifyManifest(data, signature: sig, trustedPublicKey: publicKey ?? key.publicKey.rawRepresentation,
+            approval: approval ?? AppleCoreReleaseApproval(tag: "v1.2.3-rc.1", sourceRevision: revision),
+            appVersion: app, channel: "candidate", architecture: "arm64")
+    }
+    func testReviewedApprovedArchive() throws {
+        let manifest = try verify(bytes(fixture()))
+        XCTAssertEqual(manifest.archiveName, "bimeron-v1.2.3-rc.1-macos-arm64.zip")
+        XCTAssertEqual(try AppleCoreRelease.verifyArchive(archive, manifest: manifest).data, archive)
+        XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(Data("wrong".utf8), manifest: manifest))
+        XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(Data(repeating: 0, count: archive.count), manifest: manifest))
+    }
+    func testTrustAndApproval() throws {
+        let data = try bytes(fixture())
+        XCTAssertThrowsError(try verify(data, publicKey: Curve25519.Signing.PrivateKey().publicKey.rawRepresentation))
+        XCTAssertThrowsError(try verify(data, signature: Data(repeating: 65, count: 89)))
+        XCTAssertThrowsError(try verify(data, approval: .init(tag: "v1.2.4", sourceRevision: revision)))
+        XCTAssertThrowsError(try verify(data, approval: .init(tag: "v1.2.3-rc.1", sourceRevision: String(repeating: "b", count: 40))))
+        for app in ["0.0.9", "0.1.1", "0.1.0-rc.1", "00.1.0"] { XCTAssertThrowsError(try verify(data, app: app)) }
+    }
+    func testRejectedFields() throws {
+        for (field, value) in [("key_id", "00000000"), ("source_revision", String(repeating: "a", count: 40) + "\n"), ("tag", "v9.0.0"), ("source_revision", "abc"),
+                               ("core_version", "01.2.3"), ("core_version", "1.2.3-01"), ("product", "other"),
+                               ("channel", "other"), ("unknown", "extra")] {
+            var object = fixture(); object[field] = value
+            XCTAssertThrowsError(try verify(bytes(object)), field)
+        }
+        for (field, value) in [("apple_reviewed", false as Any), ("daemon_session_guards", false), ("schema", 2),
+                               ("ipc_min", 0), ("ipc_max", 2), ("profile_format", 2), ("app_min", "0.1.1"),
+                               ("app_max_exclusive", "0.1.0"), ("unknown", 1)] {
+            var object = fixture(); var c = object["compatibility"] as! [String: Any]; c[field] = value; object["compatibility"] = c
+            XCTAssertThrowsError(try verify(bytes(object)), field)
+        }
+        var missing = fixture(); missing.removeValue(forKey: "schema")
+        XCTAssertThrowsError(try verify(bytes(missing)))
+    }
+    func testArchiveContract() throws {
+        for (field, value) in [("size", 0 as Any), ("size", 268_435_457), ("sha256", "ABC"), ("arch", "x86_64"),
+                               ("os", "linux"), ("name", "../bad.zip"), ("unknown", 1)] {
+            var object = fixture(); var archives = object["archives"] as! [[String: Any]]; archives[0][field] = value; object["archives"] = archives
+            XCTAssertThrowsError(try verify(bytes(object)), field)
+        }
+        var object = fixture(); let archives = object["archives"] as! [[String: Any]]
+        object["archives"] = [archives[0], archives[0]]
+        XCTAssertThrowsError(try verify(bytes(object)))
+        object["archives"] = [archives[0]]
+        XCTAssertThrowsError(try verify(bytes(object)))
+    }
+    func testFramingDuplicatesAndBounds() throws {
+        let data = try bytes(fixture())
+        let text = String(decoding: data, as: UTF8.self)
+        for prefix in ["\"schema\":1,", "\"sch\\u0065ma\":1,", "\"SCHEMA\":1,"] {
+            XCTAssertThrowsError(try verify(Data(("{" + prefix + text.dropFirst()).utf8)))
+        }
+        for malformed in [Data(data.dropLast()), data + Data([10]), data + Data("{}\n".utf8),
+                          Data(data.dropLast(2)) + Data(" \n".utf8), Data([0xff, 125, 10]),
+                          Data(repeating: 32, count: 65_537)] {
+            XCTAssertThrowsError(try verify(malformed))
+        }
+        let nestedDuplicate = text.replacingOccurrences(of: "\"ipc_min\":1", with: "\"ipc_min\":1,\"ipc_\\u006din\":1")
+        XCTAssertThrowsError(try verify(Data(nestedDuplicate.utf8)))
+        let originalSignature = Data((try key.signature(for: data).base64EncodedString() + "\n").utf8)
+        XCTAssertThrowsError(try verify(Data([32]) + data, signature: originalSignature))
+        let padded = Data(repeating: 32, count: 65_536 - data.count) + data
+        XCTAssertNoThrow(try verify(padded))
+        XCTAssertThrowsError(try verify(Data([32]) + padded))
+        var object = fixture(); var archives = object["archives"] as! [[String: Any]]
+        archives[0]["size"] = 268_435_456; object["archives"] = archives
+        XCTAssertNoThrow(try verify(bytes(object)))
+    }
+}
