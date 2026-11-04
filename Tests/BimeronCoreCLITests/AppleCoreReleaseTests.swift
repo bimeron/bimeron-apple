@@ -49,7 +49,8 @@ final class AppleCoreReleaseTests: XCTestCase {
     func testReviewedApprovedArchive() throws {
         let manifest = try verify(bytes(fixture()))
         XCTAssertEqual(manifest.archiveName, "bimeron-v1.2.3-rc.1-macos-arm64.zip")
-        XCTAssertEqual(try AppleCoreRelease.verifyArchive(archive, manifest: manifest).data, archive)
+        // Hash-authenticated arbitrary bytes still fail the new packaging gate.
+        XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(archive, manifest: manifest))
         XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(Data("wrong".utf8), manifest: manifest))
         XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(Data(repeating: 0, count: archive.count), manifest: manifest))
     }
@@ -76,6 +77,29 @@ final class AppleCoreReleaseTests: XCTestCase {
         }
         var missing = fixture(); missing.removeValue(forKey: "schema")
         XCTAssertThrowsError(try verify(bytes(missing)))
+    }
+    func testDecimalVersionBounds() throws {
+        var object = fixture()
+        var compatibility = object["compatibility"] as! [String: Any]
+        compatibility["app_min"] = "2.0.0"
+        compatibility["app_max_exclusive"] = "10.0.0"
+        object["compatibility"] = compatibility
+        XCTAssertNoThrow(try verify(bytes(object), app: "9.0.0"))
+        XCTAssertThrowsError(try verify(bytes(object), app: "10.0.0"))
+        compatibility["app_min"] = "18446744073709551614.0.0"
+        compatibility["app_max_exclusive"] = "18446744073709551615.0.0"
+        object["compatibility"] = compatibility
+        XCTAssertNoThrow(try verify(bytes(object), app: "18446744073709551614.0.0"))
+        compatibility["app_max_exclusive"] = "18446744073709551616.0.0"
+        object["compatibility"] = compatibility
+        XCTAssertThrowsError(try verify(bytes(object), app: "18446744073709551614.0.0"))
+        object = fixture()
+        object["core_version"] = "18446744073709551616.0.0-rc.1"
+        object["tag"] = "v18446744073709551616.0.0-rc.1"
+        var archives = object["archives"] as! [[String: Any]]
+        for i in archives.indices { archives[i]["name"] = "bimeron-v18446744073709551616.0.0-rc.1-macos-\(archives[i]["arch"]!).zip" }
+        object["archives"] = archives
+        XCTAssertNoThrow(try verify(bytes(object), approval: .init(tag: "v18446744073709551616.0.0-rc.1", sourceRevision: revision)))
     }
     func testArchiveContract() throws {
         for (field, value) in [("size", 0 as Any), ("size", 268_435_457), ("sha256", "ABC"), ("arch", "x86_64"),

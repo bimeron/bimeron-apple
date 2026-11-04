@@ -16,19 +16,23 @@ public struct AppleCoreReleaseApproval: Sendable {
 public struct AppleCoreReleaseManifest: Sendable {
     public let tag: String
     public let sourceRevision: String
+    public let coreVersion: String
+    public let architecture: String
     public let archiveName: String
     public let archiveSize: Int64
     public let archiveSHA256: String
     fileprivate init(_ manifest: Manifest, _ archive: Manifest.Archive) {
         tag = manifest.tag
         sourceRevision = manifest.source_revision
+        coreVersion = manifest.core_version
+        architecture = archive.arch
         archiveName = archive.name
         archiveSize = archive.size
         archiveSHA256 = archive.sha256
     }
 }
 
-/// Confirms complete archive bytes only; extraction safety and runtime readiness are separate gates.
+/// Authenticates archive bytes, packaging and static provenance; extraction and readiness remain separate gates.
 public struct AppleCoreReleaseVerifiedArchive: Sendable {
     public let manifest: AppleCoreReleaseManifest
     public let data: Data
@@ -73,8 +77,8 @@ public enum AppleCoreRelease {
               c.schema == 1, c.ipc_min == 1, c.ipc_max == 1, c.profile_format == 1,
               c.daemon_session_guards,
               let minimum = triplet(c.app_min), let maximum = triplet(c.app_max_exclusive),
-              let current = triplet(appVersion), minimum.lexicographicallyPrecedes(maximum),
-              !current.lexicographicallyPrecedes(minimum), current.lexicographicallyPrecedes(maximum)
+              let current = triplet(appVersion), minimum.lexicographicallyPrecedes(maximum, by: decimalLess),
+              !current.lexicographicallyPrecedes(minimum, by: decimalLess), current.lexicographicallyPrecedes(maximum, by: decimalLess)
         else { throw AppleCoreReleaseError.invalidManifest }
         guard c.apple_reviewed, approval.tag == manifest.tag,
               approval.sourceRevision == manifest.source_revision else { throw AppleCoreReleaseError.unapproved }
@@ -92,6 +96,7 @@ public enum AppleCoreRelease {
     public static func verifyArchive(_ data: Data, manifest: AppleCoreReleaseManifest) throws -> AppleCoreReleaseVerifiedArchive {
         guard data.count <= archiveLimit, Int64(data.count) == manifest.archiveSize,
               hex(SHA256.hash(data: data)) == manifest.archiveSHA256 else { throw AppleCoreReleaseError.invalidArchive }
+        try AppleArchiveGate.check(data, architecture: manifest.architecture, revision: manifest.sourceRevision, version: manifest.coreVersion)
         return AppleCoreReleaseVerifiedArchive(manifest: manifest, data: data)
     }
 
@@ -101,15 +106,20 @@ public enum AppleCoreRelease {
     private static func matches(_ value: String, _ pattern: String) -> Bool {
         value.range(of: pattern, options: .regularExpression) == value.startIndex..<value.endIndex
     }
-    private static func triplet(_ value: String) -> [UInt64]? {
-        guard value.utf8.count <= 128, matches(value, "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$") else { return nil }
-        let numbers = value.split(separator: ".").compactMap { UInt64($0) }
-        return numbers.count == 3 ? numbers : nil
+    private static func decimalLess(_ lhs: String, _ rhs: String) -> Bool {
+        lhs.count == rhs.count ? lhs < rhs : lhs.count < rhs.count
     }
-    private static func validCoreVersion(_ value: String) -> Bool {
+    private static func triplet(_ value: String) -> [String]? {
+        guard value.utf8.count <= 128, matches(value, "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$") else { return nil }
+        let parts = value.split(separator: ".").map(String.init)
+        let maximum = "18446744073709551615"
+        guard parts.allSatisfy({ $0.count < maximum.count || ($0.count == maximum.count && $0 <= maximum) }) else { return nil }
+        return parts
+    }
+    static func validCoreVersion(_ value: String) -> Bool {
         guard value.utf8.count <= 128 else { return false }
         let parts = value.split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
-        guard triplet(String(parts[0])) != nil else { return false }
+        guard matches(String(parts[0]), "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$") else { return false }
         guard parts.count == 2 else { return true }
         return parts[1].split(separator: ".", omittingEmptySubsequences: false).allSatisfy {
             let identifier = String($0)
