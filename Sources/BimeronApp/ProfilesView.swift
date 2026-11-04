@@ -100,8 +100,7 @@ struct ProfilesView: View {
                         .background(Color.accentColor.opacity(0.55), in: RoundedRectangle(cornerRadius: 9))
                 }
                     .buttonStyle(.plain)
-                    .allowsHitTesting(false)
-                    .keyboardShortcut(.return, modifiers: [])
+                    .disabled(true)
                     .help(model.t("VPN connection will be added in the next stage"))
             }
             .frame(maxWidth: .infinity)
