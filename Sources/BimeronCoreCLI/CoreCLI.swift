@@ -6,6 +6,8 @@ public struct CoreCLI: Sendable {
     public let timeout: Duration
     public let outputLimit: Int
 
+    private var argumentPrefix: [String] = []
+
     internal var observer: (@Sendable (Observation) -> Void)?
 
     // Observation times include synchronous collector delay; exitObserved is not the true exit time.
@@ -20,6 +22,11 @@ public struct CoreCLI: Sendable {
     internal init(executableURL: URL, timeout: Duration, observer: @escaping @Sendable (Observation) -> Void) {
         self.init(executableURL: executableURL, timeout: timeout)
         self.observer = observer
+    }
+
+    internal init(testShellScript: URL, timeout: Duration) {
+        self.init(executableURL: URL(fileURLWithPath: "/bin/sh"), timeout: timeout)
+        argumentPrefix = [testShellScript.path]
     }
 
     public init(executableURL: URL, timeout: Duration = .seconds(10), outputLimit: Int = 1_048_576) {
@@ -61,7 +68,7 @@ public struct CoreCLI: Sendable {
         let stdout = Pipe()
         let stderr = Pipe()
         process.executableURL = executableURL
-        process.arguments = arguments
+        process.arguments = argumentPrefix + arguments
         process.standardInput = FileHandle.nullDevice
         process.standardOutput = stdout
         process.standardError = stderr

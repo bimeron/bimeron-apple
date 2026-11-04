@@ -21,7 +21,7 @@ import BimeronModel
     func cli(_ body: String, timeout: Duration = .seconds(2)) throws -> CoreCLI {
         try Data(("#!/bin/sh\n" + body).utf8).write(to: executable)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
-        return CoreCLI(executableURL: executable, timeout: timeout)
+        return CoreCLI(testShellScript: executable, timeout: timeout)
     }
     let suite = "EditorSaveTests-" + UUID().uuidString
     let defaults = try #require(UserDefaults(suiteName: suite))
@@ -177,4 +177,68 @@ import BimeronModel
     #expect(try Data(contentsOf: destination) == originalBytes)
     #expect(try await library.load().profiles == [original])
     #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).sorted() == originalEntries)
+}
+
+@Test func editorShellFixturePreservesLiteralArguments() async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let script = root.appending(path: "fixture ' \"$dollar\"; echo injected; #")
+    let input = root.appending(path: "input ' \"$dollar\"; echo injected; #")
+    let bytes = Data("unchanged input".utf8)
+    try bytes.write(to: input)
+    try Data("printf '%s\\n' \"$0\" \"$#\" \"$1\" \"$2\"\n".utf8).write(to: script)
+    let output = try await CoreCLI(testShellScript: script, timeout: .seconds(2)).validate(fileURL: input)
+    #expect(output.stdout == Data("\(script.path)\n2\nvalidate\n\(input.path)\n".utf8))
+    #expect(output.stderr.isEmpty)
+    #expect(try Data(contentsOf: input) == bytes)
+    #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).sorted() == [script.lastPathComponent, input.lastPathComponent].sorted())
+}
+
+@Test func editorShellFixtureMatchesPublicExecutableArguments() async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let script = root.appending(path: "echo-fixture")
+    let input = root.appending(path: "input with spaces")
+    try Data("exec /bin/echo \"$@\"\n".utf8).write(to: script)
+    let fixture = try await CoreCLI(testShellScript: script, timeout: .seconds(2)).validate(fileURL: input)
+    let normal = try await CoreCLI(executableURL: URL(fileURLWithPath: "/bin/echo"), timeout: .seconds(2)).validate(fileURL: input)
+    #expect(normal.stdout == Data("validate \(input.path)\n".utf8))
+    #expect(fixture.stdout == normal.stdout)
+    #expect(fixture.stderr == normal.stderr)
+    #expect(!normal.stdoutTruncated && !normal.stderrTruncated)
+    #expect(!fixture.stdoutTruncated && !fixture.stderrTruncated)
+}
+
+@Test(arguments: ["timeout", "cancel", "reject"])
+func editorShellFixturePreservesTypedFailures(mode: String) async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let script = root.appending(path: "failure-fixture")
+    let input = root.appending(path: "input")
+    let marker = root.appending(path: "launched")
+    let bytes = Data("persisted input".utf8)
+    try bytes.write(to: input)
+    // A pre-cancelled invocation must never reach even the script's first write.
+    let body = mode == "reject" ? "exit 7" : "exec /bin/sleep 2"
+    try Data("printf launched > '\(marker.path)'\n\(body)\n".utf8).write(to: script)
+    let core = CoreCLI(testShellScript: script, timeout: .milliseconds(80))
+    let task = Task {
+        if mode == "cancel" { withUnsafeCurrentTask { $0?.cancel() } }
+        return try await core.validate(fileURL: input)
+    }
+    do {
+        _ = try await task.value
+        Issue.record("Expected \(mode) failure")
+    } catch let error as CoreCLIError {
+        switch (mode, error) {
+        case ("timeout", .timedOut), ("cancel", .cancelled): break
+        case ("reject", .exit(let status, _)): #expect(status == 7)
+        default: Issue.record("Unexpected typed outcome: \(error)")
+        }
+    }
+    #expect(FileManager.default.fileExists(atPath: marker.path) == (mode != "cancel"))
+    #expect(try Data(contentsOf: input) == bytes)
 }
