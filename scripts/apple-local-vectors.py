@@ -66,6 +66,48 @@ def change_first_deflate(data, trailing):
     return modified
 
 
+def directory_records(data):
+    end = data.rfind(b'PK\x05\x06')
+    p = struct.unpack_from('<I', data, end + 16)[0]
+    result = []
+    for _ in range(struct.unpack_from('<H', data, end + 10)[0]):
+        n, e, c = struct.unpack_from('<HHH', data, p + 28)
+        result.append((p, data[p + 46:p + 46 + n]))
+        p += 46 + n + e + c
+    return result
+
+
+def change_mode(data, name, creator, attrs):
+    p = next(p for p, n in directory_records(data) if n.decode() == name)
+    modified = bytearray(data)
+    modified[p + 5] = creator
+    struct.pack_into('<I', modified, p + 38, attrs)
+    return modified
+
+
+def add_directory_bytes(data, extra):
+    end = data.rfind(b'PK\x05\x06')
+    modified = bytearray(data[:end] + extra + data[end:])
+    size = struct.unpack_from('<I', data, end + 12)[0]
+    struct.pack_into('<I', modified, end + len(extra) + 12, size + len(extra))
+    return modified
+
+
+def add_zip64_extra(data, values, *, malformed=False, duplicate=False):
+    p, _ = directory_records(data)[0]
+    n, e = struct.unpack_from('<HH', data, p + 28)
+    fields = b''.join(struct.pack('<Q', value) for value in values)
+    extra = struct.pack('<HH', 1, len(fields) + (1 if malformed else 0)) + fields
+    if duplicate: extra += struct.pack('<HH', 1, 0)
+    insert = p + 46 + n + e
+    modified = bytearray(data[:insert] + extra + data[insert:])
+    struct.pack_into('<H', modified, p + 30, e + len(extra))
+    end = data.rfind(b'PK\x05\x06')
+    size = struct.unpack_from('<I', data, end + 12)[0]
+    struct.pack_into('<I', modified, end + len(extra) + 12, size + len(extra))
+    return modified
+
+
 for arch in ('amd64', 'arm64'):
     original = (source / f'bimeron-v0.1.0-beta.1-macos-{arch}.zip').read_bytes()
     write(arch, 'original', original, True)
@@ -84,6 +126,120 @@ for arch in ('amd64', 'arm64'):
     name, binary, mode = entries[binary_index]
     repacked = pack(entries)
     write(arch, 'repacked', repacked, True)
+    parent_name = f'macos-{arch}/'
+    parent_zip = pack(entries + [(parent_name, b'', 0o40755)])
+    notice_name_text = parent_name + 'LICENSE'
+    for creator in (3, 19):
+        for label, path, attrs in [
+            ('unix-dos-dir', name, 0x81ed0010),
+            ('unix-dos-readonly', name, 0x81ed0001),
+            ('unix-unknown-type', name, 0x31ed0000),
+            ('unix-no-type', name, 0x01ed0000),
+            ('unix-special-permissions', name, 0x8fed0000),
+            ('unix-notice-dos-dir', notice_name_text, 0x81a40010),
+            ('unix-notice-unknown', notice_name_text, 0xf1a40010),
+            ('unix-parent-regular', parent_name, 0x81ed0010),
+            ('unix-parent-unknown', parent_name, 0x31ed0000),
+        ]:
+            write(arch, f'mode-{creator}-{label}', change_mode(parent_zip if path == parent_name else repacked, path, creator, attrs), True)
+        for kind in (0x1000, 0x2000, 0x4000, 0x6000, 0xa000, 0xc000):
+            write(arch, f'mode-{creator}-binary-special-{kind:x}', change_mode(repacked, name, creator, ((kind | 0o755) << 16) | 0x10))
+        for kind in (0x4000, 0xa000):
+            write(arch, f'mode-{creator}-notice-special-{kind:x}', change_mode(repacked, notice_name_text, creator, (kind | 0o644) << 16))
+        for kind in (0x1000, 0xa000):
+            write(arch, f'mode-{creator}-parent-special-{kind:x}', change_mode(parent_zip, parent_name, creator, (kind | 0o755) << 16))
+    for creator in (0, 11, 14):
+        for label, path, attrs, accept in [
+            ('dos-binary-regular', name, 0x81ed0000, False),
+            ('dos-binary-directory', name, 0x81ed0010, False),
+            ('dos-notice-regular', notice_name_text, 0xa1a40000, True),
+            ('dos-notice-directory', notice_name_text, 0x81a40010, False),
+            ('dos-notice-readonly', notice_name_text, 0xa1a40001, True),
+            ('dos-parent-suffix', parent_name, 0xa1ed0000, True),
+            ('dos-parent-directory', parent_name, 0x81ed0011, True),
+        ]:
+            write(arch, f'mode-{creator}-{label}', change_mode(parent_zip if path == parent_name else repacked, path, creator, attrs), accept)
+    for creator in (7, 255):
+        for label, path, accept in [('binary', name, False), ('notice', notice_name_text, True), ('parent', parent_name, True)]:
+            write(arch, f'mode-{creator}-unknown-{label}', change_mode(parent_zip if path == parent_name else repacked, path, creator, 0xa1ed0010), accept)
+
+    # Concrete container leniencies in pinned Go's readDirectoryEnd/readDirectoryHeader.
+    repacked_end = repacked.rfind(b'PK\x05\x06')
+    repacked_records = directory_records(repacked)
+    for label, offset, fmt, value, accept in [
+        ('eocd-disks', repacked_end + 4, '<I', 0x00020001, True),
+        ('eocd-count-this-disk', repacked_end + 8, '<H', 0xffff, True),
+        ('eocd-count-mismatch', repacked_end + 10, '<H', 4, False),
+        ('eocd-short-directory-size', repacked_end + 12, '<I', struct.unpack_from('<I', repacked, repacked_end + 12)[0] - 1, True),
+        ('eocd-long-directory-size', repacked_end + 12, '<I', struct.unpack_from('<I', repacked, repacked_end + 12)[0] + 1, False),
+        ('eocd-truncated-comment', repacked_end + 20, '<H', 1, False),
+        ('central-disk-number', repacked_records[0][0] + 34, '<H', 9, True),
+    ]:
+        modified = bytearray(repacked); struct.pack_into(fmt, modified, offset, value)
+        write(arch, label, modified, accept)
+    for label, trailing, accept in [('eocd-trailing', b'X', True), ('eocd-second-window', b'X' * 2048, True), ('eocd-window-edge', b'X' * (65 * 1024 - 22), True), ('eocd-outside-window', b'X' * (65 * 1024 - 21), False), ('eocd-truncated-last-signature', struct.pack('<I', 0x06054b50) + b'\0' * 16 + b'\x01\0', False)]:
+        write(arch, label, repacked + trailing, accept)
+    write(arch, 'central-padding', add_directory_bytes(repacked, b'padding'), True)
+    malformed_header = bytearray(46); struct.pack_into('<I', malformed_header, 0, 0x02014b50); struct.pack_into('<I', malformed_header, 42, 0xffffffff)
+    write(arch, 'central-malformed-extra-header', add_directory_bytes(repacked, malformed_header), True)
+    write(arch, 'relative-prefix', b'prefix' + repacked, True)
+    prefix = b'prefix'; modified = bytearray(prefix + repacked)
+    struct.pack_into('<I', modified, repacked_end + len(prefix) + 16, repacked_records[0][0] + len(prefix))
+    write(arch, 'prefix-bad-local-offsets', modified)
+    for p, _ in repacked_records:
+        offset = struct.unpack_from('<I', repacked, p + 42)[0]
+        struct.pack_into('<I', modified, p + len(prefix) + 42, offset + len(prefix))
+    write(arch, 'absolute-prefix', modified, True)
+
+    zip64 = original[:end] + extended + locator + trailer
+    for label, offset, fmt, value, accept in [
+        ('zip64-ignored-record-size', end + 4, '<Q', 0, True),
+        ('zip64-ignored-disks', end + 16, '<Q', 0xffffffffffffffff, True),
+        ('zip64-ignored-this-disk-count', end + 24, '<Q', 0xffffffffffffffff, True),
+        ('zip64-count-low-bits', end + 32, '<Q', count + 65536, True),
+        ('zip64-count-mismatch', end + 32, '<Q', count + 1, False),
+        ('zip64-size-overflow', end + 40, '<Q', 0xffffffffffffffff, False),
+        ('zip64-offset-overflow', end + 48, '<Q', 0xffffffffffffffff, False),
+        ('zip64-locator-negative', end + 56 + 8, '<Q', 0xffffffffffffffff, False),
+        ('zip64-locator-outside', end + 56 + 8, '<Q', 0x7fffffffffffffff, False),
+        ('zip64-locator-disk', end + 56 + 4, '<I', 1, False),
+    ]:
+        modified = bytearray(zip64); struct.pack_into(fmt, modified, offset, value)
+        write(arch, label, modified, accept)
+    classic = add_directory_bytes(repacked, b'X' * (65535 - struct.unpack_from('<I', repacked, repacked_end + 12)[0]))
+    write(arch, 'classic-size-zip64-sentinel-without-locator', classic, True)
+    for sentinel, accept in [(65535, True), (0xffffffff, False)]:
+        modified = bytearray(zip64)
+        struct.pack_into('<HHII', modified, end + 76 + 8, count, count, sentinel, directory_offset)
+        write(arch, f'zip64-size-trigger-{sentinel}', modified, accept)
+
+    first = repacked_records[0][0]
+    uncompressed, compressed, local_offset = struct.unpack_from('<I', repacked, first + 24)[0], struct.unpack_from('<I', repacked, first + 20)[0], struct.unpack_from('<I', repacked, first + 42)[0]
+    for label, values, malformed, duplicate, needs, accept in [
+        ('zip64-entry', [uncompressed, compressed, local_offset], False, False, True, True),
+        ('zip64-entry-duplicate', [uncompressed, compressed, local_offset], False, True, True, True),
+        ('zip64-entry-short', [uncompressed, compressed], False, False, True, False),
+        ('zip64-entry-truncated-extra', [uncompressed, compressed, local_offset], True, False, True, False),
+        ('zip64-entry-ignored-truncated-extra', [], True, False, False, True),
+        ('zip64-entry-negative-offset', [uncompressed, compressed, 0xffffffffffffffff], False, False, True, False),
+    ]:
+        modified = add_zip64_extra(repacked, values, malformed=malformed, duplicate=duplicate)
+        if needs:
+            for offset in (20, 24, 42): struct.pack_into('<I', modified, first + offset, 0xffffffff)
+        write(arch, label, modified, accept)
+
+    # SectionReader caps actual reads at underlying EOF; Go flate can reach EOS
+    # before a large declared compressed size, including signed ZIP64 conversions.
+    for label, compressed_size, accept in [
+        ('zip64-compressed-beyond-file', len(repacked) + 1, True),
+        ('zip64-compressed-intmax', 0x7fffffffffffffff, True),
+        ('zip64-compressed-negative-one', 0xffffffffffffffff, True),
+        ('zip64-compressed-minint', 0x8000000000000000, True),
+    ]:
+        modified = add_zip64_extra(repacked, [uncompressed, compressed_size, local_offset])
+        for offset in (20, 24, 42): struct.pack_into('<I', modified, first + offset, 0xffffffff)
+        write(arch, label, modified, accept)
+
     for label, base in [('descriptor', original), ('no-descriptor', repacked)]:
         write(arch, 'deflate-trailing-' + label, change_first_deflate(base, b'X'), True)
         write(arch, 'deflate-truncated-' + label, change_first_deflate(base, b''))

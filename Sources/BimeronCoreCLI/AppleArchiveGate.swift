@@ -26,82 +26,155 @@ enum AppleArchiveGate {
         guard condition else { throw AppleCoreReleaseError.invalidArchive }
     }
 
+    private enum ZIPHeaderError: Error { case endOfFile }
+
+    private struct ZIPEntry {
+        let name: Data
+        let creator, flags, method, attributes: Int
+        let crc, compressed, size: UInt64
+        let local, next: Int
+    }
+
+    // Only structural errors end Go's directory scan; policy checks run afterwards.
+    private static func entry(_ b: Bytes, at p: Int) throws -> ZIPEntry {
+        _ = try b.slice(p, 46)
+        try require(try b.number(p, 4) == 0x02014b50)
+        let nameSize = try b.int(p + 28, 2), extraSize = try b.int(p + 30, 2), commentSize = try b.int(p + 32, 2)
+        if p + 46 == b.count && nameSize + extraSize + commentSize > 0 { throw ZIPHeaderError.endOfFile }
+        _ = try b.slice(p + 46, nameSize + extraSize + commentSize)
+        var size = try b.number(p + 24, 4), compressed = try b.number(p + 20, 4), local = try b.number(p + 42, 4)
+        var needSize = size == 0xffffffff, needCompressed = compressed == 0xffffffff, needLocal = local == 0xffffffff
+        let extra = Bytes(data: try b.slice(p + 46 + nameSize, extraSize))
+        var x = 0
+        while x + 4 <= extra.count {
+            let kind = try extra.number(x, 2), length = try extra.int(x + 2, 2)
+            guard length <= extra.count - x - 4 else { break }
+            if kind == 1 {
+                let field = Bytes(data: try extra.slice(x + 4, length))
+                var q = 0
+                if needSize { size = try field.number(q, 8); q += 8; needSize = false }
+                if needCompressed { compressed = try field.number(q, 8); q += 8; needCompressed = false }
+                if needLocal { local = try field.number(q, 8); needLocal = false }
+            }
+            x += 4 + length
+        }
+        // Go permits an unresolved ZIP32 uncompressed size, but not size/offset needed for reading.
+        try require(!needCompressed && !needLocal)
+        return try ZIPEntry(name: b.slice(p + 46, nameSize), creator: b.int(p + 5, 1),
+            flags: b.int(p + 8, 2), method: b.int(p + 10, 2), attributes: b.int(p + 38, 4),
+            crc: b.number(p + 16, 4), compressed: compressed, size: size,
+            local: Int(truncatingIfNeeded: local), next: p + 46 + nameSize + extraSize + commentSize)
+    }
+
+    // Go's Mode.Type excludes setuid/setgid/sticky; unknown Unix type values map to regular.
+    static func entryMode(creator: Int, attributes: Int, name: String) -> (regular: Bool, directory: Bool, permissions: Int) {
+        var directory = false, special = false, permissions = 0
+        switch creator {
+        case 3, 19:
+            let unix = attributes >> 16
+            permissions = unix & 0o777
+            switch unix & 0xf000 {
+            case 0x4000: directory = true
+            case 0x1000, 0x2000, 0x6000, 0xa000, 0xc000: special = true
+            default: break
+            }
+        case 0, 11, 14:
+            directory = attributes & 0x10 != 0
+            permissions = directory ? 0o777 : 0o666
+            if attributes & 1 != 0 { permissions &= ~0o222 }
+        default: break
+        }
+        directory = directory || name.hasSuffix("/")
+        return (!directory && !special, directory && !special, permissions)
+    }
+
     static func check(_ data: Data, architecture: String, revision: String, version: String) throws {
         let b = Bytes(data: data)
-        // EOCD may have a bounded ZIP comment; ZIP64 fields keep the same size limits.
         guard b.count >= 22 else { throw AppleCoreReleaseError.invalidArchive }
         var end: Int?
-        for p in stride(from: b.count - 22, through: max(0, b.count - 65_557), by: -1) {
-            if try b.number(p, 4) == 0x06054b50, try p + 22 + b.int(p + 20, 2) == b.count { end = p; break }
+        // Match Go's two bounded search windows and its truncated-comment stop rule.
+        for window in [1024, 65 * 1024] {
+            for p in stride(from: b.count - 22, through: max(0, b.count - window), by: -1) {
+                if try b.number(p, 4) == 0x06054b50 {
+                    if try b.int(p + 20, 2) <= b.count - p - 22 { end = p }
+                    break
+                }
+            }
+            if end != nil || window >= b.count { break }
         }
         guard let end else { throw AppleCoreReleaseError.invalidArchive }
-        var count = try b.int(end + 10, 2)
-        try require(try b.number(end + 4, 4) == 0 && b.int(end + 8, 2) == count)
-        var p = try b.int(end + 16, 4)
-        var directorySize = try b.int(end + 12, 4)
+        var records = try b.number(end + 10, 2)
+        var directorySize = try b.number(end + 12, 4), directoryOffset = try b.number(end + 16, 4)
         var directoryEnd = end
-        if count == 65535 || p == 0xffffffff || directorySize == 0xffffffff {
+        // These sentinel values deliberately match pinned Go, including its 0xffff size test.
+        if records == 0xffff || directorySize == 0xffff || directoryOffset == 0xffffffff {
             let locator = end - 20
-            try require(try b.number(locator, 4) == 0x07064b50 && b.number(locator + 4, 4) == 0 && b.number(locator + 16, 4) == 1)
-            let zip64 = try b.int(locator + 8, 8)
-            try require(try b.number(zip64, 4) == 0x06064b50 && b.number(zip64 + 4, 8) >= 44 && b.number(zip64 + 16, 8) == 0)
-            count = try b.int(zip64 + 32, 8)
-            try require(try b.int(zip64 + 24, 8) == count)
-            p = try b.int(zip64 + 48, 8)
-            directorySize = try b.int(zip64 + 40, 8)
-            directoryEnd = zip64
+            if locator >= 0, try b.number(locator, 4) == 0x07064b50,
+               try b.number(locator + 4, 4) == 0, try b.number(locator + 16, 4) == 1,
+               let zip64 = Int(exactly: try b.number(locator + 8, 8)) {
+                _ = try b.slice(zip64, 56)
+                try require(try b.number(zip64, 4) == 0x06064b50)
+                records = try b.number(zip64 + 32, 8)
+                directorySize = try b.number(zip64 + 40, 8)
+                directoryOffset = try b.number(zip64 + 48, 8)
+                directoryEnd = zip64
+            }
         }
-        try require((3...4).contains(count) && p <= directoryEnd && directorySize == directoryEnd - p)
+        guard let size = Int(exactly: directorySize), let offset = Int(exactly: directoryOffset) else {
+            throw AppleCoreReleaseError.invalidArchive
+        }
+        // Go int64 offset arithmetic wraps; all resulting byte ranges still require bounds checks.
+        var base = directoryEnd &- size &- offset
+        var p = base &+ offset
+        try require(p >= 0 && p < b.count)
+        if base > 0, (try? entry(b, at: offset)) != nil { base = 0; p = offset }
+        var entries: [ZIPEntry] = []
+        while entries.count <= 4 {
+            // readDirectoryHeader returns EOF (not its accepted UnexpectedEOF) at exact file end.
+            try require(p != b.count)
+            do {
+                let next = try entry(b, at: p)
+                entries.append(next)
+                p = next.next
+            } catch ZIPHeaderError.endOfFile {
+                throw AppleCoreReleaseError.invalidArchive
+            } catch { break }
+        }
+        try require((3...4).contains(entries.count) && UInt64(entries.count) == (records & 0xffff))
         let parent = "macos-\(architecture)/"
         var seen = Set<String>()
-        for _ in 0..<count {
-            try require(try b.number(p, 4) == 0x02014b50)
-            let creator = try b.int(p + 5, 1), flags = try b.int(p + 8, 2), method = try b.int(p + 10, 2)
-            let crc = try b.number(p + 16, 4)
-            var compressed = try b.int(p + 20, 4), size = try b.int(p + 24, 4)
-            let nameSize = try b.int(p + 28, 2), extra = try b.int(p + 30, 2), comment = try b.int(p + 32, 2)
-            let attributes = try b.int(p + 38, 4)
-            var local = try b.int(p + 42, 4)
-            let extraBytes = Bytes(data: try b.slice(p + 46 + nameSize, extra))
-            var x = 0
-            while x + 4 <= extraBytes.count {
-                let kind = try extraBytes.number(x, 2), length = try extraBytes.int(x + 2, 2)
-                guard length <= extraBytes.count - x - 4 else { break }
-                if kind == 1 {
-                    var q = x + 4
-                    if size == 0xffffffff { size = try extraBytes.int(q, 8); q += 8 }
-                    if compressed == 0xffffffff { compressed = try extraBytes.int(q, 8); q += 8 }
-                    if local == 0xffffffff { local = try extraBytes.int(q, 8); q += 8 }
-                    try require(q <= x + 4 + length)
-                }
-                x += 4 + length
-            }
-            let nameBytes = try b.slice(p + 46, nameSize)
-            guard let name = String(data: nameBytes, encoding: .utf8) else { throw AppleCoreReleaseError.invalidArchive }
-            try require(seen.insert(name).inserted && flags & 1 == 0 && [0, 8].contains(method) && b.number(p + 34, 2) == 0)
-            let mode = creator == 3 || creator == 19 ? attributes >> 16 : 0
-            let isDirectory = name.hasSuffix("/")
+        for entry in entries {
+            guard let name = String(data: entry.name, encoding: .utf8) else { throw AppleCoreReleaseError.invalidArchive }
+            let flags = entry.flags, method = entry.method, crc = entry.crc
+            try require(seen.insert(name).inserted && flags & 1 == 0 && [0, 8].contains(method))
+            let mode = entryMode(creator: entry.creator, attributes: entry.attributes, name: name)
             if name == parent {
-                try require(isDirectory && size == 0 && (mode & 0xf000 == 0x4000 || mode & 0xf000 == 0))
+                try require(mode.directory && entry.size == 0)
             } else {
                 try require([parent + "bimeron", parent + "LICENSE", parent + "THIRD_PARTY_NOTICES.txt"].contains(name))
-                try require(!isDirectory && (mode & 0xf000 == 0x8000 || mode & 0xf000 == 0) && attributes & 0x10 == 0)
-                try require(size > 0 && size <= (name == parent + "bimeron" ? 268_435_456 : 4_194_304))
-                if name == parent + "bimeron" { try require(mode & 0o111 != 0) }
+                try require(mode.regular && entry.size > 0 && entry.size <= (name == parent + "bimeron" ? 268_435_456 : 4_194_304))
+                if name == parent + "bimeron" { try require(mode.permissions & 0o111 != 0) }
             }
             // Core skips directory payloads. Local names/flags/methods never select paths or decoding.
             if name != parent {
+                guard let size = Int(exactly: entry.size) else { throw AppleCoreReleaseError.invalidArchive }
+                let compressed = Int(truncatingIfNeeded: entry.compressed)
+                let local = entry.local &+ base
                 _ = try b.slice(local, 30)
                 try require(try b.number(local, 4) == 0x04034b50)
                 let localNameSize = try b.int(local + 26, 2), localExtra = try b.int(local + 28, 2)
                 let payloadOffset = local + 30 + localNameSize + localExtra
-                let payload = try b.slice(payloadOffset, compressed)
+                try require(payloadOffset <= b.count)
+                // Match io.NewSectionReader's signed limit arithmetic, capped by authenticated bytes.
+                let limit = payloadOffset <= (Int.max &- compressed) ? (payloadOffset &+ compressed) : Int.max
+                let readable = limit > payloadOffset ? min(b.count - payloadOffset, limit - payloadOffset) : 0
+                let payload = try b.slice(payloadOffset, readable)
                 let contents = try inflate(payload, size: size, method: method)
                 let actualCRC = contents.withUnsafeBytes { crc32(0, $0.bindMemory(to: Bytef.self).baseAddress, uInt(contents.count)) }
                 if flags & 8 != 0 {
                     // archive/zip.readDataDescriptor consumes 12 bytes, or 16 with signature.
                     // Its size words are ignored, including ZIP64 descriptors; central sizes govern.
-                    let descriptor = payloadOffset + compressed
+                    let descriptor = payloadOffset &+ compressed
                     let signed = try b.number(descriptor, 4) == 0x08074b50
                     let crcOffset = descriptor + (signed ? 4 : 0)
                     _ = try b.slice(crcOffset, 12)
@@ -112,10 +185,8 @@ enum AppleArchiveGate {
                 }
                 if name == parent + "bimeron" { try binary(contents, architecture: architecture, revision: revision, version: version) }
             }
-            p += 46 + nameSize + extra + comment
-            try require(p <= directoryEnd)
         }
-        try require(p == directoryEnd && ["bimeron", "LICENSE", "THIRD_PARTY_NOTICES.txt"].allSatisfy { seen.contains(parent + $0) })
+        try require(["bimeron", "LICENSE", "THIRD_PARTY_NOTICES.txt"].allSatisfy { seen.contains(parent + $0) })
     }
 
     private static func inflate(_ input: Data, size: Int, method: Int) throws -> Data {

@@ -32,6 +32,22 @@ architecture, Git, exact signed source revision, explicit `vcs.modified=false`
 and `-trimpath=true`. Duplicate decoded build settings fail closed. Linker flags
 are not version evidence. Unsupported compiler formats fail closed.
 
+File types and permissions follow pinned Go's creator-specific mode conversion:
+Unix/macOS creators use Unix attributes, FAT/NTFS/VFAT use DOS directory/read-only
+bits, and other creators start at zero permissions. A trailing slash contributes
+directory type for every creator. Known Unix special types fail regular-file
+checks; unknown Unix type values map to regular as in Go. DOS bits do not override
+Unix creator attributes. Executable permission remains independently required.
+
+Container parsing mirrors the pinned reader's bounded EOCD/ZIP64 and prefix
+handling, low-bit record-count comparison and structural scan termination. It
+stores at most five headers before enforcing the four-entry cap. EOCD disk IDs,
+per-disk counts and ignored ZIP64 size words cannot trigger external reads.
+Compressed reads are capped at the actual authenticated buffer even for large
+ZIP64 range claims. Exact central paths, interpreted types, content limits and
+binary evidence remain mandatory. Permissive container metadata is not an
+extraction policy.
+
 The base consumer did not have this gate; this local change adds it under the
 [local issue](local-apple-packaging-issue.md). See
 [reproduction and evidence](local-apple-packaging-evidence.md).

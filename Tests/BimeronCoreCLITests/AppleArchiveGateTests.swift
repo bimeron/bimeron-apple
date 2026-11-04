@@ -29,12 +29,32 @@ final class AppleArchiveGateTests: XCTestCase {
         }
     }
 
+    func testCreatorModes() {
+        for creator in [3, 19] {
+            let regular = AppleArchiveGate.entryMode(creator: creator, attributes: 0x81ed0010, name: "bimeron")
+            XCTAssertTrue(regular.regular)
+            XCTAssertFalse(regular.directory)
+            XCTAssertEqual(regular.permissions, 0o755)
+            XCTAssertFalse(AppleArchiveGate.entryMode(creator: creator, attributes: 0xa1ed0010, name: "macos-arm64/").directory)
+            XCTAssertTrue(AppleArchiveGate.entryMode(creator: creator, attributes: 0x31ed0000, name: "bimeron").regular)
+        }
+        for creator in [0, 11, 14] {
+            XCTAssertFalse(AppleArchiveGate.entryMode(creator: creator, attributes: 0x81ed0010, name: "LICENSE").regular)
+            XCTAssertEqual(AppleArchiveGate.entryMode(creator: creator, attributes: 0xa1ed0001, name: "LICENSE").permissions, 0o444)
+            XCTAssertTrue(AppleArchiveGate.entryMode(creator: creator, attributes: 0xa1ed0000, name: "macos-arm64/").directory)
+        }
+        let unknown = AppleArchiveGate.entryMode(creator: 255, attributes: 0xa1ed0010, name: "LICENSE")
+        XCTAssertTrue(unknown.regular)
+        XCTAssertEqual(unknown.permissions, 0)
+    }
+
     func testLocalProducerInterop() throws {
         guard let path = ProcessInfo.processInfo.environment["BIMERON_APPLE_VECTORS"] else {
             throw XCTSkip("Set BIMERON_APPLE_VECTORS to locally generated real-Core parity vectors")
         }
         let root = URL(fileURLWithPath: path)
         let index = try JSONDecoder().decode([Vector].self, from: Data(contentsOf: root.appendingPathComponent("index.json")))
+        print("Apple archive corpus: \(index.count) signed vectors")
         // Deterministic zero seed is synthetic test material, never a production trust pin.
         let key = try Curve25519.Signing.PrivateKey(rawRepresentation: Data(repeating: 0, count: 32))
         for vector in index {

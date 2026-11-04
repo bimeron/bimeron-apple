@@ -89,18 +89,19 @@ signed manifests, logs and working index remain ignored under `.build/apple-inte
 
 ## Results and remaining gates
 
-Final results: all 138 archive vectors have identical expected dispositions in
+Final results: all 348 archive vectors have identical expected dispositions in
 Swift and Core, including exact Swift-signed manifest verification, complete
 Core archive-pair verification and tampering rejection. Full `swift test` with
-the corpus passed: 26 XCTest tests and 59 Swift Testing tests. Scoped
+the corpus passed: 27 XCTest tests and 59 Swift Testing tests. Scoped
 `git diff --check` passed.
 
 The prior fix at `5d6cf55` also passed `swift build -c release`. `python3 fixtures/acceptance/check.py` passed 26 scenarios and
 29 fixture files, including its corruption/coverage/lifecycle rejection controls.
 Offline Core `go test ./internal/appleversion ./release/...` passed all three
 packages (0.677s, 2.521s and 6.156s). Those unchanged release/acceptance/Core
-package checks were not repeated for the one-line DEFLATE condition fix; the
-changed Swift path was compiled and exercised by the complete Swift suite.
+package checks were not repeated for the one-line DEFLATE condition fix. The
+subsequent third-round container rewrite justified a new release build; see its
+results below. Acceptance fixtures and Core package code remain unchanged.
 
 Prior first-round-fix logs: `.build/apple-interop/review-fix-swift.log`,
 `review-fix-parity.log`, `review-fix-release.log`, `review-fix-fixtures.log`,
@@ -114,7 +115,7 @@ The release build completed in 3.73 seconds.
 
 The sorted index is retained as
 `testdata/local-full-archive-vector-index.json`, SHA-256
-`90718990f86d2c5c8166734e011c4f3f8c845d18773dab7247b7dc92a35fb56b`.
+`b83302ed61b7b23c0a6b4702bae3ce45b7390622a12dec461718cff60bed670b`.
 The deterministic full-archive synthetic-reviewed manifest is retained as
 `testdata/local-full-archive-synthetic-reviewed.json`, SHA-256
 `32627976fae87ed9407dbe27f781b414904830914567e0c1ad475ef6390b4bf9`,
@@ -245,6 +246,126 @@ cd "$ROOT"
 BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-round2-fix" swift test
 "$GIT" diff --check
 ```
+
+## Independent round-three review and authorized container rewrite
+
+The parent reports that the third independent review confirmed the DEFLATE fix,
+all 138 signed vectors, and full Swift runs before/after deterministic Go
+signing. It found a P2 creator-mode mismatch: a Unix regular entry with the DOS
+directory attribute was incorrectly rejected. The finding is accepted. Reviewer
+artifact
+`/var/folders/yb/8qc2pj8d021g__3c2_fnhkmr0000gn/T/apple-round3-mode.rsb3mj18/amd64-unix-dos-dir.zip`
+has SHA-256
+`2b1f8e8f377686a77d35498f70ab0abbe2464b61e2f54b9f28ff45638631e4d4`.
+The generated `amd64-mode-3-unix-dos-dir.zip` matches it byte-for-byte.
+
+This implementation turn read the complete installed Go 1.26.9
+`FileHeader.Mode`, `msdosModeToFileMode`, `unixModeToFileMode`, their constants,
+`fs.FileMode.Type/IsRegular`, and actual Core `CheckArchive` use. The consumer now
+mirrors the fields Core observes:
+
+- Creators 3 and 19 use upper Unix attributes and ignore DOS attributes.
+  Recognized directory/FIFO/device/link/socket types map to their Go types.
+  Zero and unrecognized Unix type values remain regular as Go defines them;
+  setuid/setgid/sticky are outside Go's type mask. Executable permission checks
+  still use the low nine Unix permission bits.
+- Creators 0, 11 and 14 use DOS directory/read-only attributes: directory mode
+  starts at 0777, regular mode at 0666, and read-only removes 0222. A DOS regular
+  executable therefore fails the independent execute-bit requirement. High Unix
+  attributes are ignored for these creators.
+- Other creators start with zero mode/permissions. Every creator receives Go's
+  directory bit for a trailing slash. The optional parent must have exactly
+  directory type; a Unix symlink or FIFO plus slash still fails. Notices must be
+  regular, but do not require execute permissions.
+
+The requested adjacent ZIP inspection found concrete container differences.
+They were reported before redesign. The user explicitly approved a bounded
+container-parity rewrite within this local scope, retaining all trust, exact
+path/type/content/size gates and forbidding dependencies or extraction.
+
+Central-directory structural parsing is now separate from policy validation.
+The reader stores at most five headers and rejects five immediately under Core's
+four-entry cap. Each header has at most three UInt16-length variable fields, so
+no declared record count controls allocation or scanning. Policy validation then
+requires the same exact three files and optional parent; a valid extra header is
+counted and cannot bypass policy checks.
+
+Concrete pinned-Go semantics now covered include:
+
+- EOCD search in 1024-byte and 65-KiB windows; permitted bytes after its declared
+  comment; the last-signature truncated-comment stop rule; ignored disk IDs and
+  per-disk counts. These fields never cause access to another volume.
+- Relative prefixes and Go's absolute-offset fallback when its inferred positive
+  base offset is inconsistent but the original central offset parses correctly.
+  Offset arithmetic uses Go-compatible signed wrapping followed by strict
+  authenticated-buffer bounds checks.
+- Directory scanning until a structural format/partial-read boundary, with
+  actual count compared to the low 16 bits of the declared count. Exact EOF
+  remains an error as in Go. Malformed padding after the counted entries is not
+  treated as another file; a successfully parsed extra header is counted.
+- Pinned Go's exact ZIP64 sentinel/locator rules, including its 0xffff directory
+  size trigger, optional missing locator, ignored ZIP64 record-size/disk fields,
+  and low-bit count comparison. ZIP64 sizes/offsets needed for an entry are
+  consumed only once; missing required compressed-size/offset fields fail.
+  Truncated unknown extra fields are ignored as Go does.
+- `io.NewSectionReader` compressed-size limits, including signed ZIP64 size
+  conversion. A DEFLATE stream may reach EOS before the declared compressed end
+  or physical EOF. Supplied decoder bytes are always capped at the actual
+  authenticated archive buffer, never allocated from a huge size claim.
+  Descriptor offsets use the same signed calculation and bounded reads. Exact
+  uncompressed size, EOS, CRC, descriptor and binary evidence still apply.
+
+No resource-unsafe behavior or policy contradiction was needed to match these
+cases. The five-header early stop has the same final rejection as Core for every
+larger entry set, while avoiding Go's potentially larger intermediate allocation.
+
+The corpus grows from 138 to 348 vectors: 130 creator/type/permission vectors and
+80 focused container regressions, split evenly across amd64 and arm64. Coverage
+includes Unix/macOS/DOS/unknown creators for executable, notice and optional
+parent; all recognized Unix special types; DOS read-only and directory behavior;
+unknown Unix types and special permission bits; EOCD windows/truncated comments,
+count/disk fields and padding; relative/absolute prefixes; ZIP64 fields, extras,
+counts and overflow bounds; and compressed ranges extending beyond file bytes.
+A normal-suite creator-mode unit test also remains active without opt-in data.
+
+Third-round-fix results: all 348 vectors passed in the full Swift run before
+signing handoff, Core's exact manifest-signature/archive-pair/`CheckArchive`
+parity run, and the final Swift verification of deterministic Go signatures.
+Core reported `PASS 348 Core archive vectors`. Final Swift results were
+27 XCTest tests in 20.709 seconds and 59 Swift Testing tests in 7.099 seconds.
+`swift build -c release` passed in 11.40 seconds. Acceptance fixture checking
+passed 26 scenarios/29 files with corruption/coverage/lifecycle rejection
+controls. Scoped `git diff --check` passed. Unchanged Core package tests were
+not repeated; the actual pinned Core library ran on every corpus archive.
+
+Logs are `.build/apple-interop/round3-fix-swift-initial.log`,
+`round3-fix-parity.log`, `round3-fix-swift-final.log`, `round3-fix-release.log`,
+`round3-fix-fixtures.log` and `round3-mode-unit.log`. The final Swift log prints
+its loaded 348-vector count. An earlier intermediate run loaded the previous
+340-vector index while the eight compressed-range controls were still being
+generated; the complete 348-vector run supersedes it. The original archive,
+full-archive manifest and deterministic signature hashes remain unchanged.
+
+The exact corpus/handoff commands use the same `ROOT`, installed `GO`, scoped
+`GIT` and offline environment as the reproduction block, reusing the clean exact
+Core source-built archives:
+
+```sh
+python3 scripts/apple-local-vectors.py .build/apple-interop/core-notags/.tmp/apple-release .build/apple-interop/vectors-round3-fix
+BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-round3-fix" swift test
+cd .build/apple-interop/core-notags
+"$GO" run "$ROOT/scripts/apple-local-parity.go" "$ROOT/.build/apple-interop/vectors-round3-fix"
+cd "$ROOT"
+BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-round3-fix" swift test
+swift build -c release
+python3 fixtures/acceptance/check.py
+"$GIT" diff --check
+```
+
+The release build ran alongside Core parity, before the final Swift pass;
+parentheses subsequently made the unchanged arithmetic precedence explicit.
+No separate independent review was requested by this implementation turn.
+Fresh parent-owned review is required for both creator and container changes.
 
 The bounded reader supports thin 64-bit little-endian Mach-O and inline Go build
 information emitted by the pinned compiler. Unsupported layouts fail closed and
