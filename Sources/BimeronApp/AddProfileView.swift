@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct AddProfileView: View {
     @Bindable var model: AppModel
+    var create: () -> Void = {}
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @FocusState private var keyFocused: Bool
@@ -20,13 +21,14 @@ struct AddProfileView: View {
     @State private var sshDefaults = (identity: "", knownHosts: "")
 
     private var validKey: Bool { Self.accepts(key) }
-    private var isSSH: Bool { AccessProtocol(key: key.trimmingCharacters(in: .whitespacesAndNewlines)) == .ssh }
-    private var canSave: Bool { !busy && validKey && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var isFile: Bool { ProfileInput.fileURL(key) != nil }
+    private var isSSH: Bool { AccessProtocol(key: ProfileInput.normalized(key)) == .ssh }
+    private var canSave: Bool { !busy && validKey && (isFile || !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.t("Add profile")).font(.headline)
-            if validKey {
+            if validKey && !isFile {
                 Text(model.t("Profile name"))
                 TextField(model.t("Profile name"), text: Binding(
                     get: { name },
@@ -34,7 +36,7 @@ struct AddProfileView: View {
                 ))
                     .textFieldStyle(.roundedBorder)
             }
-            Text(model.t("Paste an access link"))
+            Text(model.t("Access link or configuration file"))
             Text(model.t("Supported protocols") + ": " + AccessProtocol.allCases.map(\.title).joined(separator: ", "))
                 .font(.caption).foregroundStyle(.secondary)
             TextField(model.t("Access key"), text: $key)
@@ -46,6 +48,19 @@ struct AddProfileView: View {
                     name = Self.suggestedName(for: value) ?? ""
                 }
 
+            HStack {
+                Button(model.t("Browse…")) {
+                    let panel = NSOpenPanel()
+                    panel.canChooseDirectories = false
+                    panel.allowsMultipleSelection = false
+                    panel.begin { response in
+                        if response == .OK, let url = panel.url { key = url.path }
+                    }
+                }
+                Button(model.t("Create in editor")) { create() }
+            }
+            Text(model.t("Links and files receive local checks only. Use the editor to validate with Core."))
+                .font(.caption).foregroundStyle(.secondary)
             if let clipboardKey {
                 Button {
                     key = clipboardKey
@@ -55,8 +70,8 @@ struct AddProfileView: View {
                 }
             }
 
-            if validKey {
-                LabeledContent(model.t("Protocol"), value: ConfigDocument.protocolName(for: key.trimmingCharacters(in: .whitespacesAndNewlines)))
+            if validKey && !isFile {
+                LabeledContent(model.t("Protocol"), value: ConfigDocument.protocolName(for: ProfileInput.normalized(key)))
             }
 
             if isSSH {
@@ -72,7 +87,7 @@ struct AddProfileView: View {
                     guard canSave else { return }
                     busy = true
                     Task {
-                        if await model.add(name: name, key: key, sshIdentityFile: isSSH ? Self.fileURL(for: sshIdentityPath) : nil,
+                        if await model.addInput(name: name, input: key, sshIdentityFile: isSSH ? Self.fileURL(for: sshIdentityPath) : nil,
                                            sshKnownHostsFile: isSSH ? Self.fileURL(for: sshKnownHostsPath) : nil) { dismiss() }
                         else {
                             issue = model.alertMessage
@@ -95,7 +110,7 @@ struct AddProfileView: View {
             }
         }
         .padding(18)
-        .frame(width: 493)
+        .frame(minWidth: 560, idealWidth: 640, maxWidth: 800)
         .background(AppPalette.surface(colorScheme))
         .onAppear {
             sshDefaults = Self.defaultSSHPaths(in: FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh"))
@@ -108,12 +123,13 @@ struct AddProfileView: View {
     }
 
     static func accepts(_ value: String) -> Bool {
-        let key = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let key = ProfileInput.normalized(value)
+        if ProfileInput.fileURL(key) != nil { return true }
         return (try? ConfigDocument.validateKey(key)) != nil
     }
 
     static func fileURL(for path: String) -> URL? {
-        let path = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        let path = ProfileInput.normalized(path)
         guard !path.isEmpty else { return nil }
         if let url = URL(string: path), url.isFileURL { return url }
         return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
@@ -174,6 +190,7 @@ struct AddProfileView: View {
     }
 
     private static func suggestedName(for value: String) -> String? {
+        let value = ProfileInput.normalized(value)
         guard !value.lowercased().hasPrefix("socks5://") else { return nil }
         return ConfigDocument.suggestedName(for: value)
     }

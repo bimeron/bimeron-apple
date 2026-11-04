@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ConfigTextEditor: NSViewRepresentable {
     @Binding var text: String
+    var accessibilityLabel: String = ""
 
     private static let editorFont = NSFont(name: "Courier New", size: NSFont.systemFontSize)
         ?? NSFont.userFixedPitchFont(ofSize: NSFont.systemFontSize)
@@ -13,6 +14,7 @@ struct ConfigTextEditor: NSViewRepresentable {
     func makeNSView(context: Context) -> NSScrollView {
         let view = NSTextView()
         view.delegate = context.coordinator
+        view.setAccessibilityLabel(accessibilityLabel)
         view.isEditable = context.environment.isEnabled
         view.isRichText = false
         view.allowsUndo = true
@@ -36,6 +38,7 @@ struct ConfigTextEditor: NSViewRepresentable {
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         guard let view = scroll.documentView as? NSTextView else { return }
         view.isEditable = context.environment.isEnabled
+        view.setAccessibilityLabel(accessibilityLabel)
         guard view.string != text else { return }
         let selection = view.selectedRange()
         view.string = text

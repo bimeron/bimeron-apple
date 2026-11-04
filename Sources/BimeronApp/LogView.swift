@@ -3,7 +3,7 @@ import SwiftUI
 struct LogView: View {
     @Bindable var model: AppModel
     @Environment(\.colorScheme) private var colorScheme
-    @State private var showExport = false
+    @State private var exportSnapshot: DiagnosticSnapshot?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -17,7 +17,7 @@ struct LogView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 5) {
                     ForEach(model.log) { entry in
-                        Text("[\(entry.date.formatted(date: .omitted, time: .standard))] \(entry.message)")
+                        Text("[\(entry.date.formatted(Date.FormatStyle(date: .omitted, time: .standard).locale(Locale(identifier: model.language))))] \(entry.message)")
                             .font(.system(.body, design: .monospaced))
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -30,11 +30,11 @@ struct LogView: View {
             .background(AppPalette.surface(colorScheme), in: RoundedRectangle(cornerRadius: 8))
             .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(AppPalette.border(colorScheme)))
             HStack {
-                Button(model.t("Save log…")) { showExport = true }
+                Button(model.t("Save log…")) { exportSnapshot = model.diagnosticSnapshot() }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                     .disabled(model.log.isEmpty)
-                Button(model.t("Clear")) { model.log.removeAll() }
+                Button(model.t("Clear")) { model.clearLog() }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                     .disabled(model.log.isEmpty)
@@ -43,10 +43,8 @@ struct LogView: View {
         .padding(.horizontal, 28)
         .padding(.bottom, 25)
         .background(AppPalette.canvas(colorScheme))
-        .fileExporter(isPresented: $showExport,
-                      document: LogDocument(text: model.log.map { "[\($0.date.formatted(date: .omitted, time: .standard))] \($0.message)" }.joined(separator: "\n")),
-                      contentType: .plainText, defaultFilename: "Bimeron-log") { result in
-            if case .failure(let error) = result { model.report(error) }
+        .sheet(item: $exportSnapshot) { snapshot in
+            DiagnosticExportView(model: model, snapshot: snapshot)
         }
     }
 }
