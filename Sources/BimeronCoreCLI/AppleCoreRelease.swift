@@ -68,7 +68,7 @@ public enum AppleCoreRelease {
               validCoreVersion(manifest.core_version), manifest.tag == "v" + manifest.core_version,
               matches(manifest.source_revision, "^[0-9a-f]{40}$"),
               manifest.channel == channel, !channel.isEmpty,
-              manifest.key_id == hex(SHA256.hash(data: trustedPublicKey)).prefix(8),
+              manifest.key_id == hex(SHA256.hash(data: trustedPublicKey).prefix(8)),
               c.schema == 1, c.ipc_min == 1, c.ipc_max == 1, c.profile_format == 1,
               c.daemon_session_guards,
               let minimum = triplet(c.app_min), let maximum = triplet(c.app_max_exclusive),

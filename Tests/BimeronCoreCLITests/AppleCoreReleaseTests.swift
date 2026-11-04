@@ -4,15 +4,15 @@ import XCTest
 @testable import BimeronCoreCLI
 
 final class AppleCoreReleaseTests: XCTestCase {
-    private let key = Curve25519.Signing.PrivateKey()
+    // Fixed synthetic zero seed; never a release key.
+    private let key = try! Curve25519.Signing.PrivateKey(rawRepresentation: Data(repeating: 0, count: 32))
     private let archive = Data("synthetic archive".utf8)
     private let revision = String(repeating: "a", count: 40)
 
     private func fixture() -> [String: Any] {
         let hash = SHA256.hash(data: archive).map { String(format: "%02x", $0) }.joined()
-        let id = SHA256.hash(data: key.publicKey.rawRepresentation).map { String(format: "%02x", $0) }.joined()
         return ["schema": 1, "product": "bimeron-apple-core", "tag": "v1.2.3-rc.1", "core_version": "1.2.3-rc.1",
-                "channel": "candidate", "source_revision": revision, "key_id": String(id.prefix(8)),
+                "channel": "candidate", "source_revision": revision, "key_id": "139e3940e64b5491",
                 "compatibility": ["schema": 1, "app_min": "0.1.0", "app_max_exclusive": "0.1.1", "apple_reviewed": true,
                                   "ipc_min": 1, "ipc_max": 1, "profile_format": 1, "daemon_session_guards": true],
                 "archives": ["amd64", "arm64"].map { ["os": "macos", "arch": $0, "name": "bimeron-v1.2.3-rc.1-macos-\($0).zip", "size": archive.count, "sha256": hash] as [String: Any] }]
@@ -45,7 +45,7 @@ final class AppleCoreReleaseTests: XCTestCase {
         for app in ["0.0.9", "0.1.1", "0.1.0-rc.1", "00.1.0"] { XCTAssertThrowsError(try verify(data, app: app)) }
     }
     func testRejectedFields() throws {
-        for (field, value) in [("key_id", "00000000"), ("source_revision", String(repeating: "a", count: 40) + "\n"), ("tag", "v9.0.0"), ("source_revision", "abc"),
+        for (field, value) in [("key_id", "139e3940"), ("key_id", "0000000000000000"), ("source_revision", String(repeating: "a", count: 40) + "\n"), ("tag", "v9.0.0"), ("source_revision", "abc"),
                                ("core_version", "01.2.3"), ("core_version", "1.2.3-01"), ("product", "other"),
                                ("channel", "other"), ("unknown", "extra")] {
             var object = fixture(); object[field] = value
