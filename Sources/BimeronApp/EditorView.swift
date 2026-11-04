@@ -8,7 +8,7 @@ struct EditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var document: ConfigDocument
     @State private var rawText: String
-    @State private var tab: EditorTab = .general
+    @State private var tab: EditorTab
     @State private var issue: String?
     @State private var busy = false
     @State private var revealKey = false
@@ -20,6 +20,8 @@ struct EditorView: View {
         self.profile = profile
         _document = State(initialValue: profile.document)
         _rawText = State(initialValue: profile.document.text)
+        _tab = State(initialValue: profile.document.formEditingIssue == nil ? .general : .raw)
+        _issue = State(initialValue: profile.document.formEditingIssue)
     }
 
     var body: some View {
@@ -130,10 +132,10 @@ struct EditorView: View {
                     Text(model.t(notice)).font(.caption).foregroundStyle(.secondary)
                 }
             }
-            if canAddShadowTLS || document.hasSection("ShadowTLS") {
+            if canAddShadowTLS || document.hasShadowTLSDraft {
                 Section("ShadowTLS v3") {
                     Toggle(model.t("Enable ShadowTLS wrapper"), isOn: shadowTLSBinding)
-                    if document.hasSection("ShadowTLS") {
+                    if document.hasShadowTLSDraft {
                         field("Server name (SNI)", "ShadowTLS", "ServerName")
                         secureField("Password", "ShadowTLS", "Password")
                     }
@@ -171,13 +173,8 @@ struct EditorView: View {
     }
 
     private var shadowTLSBinding: Binding<Bool> {
-        Binding(get: { document.hasSection("ShadowTLS") }, set: { enabled in
-            if enabled {
-                document.set("ShadowTLS", "ServerName", "")
-                document.set("ShadowTLS", "Password", "")
-            } else {
-                document.removeSection("ShadowTLS")
-            }
+        Binding(get: { document.shadowTLSEnabled }, set: { enabled in
+            document.setShadowTLSEnabled(enabled)
             rawText = document.text
             issue = nil
         })
@@ -301,6 +298,7 @@ struct EditorView: View {
 
     private func fieldBinding(_ section: String, _ key: String) -> Binding<String> {
         Binding(get: {
+            if section == "ShadowTLS" { return document.shadowTLSValue(key) ?? "" }
             if let value = document.value(section, key) { return value }
             switch (section, key) {
             case ("Interface", "Mode"): return "vpn"
@@ -310,7 +308,8 @@ struct EditorView: View {
             }
         }, set: { value in
             let isAccessSource = section == "AccessKey" && (AccessProtocol(rawValue: key) != nil || key == "Key")
-            if section == "Interface", key == "Mode" { document.setMode(value) }
+            if section == "ShadowTLS" { document.setShadowTLSValue(key, value) }
+            else if section == "Interface", key == "Mode" { document.setMode(value) }
             else if value.isEmpty && !isAccessSource { document.remove(section, key) }
             else { document.set(section, key, value) }
             rawText = document.text
@@ -330,7 +329,13 @@ struct EditorView: View {
 
     private func switchTo(_ target: EditorTab) {
         if tab == .raw && target != .raw {
-            do { document = try ConfigDocument(rawText); selectedRule = nil; issue = nil }
+            do {
+                let parsed = try ConfigDocument(rawText)
+                if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
+                document = parsed
+                selectedRule = nil
+                issue = nil
+            }
             catch { issue = model.t("Fix the raw config before switching to the form"); return }
         }
         tab = target
