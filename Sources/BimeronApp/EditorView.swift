@@ -4,6 +4,7 @@ import SwiftUI
 struct EditorView: View {
     @Bindable var model: AppModel
     let profile: StoredProfile
+    let creating: Bool
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @State private var document: ConfigDocument
@@ -15,14 +16,17 @@ struct EditorView: View {
     @State private var revealKey = false
     @State private var selectedRule: Int?
     @State private var confirmCancel = false
+    @State private var drafts = ProtocolDrafts()
+    private var creationProtocol: EditorProtocol { drafts.selected }
 
-    init(model: AppModel, profile: StoredProfile) {
+    init(model: AppModel, profile: StoredProfile, creating: Bool = false) {
+        self.creating = creating
         self.model = model
         self.profile = profile
         _document = State(initialValue: profile.document)
         _rawText = State(initialValue: profile.document.text)
-        _tab = State(initialValue: profile.document.formEditingIssue == nil ? .general : .raw)
-        _issue = State(initialValue: profile.document.formEditingIssue)
+        _tab = State(initialValue: profile.document.formEditingIssue == nil ? (creating ? .upstream : .general) : .raw)
+        _issue = State(initialValue: profile.document.formEditingIssue.map { model.t($0) })
     }
 
     var body: some View {
@@ -32,6 +36,7 @@ struct EditorView: View {
                 ForEach(EditorTab.allCases, id: \.self) { item in
                     Button(model.t(item.title)) { switchTo(item) }
                         .buttonStyle(.plain)
+                        .accessibilityAddTraits(tab == item ? .isSelected : [])
                         .foregroundStyle(tab == item ? Color.accentColor : .secondary)
                         .padding(.vertical, 8)
                         .overlay(alignment: .bottom) {
@@ -104,8 +109,24 @@ struct EditorView: View {
 
     private var upstream: some View {
         Form {
+            if creating {
+                Picker(model.t("Protocol"), selection: Binding(get: { creationProtocol }, set: { changeProtocol($0) })) {
+                    ForEach(EditorProtocol.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }
+                Text(model.t("Each protocol keeps its own draft when you switch."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             LabeledContent(model.t("Protocol"), value: document.protocolName)
-            if !document.isExplicit && (AccessProtocol(rawValue: document.source) != nil || document.source == "Key") {
+            if creating && creationProtocol.generated {
+                ForEach(creationProtocol.fields, id: \.self) { key in
+                    if ["Password", "ID", "PublicKey", "ShortID"].contains(key) {
+                        SecureField(model.t(key), text: generatedBinding(key))
+                    } else {
+                        TextField(model.t(key), text: generatedBinding(key))
+                    }
+                }
+            }
+            if !(creating && creationProtocol.generated) && !document.isExplicit && (AccessProtocol(rawValue: document.source) != nil || document.source == "Key") {
                 Section(model.t("Access key")) {
                     if revealKey {
                         TextField(model.t("Link"), text: fieldBinding("AccessKey", document.source), axis: .vertical)
@@ -116,6 +137,13 @@ struct EditorView: View {
                     Toggle(model.t("Show access key"), isOn: $revealKey)
                     Text(model.t("The complete link is preserved, including transport and security parameters."))
                         .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            if !document.vlessInspection.isEmpty {
+                Section(model.t("Decoded VLESS (read-only)")) {
+                    ForEach(Array(document.vlessInspection.enumerated()), id: \.offset) { _, pair in
+                        LabeledContent(model.t(pair.0), value: revealKey || ["Server", "Port", "type", "security", "encryption", "flow", "alpn"].contains(pair.0) ? pair.1 : "••••••••")
+                    }
                 }
             }
             if let protocolType = document.accessProtocol {
@@ -137,14 +165,26 @@ struct EditorView: View {
                     Text(model.t(notice)).font(.caption).foregroundStyle(.secondary)
                 }
             }
+            if let compatibility = document.editorCompatibilityIssue {
+                Text(model.t(compatibility)).font(.caption).foregroundStyle(.red)
+            }
+            if document.isExplicit && document.accessProtocol == .vless {
+                Text(model.t("Vision requires TCP with REALITY. Keep transport-specific fields compatible; inactive values are retained and Core rejects conflicts."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if document.isExplicit && document.accessProtocol == .shadowsocks {
+                Text(model.t("SS2022 requires a base64 key of the cipher's exact length. Prefix and plugin options are preserved; plugins cannot wrap ShadowTLS."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             if canAddShadowTLS || document.hasShadowTLSDraft {
                 Section("ShadowTLS v3") {
                     Toggle(model.t("Enable ShadowTLS wrapper"), isOn: shadowTLSBinding)
+                        .disabled(!canAddShadowTLS && !document.shadowTLSEnabled)
                     if document.hasShadowTLSDraft {
                         field("Server name (SNI)", "ShadowTLS", "ServerName")
                         secureField("Password", "ShadowTLS", "Password")
                     }
-                    Text(model.t("ShadowTLS requires a compatible encrypted TCP upstream. Core must validate the combination."))
+                    Text(model.t("ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility."))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -173,8 +213,7 @@ struct EditorView: View {
     }
 
     private var canAddShadowTLS: Bool {
-        guard let protocolType = document.accessProtocol else { return false }
-        return [.shadowsocks, .dynamicShadowsocks, .vless, .vmess, .trojan, .anytls, .naive, .ssh].contains(protocolType)
+        document.shadowTLSCompatibilityIssue == nil
     }
 
     private var shadowTLSBinding: Binding<Bool> {
@@ -188,6 +227,12 @@ struct EditorView: View {
     @ViewBuilder private func protocolField(_ item: ProtocolField) -> some View {
         if item.file {
             fileField(item.title, item.id)
+        } else if let choices = item.choices {
+            Picker(model.t(item.title), selection: fieldBinding("AccessKey", item.id)) {
+                let current = document.value("AccessKey", item.id) ?? ""
+                if !choices.contains(current) { Text(current).tag(current) }
+                ForEach(choices, id: \.self) { Text($0.isEmpty ? model.t("Default") : $0).tag($0) }
+            }
         } else if item.secret {
             secureField(item.title, "AccessKey", item.id)
         } else {
@@ -250,19 +295,19 @@ struct EditorView: View {
             }
             Table(document.rules, selection: $selectedRule) {
                 TableColumn(model.t("On")) { rule in
-                    Toggle("", isOn: ruleBinding(rule.id, \.enabled)).labelsHidden()
+                    Toggle(ruleLabel("On", rule.id), isOn: ruleBinding(rule.id, \.enabled)).labelsHidden()
                 }.width(50)
                 TableColumn(model.t("Type")) { rule in
-                    Picker("", selection: ruleBinding(rule.id, \.type)) {
+                    Picker(ruleLabel("Type", rule.id), selection: ruleBinding(rule.id, \.type)) {
                         Text("CIDR").tag("CIDR")
-                        Text("Domain").tag("Domain")
+                        Text(model.t("Domain")).tag("Domain")
                     }.labelsHidden()
                 }.width(105)
                 TableColumn(model.t("Destination")) { rule in
-                    TextField("", text: ruleBinding(rule.id, \.destination))
+                    TextField(ruleLabel("Destination", rule.id), text: ruleBinding(rule.id, \.destination))
                 }
                 TableColumn(model.t("Action")) { rule in
-                    Picker("", selection: ruleBinding(rule.id, \.action)) {
+                    Picker(ruleLabel("Action", rule.id), selection: ruleBinding(rule.id, \.action)) {
                         Text(model.t("Via VPN")).tag("proxy")
                         Text(model.t("Direct")).tag("direct")
                         Text(model.t("Block")).tag("block")
@@ -288,9 +333,34 @@ struct EditorView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(model.t("Raw profile text. Fields not shown in the form are preserved."))
                 .font(.subheadline).foregroundStyle(.secondary)
-            ConfigTextEditor(text: $rawText)
+            ConfigTextEditor(text: $rawText, accessibilityLabel: model.t("Raw profile text"))
                 .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.secondary.opacity(0.3)))
         }
+    }
+
+    private func ruleLabel(_ title: String, _ id: Int) -> String {
+        model.t("Rule") + " " + String(id + 1) + ", " + model.t(title)
+    }
+
+    private func changeProtocol(_ target: EditorProtocol) {
+        do {
+            let parsed = try ConfigDocument(rawText)
+            if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
+            document = try drafts.select(target, current: parsed)
+            rawText = document.text
+            issue = nil
+        } catch { issue = model.t("Fix the raw config before switching to the form") }
+    }
+
+    private func generatedBinding(_ key: String) -> Binding<String> {
+        Binding(get: { drafts.value(key) }, set: { value in
+            do {
+                let generated = try drafts.set(key, value: value, name: document.name)
+                document.set("AccessKey", generated.source, generated.accessKey)
+                rawText = document.text
+                issue = nil
+            } catch { issue = model.t("Enter a server and a valid port") }
+        })
     }
 
     private func field(_ title: String, _ section: String, _ key: String) -> some View {
@@ -336,6 +406,10 @@ struct EditorView: View {
         if tab == .raw && target != .raw {
             do {
                 let parsed = try ConfigDocument(rawText)
+                if creating && creationProtocol.generated && rawText != document.text {
+                    issue = model.t("Keep edited generated links in Raw, or restore the parameter draft before switching.")
+                    return
+                }
                 if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
                 document = parsed
                 selectedRule = nil
@@ -356,10 +430,14 @@ struct EditorView: View {
     private func save() {
         do {
             let parsed = try ConfigDocument(rawText)
+            if tab != .raw, let compatibility = parsed.editorCompatibilityIssue {
+                issue = model.t(compatibility)
+                return
+            }
             try parsed.validateLocally()
             busy = true
             saveTask = Task {
-                let ok = await model.save(StoredProfile(id: profile.id, document: parsed), original: profile)
+                let ok = creating ? await model.create(parsed) : await model.save(StoredProfile(id: profile.id, document: parsed), original: profile)
                 busy = false
                 // A committed save remains successful even if cancellation arrives during reload.
                 if ok { dismiss() }

@@ -9,8 +9,10 @@ struct MainWindow: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var showAdd = false
     @State private var showImporter = false
+    @State private var showCreate = false
     @State private var showError = false
     @State private var editorProfile: StoredProfile?
+    @State private var creating = false
     @State private var hoveredPage: Page?
     @State private var deleteKeyMonitor: Any?
 
@@ -21,7 +23,7 @@ struct MainWindow: View {
             Group {
                 switch model.page {
                 case .profiles:
-                    ProfilesView(model: model, add: { showAdd = true }, importFile: { showImporter = true }, edit: { editorProfile = $0 }, remove: confirmDelete)
+                    ProfilesView(model: model, add: { showAdd = true }, importFile: { showImporter = true }, edit: { creating = false; editorProfile = $0 }, remove: confirmDelete)
                 case .settings: SettingsView(model: model, quit: quit)
                 case .log: LogView(model: model)
                 case .about: AboutView(model: model)
@@ -30,8 +32,17 @@ struct MainWindow: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppPalette.canvas(colorScheme))
-        .sheet(isPresented: $showAdd) { AddProfileView(model: model) }
-        .sheet(item: $editorProfile) { EditorView(model: model, profile: $0) }
+        .sheet(isPresented: $showAdd, onDismiss: {
+            if showCreate {
+                showCreate = false
+                do {
+                    let document = try EditorProtocol.ss.document(name: "", values: [:])
+                    creating = true
+                    editorProfile = StoredProfile(document: document)
+                } catch { model.report(error) }
+            }
+        }) { AddProfileView(model: model, create: { showCreate = true; showAdd = false }) }
+        .sheet(item: $editorProfile) { EditorView(model: model, profile: $0, creating: creating) }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.plainText, .data]) { result in
             switch result {
             case .success(let url): Task { await model.importFile(url) }

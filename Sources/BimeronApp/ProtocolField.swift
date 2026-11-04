@@ -5,6 +5,20 @@ struct ProtocolField: Identifiable {
     let title: String
     var secret = false
     var file = false
+    var choices: [String]? {
+        switch id {
+        case "Method": ["aes-128-gcm", "aes-192-gcm", "aes-256-gcm", "chacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"]
+        case "Plugin": ["", "obfs-local", "v2ray-plugin"]
+        case "Network": ["", "tcp", "ws", "grpc", "xhttp"]
+        case "Security": ["", "tls", "reality"]
+        case "Flow": ["", "xtls-rprx-vision", "xtls-rprx-vision-udp443"]
+        case "Encryption": ["", "none"]
+        case "Fingerprint": ["", "chrome", "firefox", "safari", "ios", "android", "edge"]
+        case "XHTTPMode": ["", "auto", "packet-up", "stream-up", "stream-one"]
+        case "GRPCMultiMode": ["", "false", "true"]
+        default: nil
+        }
+    }
 
     init(_ key: String, title: String? = nil, secret: Bool = false, file: Bool = false) {
         id = key
@@ -35,8 +49,8 @@ struct ProtocolField: Identifiable {
         case .trojan:
             return endpoint + [Self("Password", secret: true), sni] + transportFields
         case .vless:
-            return endpoint + [Self("ID", title: "User ID"), Self("Encryption"), Self("Flow"), sni,
-                               Self("PublicKey", title: "REALITY public key"), Self("ShortID", title: "REALITY short ID"),
+            return endpoint + [Self("ID", title: "User ID", secret: true), Self("Encryption"), Self("Flow"), sni,
+                               Self("PublicKey", title: "REALITY public key", secret: true), Self("ShortID", title: "REALITY short ID", secret: true),
                                Self("SpiderX"), Self("Fingerprint", title: "Client fingerprint")]
                 + transportFields + [Self("WSEarlyData", title: "WebSocket early data"),
                                      Self("XHTTPMode", title: "XHTTP mode"), Self("XHTTPPath", title: "XHTTP path"),

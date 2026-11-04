@@ -69,6 +69,50 @@ import Observation
         } catch { report(error); return false }
     }
 
+    func create(_ document: ConfigDocument) async -> Bool {
+        guard let coreCLI else {
+            alertMessage = t("Core validation is unavailable")
+            return false
+        }
+        do {
+            let profile = try await library.add(document) { url in
+                _ = try await coreCLI.validate(fileURL: url)
+            }
+            await load()
+            selectedID = profile.id
+            record(t("Profile added"))
+            return true
+        } catch {
+            let key: String
+            switch error {
+            case is CancellationError, CoreCLIError.cancelled: key = "Core validation cancelled"
+            case CoreCLIError.launch: key = "Core validation is unavailable"
+            case CoreCLIError.timedOut: key = "Core validation timed out"
+            case is CoreCLIError: key = "Core rejected the configuration"
+            case is EditorSaveError: key = "Staged profile changed; try saving again"
+            default: report(error); return false
+            }
+            alertMessage = t(key)
+            return false
+        }
+    }
+
+    func addInput(name: String, input: String, sshIdentityFile: URL? = nil, sshKnownHostsFile: URL? = nil) async -> Bool {
+        if let url = ProfileInput.fileURL(input) {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let profile = try await library.importFile(url)
+                await load()
+                selectedID = profile.id
+                record(t("Profile imported"))
+                return true
+            } catch { report(error); return false }
+        }
+        return await add(name: name, key: ProfileInput.normalized(input), sshIdentityFile: sshIdentityFile,
+                         sshKnownHostsFile: sshKnownHostsFile)
+    }
+
     func importFile(_ url: URL) async {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }

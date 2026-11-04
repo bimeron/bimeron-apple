@@ -82,6 +82,26 @@ public actor ProfileLibrary {
         return profile
     }
 
+    /// New editor profiles use the same protected staging and precommit checks as updates.
+    public func add(_ document: ConfigDocument,
+                    validate: @Sendable (URL) async throws -> Void) async throws -> StoredProfile {
+        try document.validateLocally()
+        try prepareDirectory()
+        let profile = StoredProfile(document: document)
+        let temporary = try stage(profile)
+        defer { unlink(temporary.path) }
+        try await validate(temporary)
+        guard try ConfigDocument.readLimited(temporary) == Data(document.text.utf8) else {
+            throw EditorSaveError.changedStaging
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: temporary.path)
+        try Task.checkCancellation()
+        let destination = file(for: profile.id)
+        // link is an atomic, exclusive commit: it cannot overwrite an existing profile.
+        guard link(temporary.path, destination.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+        return profile
+    }
+
     public func update(_ profile: StoredProfile) throws {
         try profile.document.validateLocally()
         guard FileManager.default.fileExists(atPath: file(for: profile.id).path) else { throw ProfileError.missing("Profile") }
