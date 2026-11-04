@@ -7,6 +7,8 @@ public struct ConfigDocument: Equatable, Sendable {
     private var lines: [String]
     private var bom: String
     private var newline: String
+    private var shadowToggleOriginal: [String]?
+    private var shadowToggleEnabled: Bool?
 
     public init(_ text: String) throws {
         guard text.utf8.count <= Self.sizeLimit else { throw ProfileError.tooLarge }
@@ -82,6 +84,65 @@ public struct ConfigDocument: Equatable, Sendable {
         return nil
     }
 
+    /// Early form feedback for known incompatible options, without rewriting inactive fields.
+    public var editorCompatibilityIssue: String? {
+        guard isExplicit else { return nil }
+        func field(_ key: String) -> String { value("AccessKey", key) ?? "" }
+        if accessProtocol == .shadowsocks, field("Method").hasPrefix("2022-"), !field("Prefix").isEmpty {
+            return "SS2022 does not support Prefix. Clear Prefix before saving."
+        }
+        if accessProtocol == .vless {
+            let network = field("Network").isEmpty ? "tcp" : field("Network")
+            let security = field("Security")
+            let realityFields = ["PublicKey", "ShortID", "SpiderX"].contains { !field($0).isEmpty }
+            if !["tls", "reality"].contains(security) ||
+                !field("Flow").isEmpty && !(network == "tcp" && security == "reality") ||
+                security != "reality" && realityFields ||
+                network == "ws" && security != "tls" ||
+                network != "grpc" && (["GRPCServiceName", "GRPCAuthority"].contains(where: { !field($0).isEmpty }) || field("GRPCMultiMode") == "true") ||
+                network != "ws" && !field("WSEarlyData").isEmpty && field("WSEarlyData") != "0" ||
+                network != "ws" && network != "xhttp" && ["WSPath", "WSHost"].contains(where: { !field($0).isEmpty }) ||
+                network != "xhttp" && ["XHTTPMode", "XHTTPPath", "XHTTPHost", "XHTTPExtra"].contains(where: { !field($0).isEmpty }) {
+                return "Incompatible transport, security or flow. Correct the settings; all draft values are retained."
+            }
+        }
+        return nil
+    }
+
+    /// Conservative form gate. Core remains authoritative for opaque URI details.
+    public var shadowTLSCompatibilityIssue: String? {
+        guard let accessProtocol,
+              [.shadowsocks, .dynamicShadowsocks, .vless, .vmess, .trojan, .anytls, .naive, .ssh].contains(accessProtocol) else {
+            return "ShadowTLS requires a compatible encrypted TCP upstream"
+        }
+        if !isExplicit, let uri = URLComponents(string: accessKey) {
+            let query = uri.queryItems ?? []
+            if query.contains(where: { $0.name == "plugin" && !($0.value ?? "").isEmpty || $0.name == "alpn" && ($0.value ?? "").contains("h3") }) ||
+                accessProtocol == .vless && !query.contains(where: { $0.name == "security" && ["tls", "reality"].contains($0.value ?? "") }) ||
+                accessProtocol == .shadowsocks && uri.user == "aes-192-gcm" {
+                return "ShadowTLS requires a compatible encrypted TCP upstream"
+            }
+        }
+        if accessKey.lowercased().hasPrefix("naive+quic://") ||
+            !(value("AccessKey", "Plugin") ?? "").isEmpty || value("AccessKey", "Method") == "aes-192-gcm" ||
+            isExplicit && accessProtocol == .vless && !["tls", "reality"].contains(value("AccessKey", "Security") ?? "") ||
+            (value("AccessKey", "ALPN") ?? "").contains("h3") {
+            return "ShadowTLS requires a compatible encrypted TCP upstream"
+        }
+        return nil
+    }
+
+    /// Inspection never feeds back into serialization of the original access key.
+    public var vlessInspection: [(String, String)] {
+        guard accessProtocol == .vless, !isExplicit, let components = URLComponents(string: accessKey) else { return [] }
+        var result: [(String, String)] = []
+        if let host = components.host { result.append(("Server", host)) }
+        if let port = components.port { result.append(("Port", String(port))) }
+        if let user = components.user { result.append(("User ID", user)) }
+        for item in components.queryItems ?? [] { result.append((item.name, item.value ?? "")) }
+        return result
+    }
+
     public var shadowTLSEnabled: Bool { hasSection("ShadowTLS") }
     public var hasShadowTLSDraft: Bool { !blockRanges("ShadowTLS").isEmpty }
 
@@ -96,12 +157,22 @@ public struct ConfigDocument: Equatable, Sendable {
         guard formEditingIssue == nil, (shadowTLSValue(key) ?? "") != value else { return }
         let enabled = shadowTLSEnabled
         if hasShadowTLSDraft && !enabled { setShadowTLSEnabled(true) }
+        shadowToggleOriginal = nil
+        shadowToggleEnabled = nil
         if value.isEmpty { remove("ShadowTLS", key) } else { set("ShadowTLS", key, value) }
         if !enabled { setShadowTLSEnabled(false) }
+        shadowToggleOriginal = nil
+        shadowToggleEnabled = nil
     }
 
     public mutating func setShadowTLSEnabled(_ enabled: Bool) {
         guard formEditingIssue == nil else { return }
+        if enabled == shadowToggleEnabled, let original = shadowToggleOriginal {
+            if let range = blockRanges("ShadowTLS").first { lines.replaceSubrange(range, with: original) }
+            shadowToggleOriginal = nil
+            shadowToggleEnabled = nil
+            return
+        }
         guard let range = blockRanges("ShadowTLS").first else {
             if enabled { lines.append("[ShadowTLS]" + newline) }
             return
@@ -113,6 +184,8 @@ public struct ConfigDocument: Equatable, Sendable {
             lines.replaceSubrange(range, with: comments)
             return
         }
+        shadowToggleOriginal = Array(lines[range])
+        shadowToggleEnabled = shadowTLSEnabled
         let block = lines[range].filter {
             enabled || (try? Self.pair($0))?.1 != ""
         }.map { enabled ? Self.uncomment($0) : "# " + $0 }
@@ -189,6 +262,24 @@ public struct ConfigDocument: Equatable, Sendable {
         }
     }
 
+    /// Only a matching URI source has clear ownership; never remove a Raw schema or its extensions.
+    public mutating func restoreGeneratedSource(_ source: String, value: String) throws {
+        try checkSyntax()
+        guard Self.sourceKeys.filter({ self.value("AccessKey", $0) != nil }) == [source],
+              self.value("AccessKey", "Type") == nil, self.value("AccessKey", "Server") == nil,
+              let range = sectionRange("AccessKey"),
+              let index = range.first(where: { (try? Self.pair(lines[$0]))?.0 == source }) else {
+            throw ProfileError.invalid("GeneratedAccessKey")
+        }
+        guard accessKey != value else { return }
+        let line = lines[index]
+        let equals = line.firstIndex(of: "=")!
+        let suffix = line[line.index(after: equals)...]
+        let start = suffix.firstIndex(where: { !$0.isWhitespace }) ?? suffix.startIndex
+        let end = suffix.lastIndex(where: { !$0.isWhitespace }).map { line.index(after: $0) } ?? start
+        lines[index].replaceSubrange(start..<end, with: Self.encode(value))
+    }
+
     public func hasSection(_ section: String) -> Bool { sectionRange(section) != nil }
 
     public mutating func remove(_ section: String, _ key: String) {
@@ -257,7 +348,7 @@ public struct ConfigDocument: Equatable, Sendable {
         guard text.utf8.count <= Self.sizeLimit else { throw ProfileError.tooLarge }
         try checkSyntax()
         guard value("Profile", "Version") == "1" else { throw ProfileError.invalid("Version") }
-        guard name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
+        try Self.validateName(name)
         let sources = Self.sourceKeys.filter { value("AccessKey", $0) != nil }
         let explicit = value("AccessKey", "Type") != nil || value("AccessKey", "Server") != nil
         guard sources.count + (explicit ? 1 : 0) == 1 else { throw ProfileError.invalid("AccessKey") }
@@ -287,9 +378,7 @@ public struct ConfigDocument: Equatable, Sendable {
         if let kill = value("Interface", "KillSwitch"), !["true", "false"].contains(kill) { throw ProfileError.invalid("KillSwitch") }
         if let action = value("Routing", "Default"), !["proxy", "direct", "block"].contains(action) { throw ProfileError.invalid("Routing.Default") }
         if hasSection("ShadowTLS") {
-            guard let accessProtocol,
-                  [.shadowsocks, .dynamicShadowsocks, .vless, .vmess, .trojan, .anytls, .naive, .ssh].contains(accessProtocol),
-                  !accessKey.hasPrefix("naive+quic://") else { throw ProfileError.invalid("ShadowTLS") }
+            guard shadowTLSCompatibilityIssue == nil else { throw ProfileError.invalid("ShadowTLS") }
             for key in ["ServerName", "Password"] {
                 guard !(value("ShadowTLS", key) ?? "").isEmpty else { throw ProfileError.missing("ShadowTLS.\(key)") }
             }
@@ -310,6 +399,10 @@ public struct ConfigDocument: Equatable, Sendable {
                 throw ProfileError.invalid("Domain")
             }
         }
+    }
+
+    public static func validateName(_ name: String) throws {
+        guard name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
     }
 
     public static func validateKey(_ key: String) throws {

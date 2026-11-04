@@ -7,7 +7,6 @@ struct ProfilesView: View {
     @FocusState private var keyboardFocused: Bool
     @State private var keyboardScrollID: UUID?
     let add: () -> Void
-    let importFile: () -> Void
     let edit: (StoredProfile) -> Void
     let remove: () -> Void
 
@@ -88,10 +87,6 @@ struct ProfilesView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                     .keyboardShortcut("n", modifiers: .command)
-                Button(model.t("Import .conf"), action: importFile)
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .keyboardShortcut("n", modifiers: [.command, .shift])
                 Button(model.t("Remove"), action: remove)
                     .buttonStyle(.bordered)
                     .controlSize(.large)
@@ -114,7 +109,6 @@ struct ProfilesView: View {
         .padding(.bottom, 18)
         .background(AppPalette.canvas(colorScheme))
         .focusable()
-        .focusEffectDisabled()
         .focused($keyboardFocused)
         .onAppear { keyboardFocused = true }
         .onKeyPress(keys: [.upArrow, .downArrow, .escape, .space]) { press in
@@ -178,6 +172,8 @@ struct ProfilesView: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
+            .accessibilityAddTraits(model.selectedID == profile.id ? .isSelected : [])
+            .help(profile.document.name)
             if model.selectedID == profile.id {
                 Button { edit(profile) } label: {
                     Image(systemName: "pencil")
