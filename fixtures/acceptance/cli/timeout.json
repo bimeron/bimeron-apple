@@ -1,0 +1,10 @@
+{
+  "kind": "synthetic-process-result",
+  "operation": "validate",
+  "termination": "timeout",
+  "exit_code": null,
+  "stdout": "partial",
+  "stderr": "",
+  "output_complete": true,
+  "decoded_observation": null
+}

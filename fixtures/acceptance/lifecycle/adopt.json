@@ -1,0 +1,9 @@
+{
+  "kind": "synthetic-lifecycle-script",
+  "events": [
+    "observe-connected:existing",
+    "request-adopt"
+  ],
+  "expected_commands": [],
+  "expected_final_state": "connected"
+}

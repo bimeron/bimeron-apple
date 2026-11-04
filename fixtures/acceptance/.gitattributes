@@ -1,0 +1,1 @@
+config/*.conf -text whitespace=cr-at-eol

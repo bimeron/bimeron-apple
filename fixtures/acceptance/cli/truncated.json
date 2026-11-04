@@ -1,0 +1,10 @@
+{
+  "kind": "synthetic-process-result",
+  "operation": "capabilities",
+  "termination": "exited",
+  "exit_code": 0,
+  "stdout": "partial",
+  "stderr": "",
+  "output_complete": false,
+  "decoded_observation": null
+}

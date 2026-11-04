@@ -9,6 +9,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - name: Check acceptance fixtures
+        run: python3 fixtures/acceptance/check.py
       - name: Test
         run: swift test
       - name: Build app
