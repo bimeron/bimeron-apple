@@ -29,6 +29,23 @@ final class AppleCoreReleaseTests: XCTestCase {
             approval: approval ?? AppleCoreReleaseApproval(tag: "v1.2.3-rc.1", sourceRevision: revision),
             appVersion: app, channel: "beta", architecture: "arm64")
     }
+    func testPublisherSyntheticVector() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("docs/workstreams/core-delivery/testdata")
+        let data = try Data(contentsOf: root.appendingPathComponent("synthetic-reviewed-manifest.json"))
+        let signature = try Data(contentsOf: root.appendingPathComponent("synthetic-reviewed-manifest.json.sig"))
+        let vector = try JSONSerialization.jsonObject(with: Data(contentsOf: root.appendingPathComponent("synthetic-vector.json"))) as! [String: String]
+        for architecture in ["amd64", "arm64"] {
+            let manifest = try AppleCoreRelease.verifyManifest(data, signature: signature,
+                trustedPublicKey: XCTUnwrap(Data(base64Encoded: XCTUnwrap(vector["public_key_base64"]))),
+                approval: .init(tag: XCTUnwrap(vector["expected_tag"]), sourceRevision: XCTUnwrap(vector["expected_source_revision"])),
+                appVersion: "0.1.0", channel: "beta", architecture: architecture)
+            XCTAssertEqual(manifest.archiveName, "bimeron-v0.1.0-beta.1-macos-\(architecture).zip")
+            // Publisher vector authenticates a descriptor only; archive hashes are deliberately fake.
+            XCTAssertThrowsError(try AppleCoreRelease.verifyArchive(Data([0]), manifest: manifest))
+        }
+    }
     func testReviewedApprovedArchive() throws {
         let manifest = try verify(bytes(fixture()))
         XCTAssertEqual(manifest.archiveName, "bimeron-v1.2.3-rc.1-macos-arm64.zip")

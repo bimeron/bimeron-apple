@@ -13,4 +13,7 @@ bounded to 128 UTF8 bytes. Numeric triplet components must fit UInt64; larger co
 
 Archive hash verification does not establish safe extraction or runtime readiness. Before installation, a separate packaging gate must enforce at most four entries: exactly `macos-<arch>/{bimeron,LICENSE,THIRD_PARTY_NOTICES.txt}` plus the optional expected parent directory; no extras, traversal, duplicates, links or special files; store/deflate only, no encryption; executable binary mode; binary uncompressed size at most 256 MiB and each notice at most 4 MiB. Publisher nonexecuted Go buildinfo checks are source metadata evidence, not consumer proof of runtime readiness. This consumer never extracts, executes, installs, or accesses a daemon.
 
-Tests use synthetic ephemeral Ed25519 keys and self-signed JSON only. Publisher interoperability fixtures remain a follow-up integration check.
+Tests use synthetic ephemeral Ed25519 keys and self-signed JSON only. The exact publisher synthetic signed vector is retained under `testdata/` and
+verified for both architectures; its intentionally fake archive hashes are rejected.
+It proves manifest parser/signature interoperability only, not real archive or
+source provenance acceptance.
