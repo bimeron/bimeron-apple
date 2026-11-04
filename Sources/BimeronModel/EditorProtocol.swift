@@ -27,6 +27,7 @@ public enum EditorProtocol: String, CaseIterable, Sendable {
     }
 
     public func document(name: String, values: [String: String]) throws -> ConfigDocument {
+        try ConfigDocument.validateName(name)
         func field(_ key: String) -> String { values[key] ?? "" }
         // ConfigDocument.set is line-oriented; reject line injection before serialization.
         guard !values.values.contains(where: { $0.contains(where: { $0.isNewline || $0 == "\0" }) }) else {
@@ -35,7 +36,11 @@ public enum EditorProtocol: String, CaseIterable, Sendable {
         var document = try ConfigDocument("[Profile]\nVersion = 1\n[AccessKey]\n[Interface]\nMode = vpn\n[Routing]\nDefault = proxy\n")
         document.set("Profile", "Name", name)
         if generated {
-            document.set("AccessKey", self == .naiveQUIC ? "Naive" : rawValue, (try? uri(values: values)) ?? "")
+            let link: String
+            do { link = try uri(values: values) }
+            catch ProfileError.invalid("Server or Port") { link = "" } // Incomplete drafts remain editable; the UI explains the missing endpoint.
+            if !link.isEmpty { try ConfigDocument.validateKey(link) }
+            document.set("AccessKey", self == .naiveQUIC ? "Naive" : rawValue, link)
         } else {
             document.set("AccessKey", "Type", type)
             for (key, value) in values where !value.isEmpty { document.set("AccessKey", key, value) }
@@ -45,7 +50,12 @@ public enum EditorProtocol: String, CaseIterable, Sendable {
     }
 
     public func uri(values: [String: String]) throws -> String {
-        func field(_ key: String) -> String { values[key] ?? "" }
+        guard !values.values.contains(where: { $0.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) }) else {
+            throw ProfileError.invalid("AccessKey")
+        }
+        func field(_ key: String) -> String {
+            values[key] ?? (self == .vmess ? ["VMessSecurity": "auto", "VMessNetwork": "tcp", "VMessTLS": "tls"][key] : nil) ?? ""
+        }
         let port = field("Port").isEmpty ? "443" : field("Port")
         guard let number = Int(port), (1...65535).contains(number), !field("Server").isEmpty else {
             throw ProfileError.invalid("Server or Port")

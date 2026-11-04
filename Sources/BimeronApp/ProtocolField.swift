@@ -9,6 +9,9 @@ struct ProtocolField: Identifiable {
         switch id {
         case "Method": ["aes-128-gcm", "aes-192-gcm", "aes-256-gcm", "chacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"]
         case "Plugin": ["", "obfs-local", "v2ray-plugin"]
+        case "VMessSecurity": ["auto", "none", "aes-128-gcm", "chacha20-poly1305", "zero"]
+        case "VMessNetwork": ["tcp", "ws", "grpc", "xhttp"]
+        case "VMessTLS": ["tls", "", "reality"]
         case "Network": ["", "tcp", "ws", "grpc", "xhttp"]
         case "Security": ["", "tls", "reality"]
         case "Flow": ["", "xtls-rprx-vision", "xtls-rprx-vision-udp443"]
@@ -27,6 +30,15 @@ struct ProtocolField: Identifiable {
         self.file = file
     }
 
+    static func generated(_ key: String) -> Self {
+        let titles = ["ID": "User ID", "ServerName": "Server name (SNI)", "Fingerprint": "Client fingerprint",
+                      "PublicKey": "REALITY public key", "ShortID": "REALITY short ID", "SpiderX": "REALITY spider path",
+                      "VMessSecurity": "Encryption", "VMessNetwork": "Transport", "VMessTLS": "Security",
+                      "VMessPath": "Transport path", "VMessHost": "Transport host", "VMessMode": "Transport mode",
+                      "VMessExtra": "Transport extra options"]
+        return Self(key, title: titles[key], secret: ["Password", "ID", "PublicKey", "ShortID"].contains(key))
+    }
+
     static func fields(for protocolType: AccessProtocol) -> [Self] {
         let endpoint = [Self("Server"), Self("Port")]
         let credentials = [Self("Username"), Self("Password", secret: true)]
@@ -34,7 +46,7 @@ struct ProtocolField: Identifiable {
         switch protocolType {
         case .shadowsocks:
             return endpoint + [Self("Method", title: "Encryption"), Self("Password", secret: true),
-                               Self("Prefix"), Self("Plugin"), Self("PluginOpts", title: "Plugin options")]
+                               Self("Prefix"), Self("Plugin"), Self("PluginOpts", title: "Plugin options", secret: true)]
         case .socks5:
             return endpoint + credentials
         case .http:

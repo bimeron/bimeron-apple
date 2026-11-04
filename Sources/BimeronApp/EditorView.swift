@@ -67,7 +67,7 @@ struct EditorView: View {
                 Spacer()
                 Button(model.t("Cancel")) {
                     saveTask?.cancel()
-                    if rawText != profile.document.text { confirmCancel = true } else { dismiss() }
+                    if drafts.hasEdits || rawText != profile.document.text { confirmCancel = true } else { dismiss() }
                 }
                 .keyboardShortcut(.cancelAction)
                 Button {
@@ -87,6 +87,9 @@ struct EditorView: View {
         .frame(idealWidth: 760, idealHeight: 600)
         .background(AppPalette.surface(colorScheme))
         .onDisappear { saveTask?.cancel() }
+        .onChange(of: rawText) { _, value in
+            if value != profile.document.text { drafts.recordEdits() }
+        }
         .confirmationDialog(model.t("Discard changes?"), isPresented: $confirmCancel) {
             Button(model.t("Discard changes"), role: .destructive) { dismiss() }
             Button(model.t("Keep editing"), role: .cancel) {}
@@ -119,10 +122,14 @@ struct EditorView: View {
             LabeledContent(model.t("Protocol"), value: document.protocolName)
             if creating && creationProtocol.generated {
                 ForEach(creationProtocol.fields, id: \.self) { key in
-                    if ["Password", "ID", "PublicKey", "ShortID"].contains(key) {
-                        SecureField(model.t(key), text: generatedBinding(key))
+                    if let choices = ProtocolField.generated(key).choices {
+                        Picker(model.t(ProtocolField.generated(key).title), selection: generatedBinding(key)) {
+                            ForEach(choices, id: \.self) { Text($0.isEmpty ? model.t("Use default") : $0).tag($0) }
+                        }
+                    } else if ProtocolField.generated(key).secret {
+                        SecureField(model.t(ProtocolField.generated(key).title), text: generatedBinding(key))
                     } else {
-                        TextField(model.t(key), text: generatedBinding(key))
+                        TextField(model.t(ProtocolField.generated(key).title), text: generatedBinding(key))
                     }
                 }
             }
@@ -150,9 +157,6 @@ struct EditorView: View {
                 if document.isExplicit {
                     ForEach(ProtocolField.fields(for: protocolType)) { item in
                         protocolField(item)
-                    }
-                    if document.value("AccessKey", "Type") == "https" {
-                        field("Server name (SNI)", "AccessKey", "ServerName")
                     }
                 }
                 if protocolType == .ssh {
@@ -184,7 +188,7 @@ struct EditorView: View {
                         field("Server name (SNI)", "ShadowTLS", "ServerName")
                         secureField("Password", "ShadowTLS", "Password")
                     }
-                    Text(model.t("ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility."))
+                    Text(model.t("Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility."))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -333,6 +337,19 @@ struct EditorView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(model.t("Raw profile text. Fields not shown in the form are preserved."))
                 .font(.subheadline).foregroundStyle(.secondary)
+            if creating && creationProtocol.generated {
+                Button(model.t("Restore generated access key")) {
+                    do {
+                        var parsed = try ConfigDocument(rawText)
+                        let generated = try drafts.generatedDocument(name: parsed.name)
+                        parsed.removeSection("AccessKey")
+                        parsed.set("AccessKey", generated.source, generated.accessKey)
+                        document = parsed
+                        rawText = parsed.text
+                        issue = generated.accessKey.isEmpty ? model.t("Enter a server and a valid port") : nil
+                    } catch { showGenerationError(error) }
+                }
+            }
             ConfigTextEditor(text: $rawText, accessibilityLabel: model.t("Raw profile text"))
                 .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.secondary.opacity(0.3)))
         }
@@ -349,6 +366,8 @@ struct EditorView: View {
             document = try drafts.select(target, current: parsed)
             rawText = document.text
             issue = nil
+        } catch ProfileError.invalid("GeneratedAccessKey") {
+            issue = model.t("Keep edited generated links in Raw, or restore the parameter draft before switching.")
         } catch { issue = model.t("Fix the raw config before switching to the form") }
     }
 
@@ -358,9 +377,17 @@ struct EditorView: View {
                 let generated = try drafts.set(key, value: value, name: document.name)
                 document.set("AccessKey", generated.source, generated.accessKey)
                 rawText = document.text
-                issue = nil
-            } catch { issue = model.t("Enter a server and a valid port") }
+                issue = generated.accessKey.isEmpty ? model.t("Enter a server and a valid port") : nil
+            } catch { showGenerationError(error) }
         })
+    }
+
+    private func showGenerationError(_ error: Error) {
+        if case ProfileError.invalid(let field) = error {
+            issue = model.t("Check field") + ": " + model.t(field)
+        } else {
+            issue = error.localizedDescription
+        }
     }
 
     private func field(_ title: String, _ section: String, _ key: String) -> some View {
@@ -406,14 +433,15 @@ struct EditorView: View {
         if tab == .raw && target != .raw {
             do {
                 let parsed = try ConfigDocument(rawText)
-                if creating && creationProtocol.generated && rawText != document.text {
-                    issue = model.t("Keep edited generated links in Raw, or restore the parameter draft before switching.")
-                    return
-                }
+                if creating { try drafts.checkParameterSource(parsed) }
                 if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
                 document = parsed
                 selectedRule = nil
                 issue = nil
+            }
+            catch ProfileError.invalid("GeneratedAccessKey") {
+                issue = model.t("Keep edited generated links in Raw, or restore the parameter draft before switching.")
+                return
             }
             catch { issue = model.t("Fix the raw config before switching to the form"); return }
         }

@@ -84,6 +84,7 @@ public actor ProfileLibrary {
 
     /// New editor profiles use the same protected staging and precommit checks as updates.
     public func add(_ document: ConfigDocument,
+                    orderWarning: @Sendable (String) async -> Void = { _ in },
                     validate: @Sendable (URL) async throws -> Void) async throws -> StoredProfile {
         try document.validateLocally()
         try prepareDirectory()
@@ -99,6 +100,14 @@ public actor ProfileLibrary {
         let destination = file(for: profile.id)
         // link is an atomic, exclusive commit: it cannot overwrite an existing profile.
         guard link(temporary.path, destination.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+        do {
+            // Reload after validation: another actor call may have changed the visible order.
+            let existing = try load().profiles.map(\.id).filter { $0 != profile.id }
+            try JSONEncoder().encode(existing + [profile.id]).write(to: orderFile, options: .atomic)
+        } catch {
+            // The profile is already committed; a secondary order failure must not invite duplicate creation.
+            await orderWarning("Profile added, but its list order could not be saved")
+        }
         return profile
     }
 

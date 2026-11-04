@@ -141,3 +141,94 @@ func editorCreationFailureLeavesNoPartialProfile(_ mode: String) async throws {
     vless.set("AccessKey", "Network", "tcp")
     #expect(vless.editorCompatibilityIssue == nil)
 }
+
+@Test func generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() throws {
+    var drafts = ProtocolDrafts()
+    let ss = try EditorProtocol.ss.document(name: "Draft", values: [:])
+    _ = try drafts.select(.vmess, current: ss)
+    var generated = try drafts.set("Server", value: "example.com", name: "Draft")
+    generated.set("Profile", "Name", "Renamed")
+    generated.set("Routing", "Default", "direct")
+    try drafts.checkParameterSource(generated)
+    let other = try drafts.select(.ss, current: generated)
+    #expect(try drafts.select(.vmess, current: other).text == generated.text)
+    generated.set("AccessKey", "VMess", "vmess://modified")
+    #expect(throws: (any Error).self) { try drafts.checkParameterSource(generated) }
+    #expect(throws: (any Error).self) { try drafts.select(.ss, current: generated) }
+    #expect(drafts.selected == .vmess)
+    #expect(drafts.hasEdits)
+}
+
+@Test func generatedValuesValidateNamesAndEncodedLinks() throws {
+    for name in ["bad\nName = injected", String(repeating: "x", count: 129), "nul\0"] {
+        #expect(throws: ProfileError.invalid("Name")) { try EditorProtocol.vmess.document(name: name, values: [:]) }
+    }
+    #expect(throws: ProfileError.invalid("AccessKey")) {
+        try EditorProtocol.anytls.document(name: "Safe", values: ["Server": "a b", "Password": "ok"])
+    }
+    let document = try EditorProtocol.vmess.document(name: "Safe", values: ["Server": "example.com"])
+    let data = try #require(Data(base64Encoded: String(document.accessKey.dropFirst(8))))
+    let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: String])
+    #expect(object["scy"] == "auto")
+    #expect(object["net"] == "tcp")
+    #expect(object["tls"] == "tls")
+}
+
+@Test func inactiveDraftEditsSurviveReturningToInitialProtocol() throws {
+    var drafts = ProtocolDrafts()
+    let ss = try EditorProtocol.ss.document(name: "Draft", values: [:])
+    _ = try drafts.select(.tuic, current: ss)
+    let modified = try drafts.set("Password", value: "unsaved secret", name: "Draft")
+    let restored = try drafts.select(.ss, current: modified)
+    #expect(restored.text == ss.text)
+    #expect(drafts.hasEdits)
+}
+
+@Test func tcpVLESSAllowsFalseGRPCMultiMode() throws {
+    var document = try EditorProtocol.vless.document(name: "VLESS", values: ["Server": "example.com", "Security": "tls", "Network": "tcp", "GRPCMultiMode": "false"])
+    #expect(document.editorCompatibilityIssue == nil)
+    document.set("AccessKey", "GRPCMultiMode", "true")
+    #expect(document.editorCompatibilityIssue != nil)
+    document.set("AccessKey", "GRPCMultiMode", "false")
+    document.set("AccessKey", "GRPCServiceName", "service")
+    #expect(document.editorCompatibilityIssue != nil)
+}
+
+@Test func validatedCreationAppendsToVisibleOrder() async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let library = ProfileLibrary(directory: root)
+    let zulu = try await library.add(ConfigDocument.new(name: "Zulu", key: "ss://example")) { _ in }
+    let alpha = try await library.add(ConfigDocument.new(name: "Alpha", key: "ss://example")) { _ in }
+    #expect(try await library.load().profiles.map(\.id) == [zulu.id, alpha.id])
+    #expect(FileManager.default.fileExists(atPath: root.appending(path: "order.json").path))
+}
+
+private actor OrderWarnings {
+    var messages: [String] = []
+    func append(_ message: String) { messages.append(message) }
+}
+
+@Test func orderFailureAfterCommitReturnsCreatedProfileAndWarning() async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let library = ProfileLibrary(directory: root)
+    let warnings = OrderWarnings()
+    let profile = try await library.add(ConfigDocument.new(name: "Created", key: "ss://example"), orderWarning: { await warnings.append($0) }) { _ in
+        try FileManager.default.createDirectory(at: root.appending(path: "order.json"), withIntermediateDirectories: true)
+    }
+    #expect(try await library.load().profiles == [profile])
+    #expect(await warnings.messages.count == 1)
+}
+
+@Test func generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() throws {
+    var drafts = ProtocolDrafts()
+    _ = try drafts.select(.anytls, current: EditorProtocol.ss.document(name: "Draft", values: [:]))
+    let original = try drafts.set("Server", value: "example.com", name: "Draft")
+    var changed = original
+    changed.removeSection("AccessKey")
+    changed.set("AccessKey", "Key", original.accessKey)
+    #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.checkParameterSource(changed) }
+    try drafts.checkParameterSource(original)
+    #expect(try drafts.select(.ss, current: original).isExplicit)
+}

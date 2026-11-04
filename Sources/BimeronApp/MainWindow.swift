@@ -1,6 +1,5 @@
 import BimeronModel
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct MainWindow: View {
     private static let logo = NSImage(contentsOf: Bundle.module.url(forResource: "blue-64", withExtension: "png")!)!
@@ -8,7 +7,6 @@ struct MainWindow: View {
     let quit: () -> Void
     @Environment(\.colorScheme) private var colorScheme
     @State private var showAdd = false
-    @State private var showImporter = false
     @State private var showCreate = false
     @State private var showError = false
     @State private var editorProfile: StoredProfile?
@@ -23,7 +21,7 @@ struct MainWindow: View {
             Group {
                 switch model.page {
                 case .profiles:
-                    ProfilesView(model: model, add: { showAdd = true }, importFile: { showImporter = true }, edit: { creating = false; editorProfile = $0 }, remove: confirmDelete)
+                    ProfilesView(model: model, add: { showAdd = true }, edit: { creating = false; editorProfile = $0 }, remove: confirmDelete)
                 case .settings: SettingsView(model: model, quit: quit)
                 case .log: LogView(model: model)
                 case .about: AboutView(model: model)
@@ -43,12 +41,6 @@ struct MainWindow: View {
             }
         }) { AddProfileView(model: model, create: { showCreate = true; showAdd = false }) }
         .sheet(item: $editorProfile) { EditorView(model: model, profile: $0, creating: creating) }
-        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.plainText, .data]) { result in
-            switch result {
-            case .success(let url): Task { await model.importFile(url) }
-            case .failure(let error): model.report(error)
-            }
-        }
         .alert(model.t("Error"), isPresented: $showError) {
             Button("OK") { model.alertMessage = nil }
         } message: { Text(model.alertMessage ?? "") }
@@ -66,8 +58,12 @@ struct MainWindow: View {
 
     private func handleProfileKey(_ event: NSEvent) -> NSEvent? {
         guard model.page == .profiles, !model.showDeleteDialog,
-              !showAdd, !showImporter, editorProfile == nil,
+              !showAdd, editorProfile == nil,
               NSApp.keyWindow?.attachedSheet == nil else { return event }
+        if event.keyCode == 45, event.modifierFlags.intersection([.command, .shift, .option, .control]) == [.command, .shift] {
+            showAdd = true
+            return nil
+        }
         if event.keyCode == 51,
            event.modifierFlags.intersection([.command, .option, .control]).isEmpty,
            model.selected != nil {

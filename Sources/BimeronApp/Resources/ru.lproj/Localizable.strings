@@ -227,3 +227,12 @@
 "ALPN" = "ALPN";
 "SS2022 does not support Prefix. Clear Prefix before saving." = "SS2022 не поддерживает Prefix. Очистите Prefix перед сохранением.";
 "Incompatible transport, security or flow. Correct the settings; all draft values are retained." = "Несовместимые транспорт, защита или flow. Исправьте настройки; все значения черновика сохранены.";
+
+"REALITY spider path" = "Путь обхода REALITY";
+"Transport path" = "Путь транспорта";
+"Transport host" = "Хост транспорта";
+"Transport mode" = "Режим транспорта";
+"Transport extra options" = "Дополнительные параметры транспорта";
+"Restore generated access key" = "Восстановить сгенерированный ключ доступа";
+"Profile added, but its list order could not be saved" = "Профиль добавлен, но не удалось сохранить его порядок в списке";
+"Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility." = "Укажите хост и порт внешнего слушателя ShadowTLS как адрес сервера. Пароль и SNI обёртки не зависят от внутренних учётных данных. ShadowTLS не заменяет внутреннее шифрование или проверку сертификата, не предоставляет нативный UDP и не меняет политику потоков. ShadowTLS несовместим с плагинами SS, aes-192-gcm, VLESS без шифрования и HTTP/3. Core проверяет параметры URI и совместимость.";

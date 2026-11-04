@@ -227,3 +227,12 @@
 "ALPN" = "ALPN";
 "SS2022 does not support Prefix. Clear Prefix before saving." = "SS2022 does not support Prefix. Clear Prefix before saving.";
 "Incompatible transport, security or flow. Correct the settings; all draft values are retained." = "Incompatible transport, security or flow. Correct the settings; all draft values are retained.";
+
+"REALITY spider path" = "REALITY spider path";
+"Transport path" = "Transport path";
+"Transport host" = "Transport host";
+"Transport mode" = "Transport mode";
+"Transport extra options" = "Transport extra options";
+"Restore generated access key" = "Restore generated access key";
+"Profile added, but its list order could not be saved" = "Profile added, but its list order could not be saved";
+"Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility." = "Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility.";

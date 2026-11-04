@@ -99,7 +99,7 @@ public struct ConfigDocument: Equatable, Sendable {
                 !field("Flow").isEmpty && !(network == "tcp" && security == "reality") ||
                 security != "reality" && realityFields ||
                 network == "ws" && security != "tls" ||
-                network != "grpc" && ["GRPCServiceName", "GRPCAuthority", "GRPCMultiMode"].contains(where: { !field($0).isEmpty }) ||
+                network != "grpc" && (["GRPCServiceName", "GRPCAuthority"].contains(where: { !field($0).isEmpty }) || field("GRPCMultiMode") == "true") ||
                 network != "ws" && !field("WSEarlyData").isEmpty && field("WSEarlyData") != "0" ||
                 network != "ws" && network != "xhttp" && ["WSPath", "WSHost"].contains(where: { !field($0).isEmpty }) ||
                 network != "xhttp" && ["XHTTPMode", "XHTTPPath", "XHTTPHost", "XHTTPExtra"].contains(where: { !field($0).isEmpty }) {
@@ -330,7 +330,7 @@ public struct ConfigDocument: Equatable, Sendable {
         guard text.utf8.count <= Self.sizeLimit else { throw ProfileError.tooLarge }
         try checkSyntax()
         guard value("Profile", "Version") == "1" else { throw ProfileError.invalid("Version") }
-        guard name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
+        try Self.validateName(name)
         let sources = Self.sourceKeys.filter { value("AccessKey", $0) != nil }
         let explicit = value("AccessKey", "Type") != nil || value("AccessKey", "Server") != nil
         guard sources.count + (explicit ? 1 : 0) == 1 else { throw ProfileError.invalid("AccessKey") }
@@ -381,6 +381,10 @@ public struct ConfigDocument: Equatable, Sendable {
                 throw ProfileError.invalid("Domain")
             }
         }
+    }
+
+    public static func validateName(_ name: String) throws {
+        guard name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
     }
 
     public static func validateKey(_ key: String) throws {

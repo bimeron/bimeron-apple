@@ -75,7 +75,9 @@ import Observation
             return false
         }
         do {
-            let profile = try await library.add(document) { url in
+            let profile = try await library.add(document, orderWarning: { message in
+                await MainActor.run { self.alertMessage = self.t(message) }
+            }) { url in
                 _ = try await coreCLI.validate(fileURL: url)
             }
             await load()

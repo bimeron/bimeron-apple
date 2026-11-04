@@ -12,13 +12,15 @@ New editor profiles must pass actual Core CLI validation of a protected `0600` s
 
 No validator fallback is supplied. An absent Core executable fails closed for editor saves and creation. The resolver remains owned by G: an absolute `BIMERON_CORE_EXECUTABLE` or bundled helper is required. There is no bundled Core binary in this checkout. This work does not install Core, connect to SSH/VPN servers, change a running daemon, add dependencies, package helpers or change GeoData.
 
-Validation covers creation draft isolation, URI encoding (IPv6 and special credentials), VMess JSON, opaque VLESS inspection and lossless unrelated edits, unified path normalization, ShadowTLS compatibility/restoration, exact staged bytes and permissions, cancellation, tampering, validator rejection, cleanup and fail-closed AppModel integration. Existing A/F preservation and editor-save tests continue to run. A fake CLI verifies transport invocation only; it is not evidence that real Core accepts a generated configuration. A real-Core fixture pass requires an existing executable, which was not found in either audit checkout.
+Validation covers creation draft isolation, URI encoding (IPv6 and special credentials), VMess JSON, opaque VLESS inspection and lossless unrelated edits, unified path normalization, ShadowTLS compatibility/restoration, exact staged bytes and permissions, cancellation, tampering, validator rejection, cleanup and fail-closed AppModel integration. Existing A/F preservation and editor-save tests continue to run. A fake CLI verifies transport invocation only; it is not evidence that real Core accepts a generated configuration. An opt-in real-Core test validates all 14 creation variants using synthetic credentials and an absolute `BIMERON_CORE_EXECUTABLE` path; it skips with an explicit reason when the variable is absent.
 
 ## Verification result
 
-- `swift test`: 69 tests passed (baseline: 59).
+- `BIMERON_CORE_EXECUTABLE=/tmp/bimeron-h-core-beta2-cli swift test`: 78 tests passed, including all 14 generated variant arguments.
 - `scripts/build-app.sh`: release app build passed.
-- `git diff --check`: passed; EN/RU catalogs have identical 220-key sets and no duplicates.
-- No real Core executable was present in the audited checkouts; real generated-fixture CLI acceptance and interactive VoiceOver/layout checks were not performed. No network connections were started.
+- `git diff --check`: passed; EN/RU catalogs have matching keys and no duplicates.
+- Offline Core validation used `/tmp/bimeron-h-core-beta2-cli`, built without source modifications from beta2 source `66d84d8` using Go 1.26.9; its reported version is `0.1.0-dev`. All 14 synthetic configurations passed `validate`. HTTP/HTTPS omit unsupported explicit `ServerName`; generated VMess defaults are `auto`/`tcp`/`tls`. Tests invoke only `validate`, with no inspect/connect/run commands or runtime readiness claims. Interactive VoiceOver/layout checks were not performed; no network connections were started.
 
 One intermediate full test run hit the existing malformed-JSON CoreCLI fixture's timeout under build load; subsequent complete runs passed. The first compiler attempt also exposed a Swift IRGen crash when a method reference was used directly as a `Binding` setter; using an explicit closure resolved it.
+
+Generated creation forms compare the current AccessKey source and URI with the parameter draft before leaving Raw or switching protocols. Unrelated Raw edits remain editable in forms. Changed generated links can be saved in Raw or explicitly restored with **Restore generated access key**; they cannot silently return to stale controls. Cancel retains edit tracking across inactive protocol drafts. Validated creation appends to saved visible order; an order-write failure after the profile commit reports a warning while keeping creation successful.

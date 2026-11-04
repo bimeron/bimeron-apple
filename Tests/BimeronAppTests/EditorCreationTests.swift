@@ -42,3 +42,13 @@ import BimeronModel
     #expect(await model.addInput(name: "Quoted", input: "\"ssh://user@example.com:22\""))
     #expect(model.selected?.document.accessKey == "ssh://user@example.com:22")
 }
+
+@Test func protocolFieldMetadataMasksPluginOptionsAndNamesGeneratedFields() {
+    #expect(ProtocolField.fields(for: .shadowsocks).first { $0.id == "PluginOpts" }?.secret == true)
+    for key in EditorProtocol.vmess.fields {
+        let field = ProtocolField.generated(key)
+        #expect(!field.title.hasPrefix("VMess"))
+        #expect(Localization.text(field.title, language: "en") == field.title)
+        if !["ALPN"].contains(key) { #expect(Localization.text(field.title, language: "ru") != field.title) }
+    }
+}
