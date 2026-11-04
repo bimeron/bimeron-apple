@@ -4,7 +4,7 @@ import Foundation
 public enum AppleCoreReleaseError: Error { case invalidManifest, invalidSignature, unapproved, invalidArchive }
 
 /// Local approval must come from an independent review, never from the downloaded manifest.
-public struct AppleCoreReleaseApproval: Sendable {
+public struct AppleCoreReleaseApproval: Sendable, Equatable {
     public let tag: String
     public let sourceRevision: String
     public init(tag: String, sourceRevision: String) {
@@ -13,7 +13,38 @@ public struct AppleCoreReleaseApproval: Sendable {
     }
 }
 
+/// Caller-supplied provenance is bookkeeping, never an authenticated claim or a new trust pin.
+public struct AppleCoreVerificationContext: Sendable, Equatable {
+    public enum Classification: String, Sendable { case unspecified, syntheticUntrusted, independentlyConfigured }
+    public let classification: Classification
+    public let approvalIdentity, pinProvenance, appleBuildIdentity: String
+    public init(classification: Classification, approvalIdentity: String, pinProvenance: String, appleBuildIdentity: String) {
+        self.classification = classification
+        self.approvalIdentity = approvalIdentity
+        self.pinProvenance = pinProvenance
+        self.appleBuildIdentity = appleBuildIdentity
+    }
+    public static let unspecified = Self(classification: .unspecified, approvalIdentity: "", pinProvenance: "", appleBuildIdentity: "")
+}
+
+/// Created indivisibly by the verifier; consumers must apply their own trust policy to these original bytes.
+public struct AppleCoreVerificationEvidence: Sendable {
+    public let signedManifest, signature, publicKey: Data
+    public let keyID, appVersion, channel, architecture: String
+    public let approval: AppleCoreReleaseApproval
+    public let context: AppleCoreVerificationContext
+    public let policyRevision = "apple-core-static-v1"
+    fileprivate init(manifest: Data, signature: Data, publicKey: Data, keyID: String,
+                     appVersion: String, channel: String, architecture: String,
+                     approval: AppleCoreReleaseApproval, context: AppleCoreVerificationContext) {
+        signedManifest = manifest; self.signature = signature; self.publicKey = publicKey
+        self.keyID = keyID; self.appVersion = appVersion; self.channel = channel; self.architecture = architecture
+        self.approval = approval; self.context = context
+    }
+}
+
 public struct AppleCoreReleaseManifest: Sendable {
+    public let evidence: AppleCoreVerificationEvidence
     public let tag: String
     public let sourceRevision: String
     public let coreVersion: String
@@ -21,7 +52,8 @@ public struct AppleCoreReleaseManifest: Sendable {
     public let archiveName: String
     public let archiveSize: Int64
     public let archiveSHA256: String
-    fileprivate init(_ manifest: Manifest, _ archive: Manifest.Archive) {
+    fileprivate init(_ manifest: Manifest, _ archive: Manifest.Archive, evidence: AppleCoreVerificationEvidence) {
+        self.evidence = evidence
         tag = manifest.tag
         sourceRevision = manifest.source_revision
         coreVersion = manifest.core_version
@@ -32,13 +64,29 @@ public struct AppleCoreReleaseManifest: Sendable {
     }
 }
 
-/// Authenticates archive bytes, packaging and static provenance; extraction and readiness remain separate gates.
+/// Fixed roles are the only output instructions crossing the archive gate.
+public enum AppleCorePayloadRole: String, CaseIterable, Sendable {
+    case binary = "bimeron", license = "LICENSE", notices = "THIRD_PARTY_NOTICES.txt"
+}
+
+public struct AppleCoreVerifiedFile: Sendable {
+    public let role: AppleCorePayloadRole
+    public let contents: Data
+    public let sha256: String
+    public var count: Int { contents.count }
+    fileprivate init(role: AppleCorePayloadRole, contents: Data) {
+        self.role = role; self.contents = contents; sha256 = AppleCoreRelease.digest(contents)
+    }
+}
+
+/// Exact owned contents, returned only after the entire authenticated static gate succeeds.
+/// Archive storage is released when verification returns; no path or ZIP plan crosses this boundary.
 public struct AppleCoreReleaseVerifiedArchive: Sendable {
     public let manifest: AppleCoreReleaseManifest
-    public let data: Data
-    fileprivate init(manifest: AppleCoreReleaseManifest, data: Data) {
+    public let files: [AppleCoreVerifiedFile]
+    fileprivate init(manifest: AppleCoreReleaseManifest, contents: [AppleCorePayloadRole: Data]) {
         self.manifest = manifest
-        self.data = data
+        files = AppleCorePayloadRole.allCases.map { AppleCoreVerifiedFile(role: $0, contents: contents[$0]!) }
     }
 }
 
@@ -48,10 +96,28 @@ public enum AppleCoreRelease {
 
     public static func verifyManifest(
         _ data: Data, signature: Data, trustedPublicKey: Data,
-        approval: AppleCoreReleaseApproval, appVersion: String, channel: String, architecture: String
+        approval: AppleCoreReleaseApproval, appVersion: String, channel: String, architecture: String,
+        context: AppleCoreVerificationContext = .unspecified
+    ) throws -> AppleCoreReleaseManifest {
+        try verifyManifestSnapshot(data, signature: signature, trustedPublicKey: trustedPublicKey, approval: approval,
+            appVersion: appVersion, channel: channel, architecture: architecture, context: context, afterSnapshot: {})
+    }
+
+    // Per-call seam verifies alias mutation between snapshot acquisition and actual authentication.
+    static func verifyManifestSnapshot(
+        _ data: Data, signature: Data, trustedPublicKey: Data,
+        approval: AppleCoreReleaseApproval, appVersion: String, channel: String, architecture: String,
+        context: AppleCoreVerificationContext, afterSnapshot: () -> Void
     ) throws -> AppleCoreReleaseManifest {
         guard !data.isEmpty, data.count <= manifestLimit else { throw AppleCoreReleaseError.invalidManifest }
-        guard trustedPublicKey.count == 32, signature.count == 89, signature.last == 10,
+        guard trustedPublicKey.count == 32, signature.count == 89 else { throw AppleCoreReleaseError.invalidSignature }
+        guard [appVersion, channel, architecture, approval.tag, approval.sourceRevision,
+               context.approvalIdentity, context.pinProvenance, context.appleBuildIdentity].allSatisfy({ $0.utf8.count <= 1024 })
+        else { throw AppleCoreReleaseError.invalidManifest }
+        // Data(referencing:) and no-copy Data can alias external writable storage; detach before authentication.
+        let data = owned(data), signature = owned(signature), trustedPublicKey = owned(trustedPublicKey)
+        afterSnapshot()
+        guard signature.last == 10,
               let encoded = String(data: signature.dropLast(), encoding: .ascii),
               let raw = Data(base64Encoded: encoded), raw.count == 64,
               raw.base64EncodedString() == encoded,
@@ -90,15 +156,32 @@ public enum AppleCoreRelease {
                       && matches(archive.sha256, "^[0-9a-f]{64}$")
               }), let selected = manifest.archives.first(where: { $0.arch == architecture })
         else { throw AppleCoreReleaseError.invalidManifest }
-        return AppleCoreReleaseManifest(manifest, selected)
+        let evidence = AppleCoreVerificationEvidence(manifest: data, signature: signature, publicKey: trustedPublicKey,
+            keyID: manifest.key_id, appVersion: appVersion, channel: channel, architecture: architecture,
+            approval: approval, context: context)
+        return AppleCoreReleaseManifest(manifest, selected, evidence: evidence)
     }
 
     public static func verifyArchive(_ data: Data, manifest: AppleCoreReleaseManifest) throws -> AppleCoreReleaseVerifiedArchive {
-        guard data.count <= archiveLimit, Int64(data.count) == manifest.archiveSize,
-              hex(SHA256.hash(data: data)) == manifest.archiveSHA256 else { throw AppleCoreReleaseError.invalidArchive }
-        try AppleArchiveGate.check(data, architecture: manifest.architecture, revision: manifest.sourceRevision, version: manifest.coreVersion)
-        return AppleCoreReleaseVerifiedArchive(manifest: manifest, data: data)
+        try verifyArchiveSnapshot(data, manifest: manifest, afterSnapshot: {})
     }
+
+    static func verifyArchiveSnapshot(_ data: Data, manifest: AppleCoreReleaseManifest, afterSnapshot: () -> Void) throws -> AppleCoreReleaseVerifiedArchive {
+        guard data.count <= archiveLimit, Int64(data.count) == manifest.archiveSize else { throw AppleCoreReleaseError.invalidArchive }
+        let snapshot = owned(data)
+        afterSnapshot()
+        guard digest(snapshot) == manifest.archiveSHA256 else { throw AppleCoreReleaseError.invalidArchive }
+        let contents = try AppleArchiveGate.check(snapshot, architecture: manifest.architecture, revision: manifest.sourceRevision, version: manifest.coreVersion)
+        return AppleCoreReleaseVerifiedArchive(manifest: manifest, contents: contents)
+    }
+
+    static func owned(_ bytes: Data) -> Data {
+        bytes.withUnsafeBytes { buffer in
+            guard let base = buffer.baseAddress else { return Data() }
+            return Data(bytes: base, count: buffer.count)
+        }
+    }
+    static func digest(_ bytes: Data) -> String { hex(SHA256.hash(data: bytes)) }
 
     private static func hex<S: Sequence>(_ bytes: S) -> String where S.Element == UInt8 {
         bytes.map { String(format: "%02x", $0) }.joined()

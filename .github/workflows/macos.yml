@@ -27,11 +27,11 @@ jobs:
       (github.event_name == 'push' && github.repository == 'bimeron/bimeron-apple' &&
       github.ref == 'refs/heads/main') ||
       (github.event_name == 'push' && github.repository == 'bimeron/bimeron-apple' &&
-      contains(fromJSON('["refs/heads/fix/ui-localization-accessibility","refs/heads/feat/ssh-auth-preflight","refs/heads/feat/diagnostics-history-export","refs/heads/feat/core-delivery-daemon-install","refs/heads/feat/profile-forms-parity","refs/heads/design/safe-core-extraction","refs/heads/design/daemon-servicing-recovery","refs/heads/research/staging-memory-handoff","refs/heads/test/integrated-ui-audit-publication","refs/heads/docs/local-core-cli-timeout-investigation","refs/heads/docs/h-ui-audit-evidence","refs/heads/test/local-apple-version-verifier","refs/heads/ci/self-hosted-main-capacity"]'), github.ref) &&
+      contains(fromJSON('["refs/heads/fix/ui-localization-accessibility","refs/heads/feat/ssh-auth-preflight","refs/heads/feat/diagnostics-history-export","refs/heads/feat/core-delivery-daemon-install","refs/heads/feat/profile-forms-parity","refs/heads/design/safe-core-extraction","refs/heads/design/daemon-servicing-recovery","refs/heads/research/staging-memory-handoff","refs/heads/test/integrated-ui-audit-publication","refs/heads/docs/local-core-cli-timeout-investigation","refs/heads/docs/h-ui-audit-evidence","refs/heads/test/local-apple-version-verifier","refs/heads/ci/self-hosted-main-capacity","refs/heads/feat/authenticated-core-staging"]'), github.ref) &&
       contains(fromJSON(vars.TRUSTED_MACOS_PR_HEADS || '[]'), github.sha)) ||
       (github.event_name == 'pull_request' && github.repository == 'bimeron/bimeron-apple' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      contains(fromJSON('[15,18,19,20,21,23,24,25,26,27,28,29,30]'), github.event.pull_request.number) &&
+      contains(fromJSON('[15,18,19,20,21,23,24,25,26,27,28,29,30,34]'), github.event.pull_request.number) &&
       contains(fromJSON(vars.TRUSTED_MACOS_PR_HEADS || '[]'), github.event.pull_request.head.sha))) &&
       fromJSON('["self-hosted", "macOS", "ARM64"]') || 'macos-15' }}
     timeout-minutes: 30
