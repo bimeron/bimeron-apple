@@ -3,12 +3,56 @@ name: macOS UI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Allowlisted PR head SHA (PRs 15, 18, 19, 20, 21 respectively)'
+        required: true
+        type: choice
+        options:
+          - 96d19631743070303887481617eb4f73249308f2
+          - b896fd9e7ce7b95524b98133ce179bf0ed24e50b
+          - 74e6933b2c57d9d44c65d560b366f9eba4be3ce3
+          - 70e7f218c62d8ebcf04813e59d4fac3ecd5e95db
+          - ace5610e9e3817fb9238f256915898f95ab38f48
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: macos-15
+    # Opt-in is stored outside Git so workflow-only commits can be pinned exactly.
+    runs-on: >-
+      ${{ ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.repository == 'bimeron/bimeron-apple' &&
+      contains(fromJSON('["refs/heads/fix/ui-localization-accessibility","refs/heads/feat/ssh-auth-preflight","refs/heads/feat/diagnostics-history-export","refs/heads/feat/core-delivery-daemon-install","refs/heads/feat/profile-forms-parity"]'), github.ref) &&
+      contains(fromJSON(vars.TRUSTED_MACOS_PR_HEADS || '[]'), github.sha)) ||
+      (github.event_name == 'pull_request' && github.repository == 'bimeron/bimeron-apple' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(fromJSON('[15,18,19,20,21]'), github.event.pull_request.number) &&
+      contains(fromJSON(vars.TRUSTED_MACOS_PR_HEADS || '[]'), github.event.pull_request.head.sha))) &&
+      fromJSON('["self-hosted", "macOS", "ARM64"]') || 'macos-15' }}
+    timeout-minutes: 30
     steps:
+      - name: Validate manual commit
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          COMMIT: ${{ inputs.commit }}
+        run: |
+          case "$COMMIT" in
+            96d19631743070303887481617eb4f73249308f2|b896fd9e7ce7b95524b98133ce179bf0ed24e50b|74e6933b2c57d9d44c65d560b366f9eba4be3ce3|70e7f218c62d8ebcf04813e59d4fac3ecd5e95db|ace5610e9e3817fb9238f256915898f95ab38f48) ;;
+            *) echo 'Commit is not in the temporary PR allowlist'; exit 1 ;;
+          esac
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || inputs.commit || github.sha }}
+      - name: Record build provenance
+        run: |
+          git rev-parse HEAD
+          uname -m
+          xcodebuild -version
+          swift --version
       - name: Check acceptance fixtures
         run: python3 fixtures/acceptance/check.py
       - name: Test
