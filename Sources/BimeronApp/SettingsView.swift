@@ -5,7 +5,7 @@ struct SettingsView: View {
     @Bindable var model: AppModel
     let quit: () -> Void
     @Environment(\.colorScheme) private var colorScheme
-    @State private var showDiagnosticsExport = false
+    @State private var exportSnapshot: DiagnosticSnapshot?
 
     var body: some View {
         ScrollView {
@@ -89,9 +89,9 @@ struct SettingsView: View {
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(AppPalette.border(colorScheme)))
 
                 HStack {
-                    Button { showDiagnosticsExport = true } label: {
+                    Button { exportSnapshot = model.diagnosticSnapshot() } label: {
                         Text(model.t("Save diagnostics report…"))
-                            .foregroundStyle(AppPalette.blue)
+                            .foregroundStyle(.primary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 9)
                             .background(AppPalette.surface(colorScheme), in: RoundedRectangle(cornerRadius: 10))
@@ -116,18 +116,8 @@ struct SettingsView: View {
             .padding(.top, 27)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .fileExporter(isPresented: $showDiagnosticsExport,
-                      document: LogDocument(text: diagnostics),
-                      contentType: .plainText,
-                      defaultFilename: "Bimeron-diagnostics") { result in
-            if case .failure(let error) = result { model.report(error) }
+        .sheet(item: $exportSnapshot) { snapshot in
+            DiagnosticExportView(model: model, snapshot: snapshot)
         }
-    }
-
-    private var diagnostics: String {
-        let entries = model.log.map { "[\($0.date.formatted(date: .omitted, time: .standard))] \($0.message)" }
-        return (["Bimeron diagnostics", "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
-                 "Profiles: \(model.profiles.count)", "Core: not connected", "", "Log:"] + entries)
-            .joined(separator: "\n")
     }
 }
