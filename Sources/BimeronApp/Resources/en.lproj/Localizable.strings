@@ -176,3 +176,5 @@
 "SSH known_hosts file (optional)" = "SSH known_hosts file (optional)";
 
 "File path" = "File path";
+
+"Use default" = "Use default";

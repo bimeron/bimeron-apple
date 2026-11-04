@@ -54,3 +54,20 @@ import Testing
     #expect(AddProfileView.fileURL(for: "~/.ssh/known_hosts")?.path ==
             FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh/known_hosts").path)
 }
+
+@Test @MainActor func sshDefaultsSuggestOnlyExistingFiles() throws {
+    let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity.isEmpty)
+    #expect(AddProfileView.defaultSSHPaths(in: directory).knownHosts.isEmpty)
+    try FileManager.default.createDirectory(at: directory.appending(path: "id_ed25519"), withIntermediateDirectories: true)
+    try Data().write(to: directory.appending(path: "id_rsa"))
+    try Data().write(to: directory.appending(path: "known_hosts"))
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity == directory.appending(path: "id_rsa").path)
+    #expect(AddProfileView.defaultSSHPaths(in: directory).knownHosts == directory.appending(path: "known_hosts").path)
+    try Data().write(to: directory.appending(path: "id_ecdsa"))
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity == directory.appending(path: "id_ecdsa").path)
+    try FileManager.default.removeItem(at: directory.appending(path: "id_ed25519"))
+    try Data().write(to: directory.appending(path: "id_ed25519"))
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity == directory.appending(path: "id_ed25519").path)
+}

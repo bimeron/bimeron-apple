@@ -23,7 +23,9 @@ connect through them.
 When a supported link is entered, the profile name appears above the link. SSH
 links also reveal optional file pickers for known_hosts and the private key, in
 that order. Each path can be typed, pasted as text, filled by pasting a file
-from Finder, or selected with the file picker. Only file paths are stored in the profile, not file contents.
+from Finder, or selected with the file picker. Existing standard SSH files appear
+as placeholders; Use default copies the suggested path into the field. Empty
+fields stay unset when saving. Only file paths are stored in the profile, not file contents.
 
 The Protocol tab edits complete links without decoding and rewriting their
 parameters. This preserves encoded VMess JSON, QUIC options, and extended

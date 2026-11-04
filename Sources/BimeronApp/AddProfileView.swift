@@ -17,6 +17,7 @@ struct AddProfileView: View {
     @State private var pasteboardChangeCount = -1
     @State private var sshIdentityPath = ""
     @State private var sshKnownHostsPath = ""
+    @State private var sshDefaults = (identity: "", knownHosts: "")
 
     private var validKey: Bool { Self.accepts(key) }
     private var isSSH: Bool { AccessProtocol(key: key.trimmingCharacters(in: .whitespacesAndNewlines)) == .ssh }
@@ -59,8 +60,8 @@ struct AddProfileView: View {
             }
 
             if isSSH {
-                sshFilePicker("SSH known_hosts file (optional)", path: $sshKnownHostsPath)
-                sshFilePicker("SSH private key file (optional)", path: $sshIdentityPath)
+                sshFilePicker("SSH known_hosts file (optional)", path: $sshKnownHostsPath, defaultPath: sshDefaults.knownHosts)
+                sshFilePicker("SSH private key file (optional)", path: $sshIdentityPath, defaultPath: sshDefaults.identity)
             }
 
             if let issue { Text(issue).font(.subheadline).foregroundStyle(.red) }
@@ -97,6 +98,7 @@ struct AddProfileView: View {
         .frame(width: 493)
         .background(AppPalette.surface(colorScheme))
         .onAppear {
+            sshDefaults = Self.defaultSSHPaths(in: FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh"))
             keyFocused = true
             refreshClipboard()
         }
@@ -117,11 +119,24 @@ struct AddProfileView: View {
         return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
     }
 
-    private func sshFilePicker(_ title: String, path: Binding<String>) -> some View {
+    static func defaultSSHPaths(in directory: URL) -> (identity: String, knownHosts: String) {
+        func existingPath(_ names: [String]) -> String {
+            for name in names {
+                let url = directory.appending(path: name)
+                if (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true {
+                    return url.path
+                }
+            }
+            return ""
+        }
+        return (existingPath(["id_ed25519", "id_ecdsa", "id_rsa"]), existingPath(["known_hosts"]))
+    }
+
+    private func sshFilePicker(_ title: String, path: Binding<String>, defaultPath: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.t(title))
             HStack {
-                TextField(model.t("File path"), text: path)
+                TextField(defaultPath.isEmpty ? model.t("File path") : defaultPath, text: path)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityLabel(model.t(title))
                     .onPasteCommand(of: [.fileURL]) { providers in
@@ -134,6 +149,9 @@ struct AddProfileView: View {
                             Task { @MainActor in path.wrappedValue = url.path }
                         }
                     }
+                if path.wrappedValue.isEmpty, !defaultPath.isEmpty {
+                    Button(model.t("Use default")) { path.wrappedValue = defaultPath }
+                }
                 Button(model.t("Choose file…")) { chooseSSHFile(path) }
                 if !path.wrappedValue.isEmpty {
                     Button(model.t("Remove")) { path.wrappedValue = "" }

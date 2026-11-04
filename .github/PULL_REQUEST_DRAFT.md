@@ -11,7 +11,8 @@ VLESS/Trojan transports, HTTP(S), MASQUE, NaiveProxy, and SSH. Optional ShadowTL
 settings and SSH/CA file pickers are available in the Protocol tab. The add
 dialog offers optional known_hosts and private-key file pickers for SSH, with
 known_hosts above the private key. Paths support typing, text paste, and
-pasting a file from Finder.
+pasting a file from Finder. Existing standard SSH paths are shown as placeholders
+and can be filled explicitly using Use default.
 
 Import converts referenced local file paths to absolute paths without copying
 private keys or rewriting SSH URI bytes. Form edits preserve unknown fields,
@@ -20,7 +21,7 @@ VPN-only options. English/Russian help explains TCP-only upstreams, DNS rule
 limits, and the distinction between saving a profile and validating it in core.
 
 Validation:
-- `swift test`: 23 tests pass, including import/edit/reload of 23 public examples
+- `swift test`: 24 tests pass, including import/edit/reload of 23 public examples
   from bimeron-core 6af5d72, URI and key-file preservation, path relocation,
   source/scheme mismatch rejection, and localization.
 - `sh scripts/build-app.sh`: release app bundle builds successfully.
