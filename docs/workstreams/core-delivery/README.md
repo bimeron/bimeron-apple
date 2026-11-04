@@ -18,9 +18,10 @@ for guarded daemon mutations.
 
 The current schema-1 signed Core manifest covers Windows/Linux archives only.
 macOS hashes appear only in unsigned SHA256SUMS. No authoritative Apple public
-key pin or reviewed Apple compatibility range is available. Extending publisher
-manifest coverage and adopting an Apple compatibility policy require separate
-agreement; never treat existing Windows/Linux review as Apple approval. A local
+key pin or reviewed Apple compatibility range is available. The user subsequently approved preparing publisher manifest coverage, an Apple
+compatibility policy and an app consumer, without publication or private-key use.
+The exact additive wire contract is being coordinated with the Core publication
+stream; never treat existing Windows/Linux review as Apple approval. A local
 development package can be prepared from explicitly supplied bytes and a pinned
 local hash, but cannot be described as authenticated release delivery.
 
