@@ -17,6 +17,24 @@ BASE = Path(__file__).resolve().parent
 
 
 class PackageTests(unittest.TestCase):
+    def test_acl_guard(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve()
+            username = subprocess.check_output(['/usr/bin/id', '-un'], text=True).strip()
+            def check(ok):
+                result = subprocess.run(['/bin/sh', '-c', '. "$1"; deny_only_acl "$2"',
+                                         'test', str(BASE / 'guards.sh'), str(directory)], capture_output=True)
+                self.assertEqual(result.returncode == 0, ok, result.stderr)
+            check(True)
+            try:
+                subprocess.run(['/bin/chmod', '+a', 'everyone deny delete', str(directory)], check=True)
+                check(True)
+                subprocess.run(['/bin/chmod', '+a', f'user:{username} allow add_file,delete_child', str(directory)], check=True)
+                # POSIX mode and ownership remain unchanged; ACL alone must block.
+                check(False)
+            finally:
+                subprocess.run(['/bin/chmod', '-N', str(directory)], check=True)
+
     def test_offline_package(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()

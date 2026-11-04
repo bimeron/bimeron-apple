@@ -66,7 +66,9 @@ Neither building nor testing installs anything. Only a later, separately authori
 Installer run executes preinstall/postinstall as root. Preinstall supports missing
 helper/launchd leaf directories under protected `/Library`, rejects symlinks,
 non-root:wheel or group/other-writable ancestry, existing payload/metadata/plist,
-and an already registered service. Postinstall requires the installed directories
+and an already registered service. Ancestry and payload ACLs must be absent or
+deny-only: allow ACLs are conservatively refused, including read-only grants,
+until principal/right analysis is required by a real installation. Postinstall requires the installed directories
 and files to be protected and checks all three payload hashes before bootstrap.
 The target must be the live `/` volume. A failure after payload copy may leave a
 partial install; reruns deliberately refuse it.
