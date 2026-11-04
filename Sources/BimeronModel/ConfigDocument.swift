@@ -262,6 +262,24 @@ public struct ConfigDocument: Equatable, Sendable {
         }
     }
 
+    /// Only a matching URI source has clear ownership; never remove a Raw schema or its extensions.
+    public mutating func restoreGeneratedSource(_ source: String, value: String) throws {
+        try checkSyntax()
+        guard Self.sourceKeys.filter({ self.value("AccessKey", $0) != nil }) == [source],
+              self.value("AccessKey", "Type") == nil, self.value("AccessKey", "Server") == nil,
+              let range = sectionRange("AccessKey"),
+              let index = range.first(where: { (try? Self.pair(lines[$0]))?.0 == source }) else {
+            throw ProfileError.invalid("GeneratedAccessKey")
+        }
+        guard accessKey != value else { return }
+        let line = lines[index]
+        let equals = line.firstIndex(of: "=")!
+        let suffix = line[line.index(after: equals)...]
+        let start = suffix.firstIndex(where: { !$0.isWhitespace }) ?? suffix.startIndex
+        let end = suffix.lastIndex(where: { !$0.isWhitespace }).map { line.index(after: $0) } ?? start
+        lines[index].replaceSubrange(start..<end, with: Self.encode(value))
+    }
+
     public func hasSection(_ section: String) -> Bool { sectionRange(section) != nil }
 
     public mutating func remove(_ section: String, _ key: String) {

@@ -340,13 +340,12 @@ struct EditorView: View {
             if creating && creationProtocol.generated {
                 Button(model.t("Restore generated access key")) {
                     do {
-                        var parsed = try ConfigDocument(rawText)
-                        let generated = try drafts.generatedDocument(name: parsed.name)
-                        parsed.removeSection("AccessKey")
-                        parsed.set("AccessKey", generated.source, generated.accessKey)
+                        let parsed = try drafts.restoringGeneratedSource(in: ConfigDocument(rawText))
                         document = parsed
                         rawText = parsed.text
-                        issue = generated.accessKey.isEmpty ? model.t("Enter a server and a valid port") : nil
+                        issue = parsed.accessKey.isEmpty ? model.t("Enter a server and a valid port") : nil
+                    } catch ProfileError.invalid("GeneratedAccessKey") {
+                        issue = model.t("Keep edited generated links in Raw, or restore the parameter draft before switching.")
                     } catch { showGenerationError(error) }
                 }
             }
@@ -462,7 +461,8 @@ struct EditorView: View {
                 issue = model.t(compatibility)
                 return
             }
-            try parsed.validateLocally()
+            if creating { try drafts.checkSave(parsed, raw: tab == .raw) }
+            else { try parsed.validateLocally() }
             busy = true
             saveTask = Task {
                 let ok = creating ? await model.create(parsed) : await model.save(StoredProfile(id: profile.id, document: parsed), original: profile)
@@ -474,6 +474,8 @@ struct EditorView: View {
                     model.alertMessage = nil
                 }
             }
+        } catch ProfileError.invalid("GeneratedAccessKey") {
+            issue = model.t("Keep edited generated links in Raw, or restore the parameter draft before switching.")
         } catch {
             model.report(error)
             issue = model.alertMessage

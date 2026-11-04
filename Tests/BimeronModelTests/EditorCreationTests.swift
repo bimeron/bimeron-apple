@@ -232,3 +232,47 @@ private actor OrderWarnings {
     try drafts.checkParameterSource(original)
     #expect(try drafts.select(.ss, current: original).isExplicit)
 }
+
+@Test func generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() throws {
+    var drafts = ProtocolDrafts()
+    _ = try drafts.select(.anytls, current: EditorProtocol.ss.document(name: "Draft", values: [:]))
+    _ = try drafts.set("Password", value: "secret", name: "Draft")
+    var valid = try drafts.set("Server", value: "example.com", name: "Draft")
+    try drafts.checkSave(valid, raw: false)
+    valid.set("Routing", "Default", "direct")
+    try drafts.checkSave(valid, raw: false)
+    #expect(throws: (any Error).self) { try drafts.set("Server", value: "a b", name: "Draft") }
+    #expect(drafts.value("Server") == "a b")
+    #expect(throws: (any Error).self) { try drafts.checkSave(valid, raw: false) }
+    try drafts.checkSave(valid, raw: true)
+    let corrected = try drafts.set("Server", value: "example.com", name: "Draft")
+    try drafts.checkSave(corrected, raw: false)
+    var raw = corrected
+    raw.set("AccessKey", "AnyTLS", "anytls://secret@changed.example:443")
+    #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.checkSave(raw, raw: false) }
+    #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.checkParameterSource(raw) }
+    try drafts.checkSave(raw, raw: true)
+}
+
+@Test func generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() throws {
+    var drafts = ProtocolDrafts()
+    _ = try drafts.select(.anytls, current: EditorProtocol.ss.document(name: "Draft", values: [:]))
+    _ = try drafts.set("Password", value: "secret", name: "Draft")
+    let generated = try drafts.set("Server", value: "example.com", name: "Draft")
+    let source = "\u{FEFF}[Profile]\r\nVersion = 1\r\nName = Renamed\r\n[AccessKey]\r\n; keep comment\r\nFuture = opaque\r\n  AnyTLS  =  \"\(generated.accessKey)\"  \r\n# EOF"
+    let original = try ConfigDocument(source)
+    #expect(Data(try drafts.restoringGeneratedSource(in: original).text.utf8) == Data(source.utf8))
+    let changed = source.replacingOccurrences(of: generated.accessKey, with: "anytls://secret@changed.example:443")
+    let restored = try drafts.restoringGeneratedSource(in: ConfigDocument(changed))
+    // A replacement changes only the encoded value; surrounding whitespace and all other bytes survive.
+    let expected = source.replacingOccurrences(of: "\"\(generated.accessKey)\"", with: generated.accessKey)
+    #expect(Data(restored.text.utf8) == Data(expected.utf8))
+    try drafts.checkParameterSource(restored)
+    for conflict in ["Key = anytls://secret@other.example:443", "Type = anytls", "Server = other.example"] {
+        let raw = try ConfigDocument(source.replacingOccurrences(of: "# EOF", with: conflict + "\r\n# EOF"))
+        #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.restoringGeneratedSource(in: raw) }
+        #expect(raw.text.contains("Future = opaque\r\n"))
+    }
+    let different = try ConfigDocument(source.replacingOccurrences(of: "AnyTLS  =", with: "Key  ="))
+    #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.restoringGeneratedSource(in: different) }
+}

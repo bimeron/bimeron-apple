@@ -34,6 +34,19 @@ public struct ProtocolDrafts: Sendable {
         }
     }
 
+    /// Raw saves are authoritative; form saves must represent the latest parameter values.
+    public func checkSave(_ current: ConfigDocument, raw: Bool) throws {
+        if !raw { try checkParameterSource(current) }
+        try current.validateLocally()
+    }
+
+    public func restoringGeneratedSource(in current: ConfigDocument) throws -> ConfigDocument {
+        let generated = try generatedDocument(name: current.name)
+        var restored = current
+        try restored.restoreGeneratedSource(generated.source, value: generated.accessKey)
+        return restored
+    }
+
     public mutating func set(_ key: String, value: String, name: String) throws -> ConfigDocument {
         hasEdits = true
         parameters[selected, default: [:]][key] = value
