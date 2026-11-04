@@ -1,0 +1,15 @@
+{
+  "kind": "synthetic-lifecycle-script",
+  "events": [
+    "observe-connected:A",
+    "request-switch:B",
+    "observe-stop-pending",
+    "observe-stopped",
+    "observe-connected:B"
+  ],
+  "expected_commands": [
+    "stop",
+    "start:B"
+  ],
+  "expected_final_state": "connected"
+}

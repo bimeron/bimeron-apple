@@ -1,0 +1,16 @@
+{
+  "kind": "synthetic-lifecycle-script",
+  "events": [
+    "request-connect:A",
+    "observe-connected:A",
+    "request-connect:A",
+    "request-disconnect",
+    "observe-stopped",
+    "request-disconnect"
+  ],
+  "expected_commands": [
+    "start:A",
+    "stop"
+  ],
+  "expected_final_state": "stopped"
+}

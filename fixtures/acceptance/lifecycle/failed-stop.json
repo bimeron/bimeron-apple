@@ -1,0 +1,12 @@
+{
+  "kind": "synthetic-lifecycle-script",
+  "events": [
+    "observe-connected:A",
+    "request-switch:B",
+    "observe-stop-failed"
+  ],
+  "expected_commands": [
+    "stop"
+  ],
+  "expected_final_state": "cleanup-unconfirmed"
+}

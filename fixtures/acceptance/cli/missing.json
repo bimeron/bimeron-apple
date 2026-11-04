@@ -1,0 +1,10 @@
+{
+  "kind": "synthetic-process-result",
+  "operation": "version",
+  "termination": "spawn-error",
+  "exit_code": null,
+  "stdout": "",
+  "stderr": "binary not found",
+  "output_complete": true,
+  "decoded_observation": null
+}

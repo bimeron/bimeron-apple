@@ -10,6 +10,8 @@ let package = Package(
         .target(name: "BimeronModel"),
         .target(name: "BimeronDaemon"),
         .testTarget(name: "BimeronDaemonTests", dependencies: ["BimeronDaemon"]),
+        .target(name: "BimeronCoreCLI"),
+        .testTarget(name: "BimeronCoreCLITests", dependencies: ["BimeronCoreCLI"]),
         .executableTarget(name: "BimeronApp", dependencies: ["BimeronModel"], resources: [.process("Resources")]),
         .testTarget(name: "BimeronModelTests", dependencies: ["BimeronModel"], resources: [.copy("Fixtures")]),
         .testTarget(name: "BimeronAppTests", dependencies: ["BimeronApp"])

@@ -1,0 +1,13 @@
+{
+  "kind": "synthetic-process-result",
+  "operation": "version",
+  "termination": "exited",
+  "exit_code": 0,
+  "stdout": "synthetic older version\n",
+  "stderr": "",
+  "output_complete": true,
+  "decoded_observation": {
+    "version": "0.0.0",
+    "supported": false
+  }
+}
