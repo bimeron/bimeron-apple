@@ -29,7 +29,7 @@ private struct SelectionFixture {
         CAPABILITIES
         ;;
         validate) test -f "$2" || exit 9
-        \(gateValidation ? "touch \"$0.started\"; while ! test -f \"$0.release\"; do /bin/sleep 0.01; done" : "")
+        \(gateValidation ? "printf '' > \"$0.started\"; while ! test -f \"$0.release\"; do /bin/sleep 0.01; done" : "")
         exit \(validation);;
         *) exit 8;;
         esac
@@ -165,6 +165,105 @@ private struct SelectionFixture {
     #expect(model.coreSelection.statusKey.contains("default"))
 }
 
+private enum SelectionGatePhase: String {
+    case create, save
+}
+
+private struct SelectionGateSnapshot {
+    let phase: SelectionGatePhase
+    let status: String
+    let ready: Bool
+    let busy: Bool
+
+    var diagnostic: String {
+        "selection-gate phase=\(phase.rawValue) status=\(status) ready=\(ready) busy=\(busy)"
+    }
+}
+
+private extension SessionCoreSelection {
+    var selectionGateStatus: String {
+        switch self {
+        case .defaultResolver: "default"
+        case .probing: "probing"
+        case .compatible: "compatible"
+        case .blocked: "blocked"
+        }
+    }
+}
+
+// Capture the failure before cancellation changes the operation's state.
+@MainActor private func waitForSelectionGate(
+    operation: Task<Bool, Never>, phase: SelectionGatePhase,
+    state: () -> (status: String, ready: Bool, busy: Bool)
+) async throws -> SelectionGateSnapshot {
+    func snapshot() -> SelectionGateSnapshot {
+        let current = state()
+        return SelectionGateSnapshot(phase: phase, status: current.status, ready: current.ready, busy: current.busy)
+    }
+    do {
+        for _ in 0..<100 {
+            if state().ready { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+    } catch {
+        let failure = snapshot()
+        operation.cancel()
+        _ = await operation.value
+        print(failure.diagnostic)
+        throw error
+    }
+    let result = snapshot()
+    if !result.ready || !result.busy {
+        operation.cancel()
+        _ = await operation.value
+    }
+    return result
+}
+
+@MainActor private final class SelectionGateOperationState {
+    var cancelled = false
+    var finished = false
+
+    func run() async -> Bool {
+        do { try await Task.sleep(for: .seconds(30)) }
+        catch { cancelled = Task.isCancelled }
+        finished = true
+        return false
+    }
+}
+
+@Test @MainActor func selectionGateFailedReadinessAwaitsCancelledOperation() async throws {
+    for ready in [false, true] {
+        let state = SelectionGateOperationState()
+        let operation = Task { await state.run() }
+        let snapshot = try await waitForSelectionGate(operation: operation, phase: .create) {
+            ("compatible", ready, false)
+        }
+        #expect(snapshot.ready == ready)
+        #expect(!snapshot.busy)
+        #expect(state.cancelled)
+        #expect(state.finished)
+    }
+}
+
+@Test @MainActor func selectionGateSleepCancellationAwaitsOperationBeforeRethrowing() async throws {
+    let state = SelectionGateOperationState()
+    let operation = Task { await state.run() }
+    let waiter = Task {
+        try await waitForSelectionGate(operation: operation, phase: .save) {
+            ("compatible", false, true)
+        }
+    }
+    waiter.cancel()
+    do {
+        _ = try await waiter.value
+        Issue.record("Expected selection gate sleep cancellation")
+    } catch is CancellationError {
+        #expect(state.cancelled)
+        #expect(state.finished)
+    }
+}
+
 @Test @MainActor func selectionIsFrozenDuringCreateAndSaveValidation() async throws {
     let fixture = try SelectionFixture()
     defer { fixture.remove() }
@@ -175,6 +274,10 @@ private struct SelectionFixture {
                          coreCLI: CoreCLI(executableURL: rejecting), defaults: settings.defaults)
     model.selectCoreExecutable(gate, timeout: .seconds(2))
     await model.waitForCoreProbe()
+    let compatible: Bool
+    if case .compatible = model.coreSelection { compatible = true } else { compatible = false }
+    let probeSnapshot = "selection-gate status=\(model.coreSelection.selectionGateStatus) compatible=\(compatible)"
+    try #require(compatible, Comment(rawValue: probeSnapshot))
     let draft = try EditorProtocol.socks5.document(name: "Draft", values: ["Server": "localhost", "Port": "1080"])
     for saving in [false, true] {
         let original = model.selected
@@ -183,12 +286,12 @@ private struct SelectionFixture {
             return await model.create(draft)
         }
         let started = URL(fileURLWithPath: gate.path + ".started")
-        for _ in 0..<100 {
-            if FileManager.default.fileExists(atPath: started.path) { break }
-            try await Task.sleep(for: .milliseconds(5))
+        let readiness = try await waitForSelectionGate(operation: operation, phase: saving ? .save : .create) {
+            (model.coreSelection.selectionGateStatus,
+             FileManager.default.fileExists(atPath: started.path), model.validationBusy)
         }
-        #expect(FileManager.default.fileExists(atPath: started.path))
-        #expect(model.validationBusy)
+        try #require(readiness.ready, Comment(rawValue: readiness.diagnostic))
+        try #require(readiness.busy, Comment(rawValue: readiness.diagnostic))
         model.resetCoreExecutable()
         model.selectCoreExecutable(rejecting)
         model.cancelCoreProbe()
