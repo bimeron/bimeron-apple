@@ -50,6 +50,8 @@ local hash, but cannot be described as authenticated release delivery.
 
 ## Verification and boundaries
 
+The [authenticated staging contract](authenticated-staging.md) describes the verifier-owned payload/evidence seam and disposable unprivileged candidate API. It supplies no production pin, release approval, privileged installation or runtime readiness.
+
 Use synthetic signed archives, malformed manifests, tampered bytes, unsafe archive
 paths, incompatible metadata, wrong permissions and injected IPC responses for
 negative tests. Offline package expansion checks payload paths, owners/modes,
