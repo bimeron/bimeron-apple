@@ -6,6 +6,16 @@ public enum EditorProtocol: String, CaseIterable, Sendable {
     case http = "HTTP", https = "HTTPS", naiveH2 = "Naive H2", masque = "MASQUE"
     case hysteria2 = "Hysteria2", vmess = "VMess", tuic = "TUIC", anytls = "AnyTLS", naiveQUIC = "Naive QUIC"
 
+    public var defaultPort: String {
+        switch self {
+        case .ss: "8388"
+        case .socks5: "1080"
+        case .ssh: "22"
+        case .http: "8080"
+        default: "443"
+        }
+    }
+
     public var generated: Bool { [.hysteria2, .vmess, .tuic, .anytls, .naiveQUIC].contains(self) }
     public var type: String {
         switch self {
@@ -44,7 +54,7 @@ public enum EditorProtocol: String, CaseIterable, Sendable {
         } else {
             document.set("AccessKey", "Type", type)
             for (key, value) in values where !value.isEmpty { document.set("AccessKey", key, value) }
-            if field("Port").isEmpty { document.set("AccessKey", "Port", "443") }
+            if field("Port").isEmpty { document.set("AccessKey", "Port", defaultPort) }
         }
         return document
     }
@@ -56,7 +66,7 @@ public enum EditorProtocol: String, CaseIterable, Sendable {
         func field(_ key: String) -> String {
             values[key] ?? (self == .vmess ? ["VMessSecurity": "auto", "VMessNetwork": "tcp", "VMessTLS": "tls"][key] : nil) ?? ""
         }
-        let port = field("Port").isEmpty ? "443" : field("Port")
+        let port = field("Port").isEmpty ? defaultPort : field("Port")
         guard let number = Int(port), (1...65535).contains(number), !field("Server").isEmpty else {
             throw ProfileError.invalid("Server or Port")
         }

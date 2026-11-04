@@ -1,0 +1,746 @@
+PASS: editor mode uses main thread and scoped temporary root
+PASS: existing AX trust only; no permission request
+ISOLATION: editor-only; temporary library, MemoryDefaults, mock validator, sandbox; no AddProfileView
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXGroup) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXScrollArea) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXPopUpButton) | SS
+AX Optional(AXStaticText) | Each protocol keeps its own draft when you switch.
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXStaticText) | Shadowsocks
+AX Optional(AXStaticText) | Server
+AX Optional(AXTextField) | original.invalid
+AX Optional(AXStaticText) | Port
+AX Optional(AXTextField) | 443
+AX Optional(AXStaticText) | Encryption
+AX Optional(AXPopUpButton) | aes-256-gcm
+AX Optional(AXStaticText) | Password
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Prefix
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Plugin
+AX Optional(AXPopUpButton) | Default
+AX Optional(AXStaticText) | Plugin options
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation.
+AX Optional(AXStaticText) | SS2022 requires a base64 key of the cipher's exact length. Prefix and plugin options are preserved; plugins cannot wrap ShadowTLS.
+AX Optional(AXHeading) | ShadowTLS v3
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Enable ShadowTLS wrapper
+AX Optional(AXCheckBox) | 
+AX Optional(AXStaticText) | Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility.
+AX Optional(AXScrollBar) | 
+AX Optional(AXValueIndicator) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: SelectionTextField label=
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: AppKitSecureTextField placeholder= label= secure=true
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: AppKitSecureTextField placeholder= label= secure=true
+CONTROL: PlatformSwitch label=
+CONTROL: NSScroller label=
+CONTROL: SwiftUIAppKitButton label=
+CONTROL: SwiftUIAppKitButton label=
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 537.0, 16.0) screen=(93.0, 343.5, 537.0, 16.0) delta=-6.5,-148.0,8.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 485.5, 16.0) screen=(144.5, 269.5, 485.5, 16.0) delta=45.0,-222.0,-43.0,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 537.0, 16.0) screen=(93.0, 343.5, 537.0, 16.0) delta=7.5,-111.0,-5.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 485.5, 16.0) screen=(144.5, 269.5, 485.5, 16.0) delta=59.0,-185.0,-57.0,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 585.5) size=(509.5, 16.0) converted=(118.5, 380.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,111.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,74.0,37.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 537.0, 16.0) screen=(93.0, 343.5, 537.0, 16.0) delta=-25.5,-37.0,27.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 485.5, 16.0) screen=(144.5, 269.5, 485.5, 16.0) delta=26.0,-111.0,-24.0,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: SS native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select SOCKS5
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 585.5) size=(509.5, 16.0) converted=(118.5, 380.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,111.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,74.0,37.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=1.5,37.0,0.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: SOCKS5 native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select VLESS
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=3.5,-74.0,-1.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 306.5, 461.0, 16.0) delta=69.5,-185.0,-67.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 455.0, 16.0) screen=(175.0, 269.5, 455.0, 16.0) delta=75.5,-222.0,-73.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 468.0, 16.0) screen=(162.0, 232.5, 468.0, 16.0) delta=62.5,-259.0,-60.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 524.0, 16.0) screen=(106.0, 195.5, 524.0, 16.0) delta=6.5,-296.0,-4.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 47.5, 538.0, 16.0) delta=-7.5,-444.0,9.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 472.0, 16.0) screen=(158.0, 10.5, 472.0, 16.0) delta=58.5,-481.0,-56.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 473.0, 16.0) screen=(157.0, -26.5, 473.0, 16.0) delta=57.5,-518.0,-55.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 491.0, 16.0) screen=(139.0, -63.5, 491.0, 16.0) delta=39.5,-555.0,-37.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 508.0, 16.0) screen=(122.0, -100.5, 508.0, 16.0) delta=22.5,-592.0,-20.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 439.5, 16.0) screen=(190.5, -174.5, 439.5, 16.0) delta=91.0,-666.0,-89.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 498.0, 16.0) screen=(132.0, -248.5, 498.0, 16.0) delta=32.5,-740.0,-30.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 499.0, 16.0) screen=(131.0, -285.5, 499.0, 16.0) delta=31.5,-777.0,-29.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 495.0, 16.0) screen=(135.0, -322.5, 495.0, 16.0) delta=35.5,-814.0,-33.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=17.5,-37.0,-15.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 306.5, 461.0, 16.0) delta=83.5,-148.0,-81.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 455.0, 16.0) screen=(175.0, 269.5, 455.0, 16.0) delta=89.5,-185.0,-87.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 468.0, 16.0) screen=(162.0, 232.5, 468.0, 16.0) delta=76.5,-222.0,-74.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 524.0, 16.0) screen=(106.0, 195.5, 524.0, 16.0) delta=20.5,-259.0,-18.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 47.5, 538.0, 16.0) delta=6.5,-407.0,-4.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 472.0, 16.0) screen=(158.0, 10.5, 472.0, 16.0) delta=72.5,-444.0,-70.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 473.0, 16.0) screen=(157.0, -26.5, 473.0, 16.0) delta=71.5,-481.0,-69.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 491.0, 16.0) screen=(139.0, -63.5, 491.0, 16.0) delta=53.5,-518.0,-51.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 508.0, 16.0) screen=(122.0, -100.5, 508.0, 16.0) delta=36.5,-555.0,-34.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 439.5, 16.0) screen=(190.5, -174.5, 439.5, 16.0) delta=105.0,-629.0,-103.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 498.0, 16.0) screen=(132.0, -248.5, 498.0, 16.0) delta=46.5,-703.0,-44.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 499.0, 16.0) screen=(131.0, -285.5, 499.0, 16.0) delta=45.5,-740.0,-43.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 495.0, 16.0) screen=(135.0, -322.5, 495.0, 16.0) delta=49.5,-777.0,-47.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: VLESS native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select SSH
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 372.5, 16.0) screen=(155.0, 378.5, 372.5, 16.0) delta=55.5,-113.0,-156.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 338.0, 16.0) screen=(189.5, 337.5, 338.0, 16.0) delta=90.0,-154.0,-190.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 372.5, 16.0) screen=(155.0, 378.5, 372.5, 16.0) delta=69.5,-76.0,-170.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 338.0, 16.0) screen=(189.5, 337.5, 338.0, 16.0) delta=104.0,-117.0,-204.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: SSH native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Trojan
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=17.0,-74.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=69.5,-111.0,-67.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 269.5, 538.0, 16.0) delta=-7.5,-222.0,9.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 472.0, 16.0) screen=(158.0, 232.5, 472.0, 16.0) delta=58.5,-259.0,-56.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 473.0, 16.0) screen=(157.0, 195.5, 473.0, 16.0) delta=57.5,-296.0,-55.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 491.0, 16.0) screen=(139.0, 158.5, 491.0, 16.0) delta=39.5,-333.0,-37.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 508.0, 16.0) screen=(122.0, 121.5, 508.0, 16.0) delta=22.5,-370.0,-20.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=31.0,-37.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=83.5,-74.0,-81.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 269.5, 538.0, 16.0) delta=6.5,-185.0,-4.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 472.0, 16.0) screen=(158.0, 232.5, 472.0, 16.0) delta=72.5,-222.0,-70.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 473.0, 16.0) screen=(157.0, 195.5, 473.0, 16.0) delta=71.5,-259.0,-69.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 491.0, 16.0) screen=(139.0, 158.5, 491.0, 16.0) delta=53.5,-296.0,-51.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 508.0, 16.0) screen=(122.0, 121.5, 508.0, 16.0) delta=36.5,-333.0,-34.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 548.5) size=(509.5, 16.0) converted=(118.5, 417.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,74.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,37.0,37.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=50.5,-37.0,-48.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 269.5, 538.0, 16.0) delta=-26.5,-148.0,28.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 472.0, 16.0) screen=(158.0, 232.5, 472.0, 16.0) delta=39.5,-185.0,-37.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 473.0, 16.0) screen=(157.0, 195.5, 473.0, 16.0) delta=38.5,-222.0,-36.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 491.0, 16.0) screen=(139.0, 158.5, 491.0, 16.0) delta=20.5,-259.0,-18.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 508.0, 16.0) screen=(122.0, 121.5, 508.0, 16.0) delta=3.5,-296.0,-1.5,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Trojan native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select HTTP
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: HTTP native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select HTTPS
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: HTTPS native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Naive H2
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=69.5,-148.0,-67.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=83.5,-111.0,-81.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Naive H2 native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select MASQUE
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=69.5,-148.0,-67.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 446.0, 16.0) screen=(184.0, 306.5, 446.0, 16.0) delta=84.5,-185.0,-82.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 365.0, 16.0) screen=(162.5, 267.5, 365.0, 16.0) delta=63.0,-224.0,-163.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=83.5,-111.0,-81.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 446.0, 16.0) screen=(184.0, 306.5, 446.0, 16.0) delta=98.5,-148.0,-96.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 365.0, 16.0) screen=(162.5, 267.5, 365.0, 16.0) delta=77.0,-187.0,-177.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: MASQUE native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Hysteria2
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=17.0,-74.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=69.5,-111.0,-67.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 343.5, 538.0, 16.0) delta=-7.5,-148.0,9.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=31.0,-37.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=83.5,-74.0,-81.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 343.5, 538.0, 16.0) delta=6.5,-111.0,-4.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 548.5) size=(509.5, 16.0) converted=(118.5, 417.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,74.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,37.0,37.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=50.5,-37.0,-48.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 343.5, 538.0, 16.0) delta=-26.5,-74.0,28.5,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Hysteria2 native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select VMess
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=3.5,-74.0,-1.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 482.5, 16.0) screen=(147.5, 269.5, 482.5, 16.0) delta=48.0,-222.0,-46.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 483.0, 16.0) screen=(147.0, 232.5, 483.0, 16.0) delta=47.5,-259.0,-45.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 475.5, 16.0) screen=(154.5, 195.5, 475.5, 16.0) delta=55.0,-296.0,-53.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 430.5, 16.0) screen=(199.5, 158.5, 430.5, 16.0) delta=100.0,-333.0,-98.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 121.5, 461.0, 16.0) delta=69.5,-370.0,-67.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 84.5, 538.0, 16.0) delta=-7.5,-407.0,9.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 455.0, 16.0) screen=(175.0, 10.5, 455.0, 16.0) delta=75.5,-481.0,-73.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 468.0, 16.0) screen=(162.0, -26.5, 468.0, 16.0) delta=62.5,-518.0,-60.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 447.5, 16.0) screen=(182.5, -63.5, 447.5, 16.0) delta=83.0,-555.0,-81.0,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=17.5,-37.0,-15.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 482.5, 16.0) screen=(147.5, 269.5, 482.5, 16.0) delta=62.0,-185.0,-60.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 483.0, 16.0) screen=(147.0, 232.5, 483.0, 16.0) delta=61.5,-222.0,-59.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 475.5, 16.0) screen=(154.5, 195.5, 475.5, 16.0) delta=69.0,-259.0,-67.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 430.5, 16.0) screen=(199.5, 158.5, 430.5, 16.0) delta=114.0,-296.0,-112.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 121.5, 461.0, 16.0) delta=83.5,-333.0,-81.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 84.5, 538.0, 16.0) delta=6.5,-370.0,-4.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 455.0, 16.0) screen=(175.0, 10.5, 455.0, 16.0) delta=89.5,-444.0,-87.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 468.0, 16.0) screen=(162.0, -26.5, 468.0, 16.0) delta=76.5,-481.0,-74.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 447.5, 16.0) screen=(182.5, -63.5, 447.5, 16.0) delta=97.0,-518.0,-95.0,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: User ID AX point=(105.0, 548.5) size=(523.0, 16.0) converted=(105.0, 417.5, 523.0, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-7.5,74.0,9.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-21.5,37.0,23.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 482.5, 16.0) screen=(147.5, 269.5, 482.5, 16.0) delta=42.5,-148.0,-40.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 483.0, 16.0) screen=(147.0, 232.5, 483.0, 16.0) delta=42.0,-185.0,-40.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 475.5, 16.0) screen=(154.5, 195.5, 475.5, 16.0) delta=49.5,-222.0,-47.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 430.5, 16.0) screen=(199.5, 158.5, 430.5, 16.0) delta=94.5,-259.0,-92.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 121.5, 461.0, 16.0) delta=64.0,-296.0,-62.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 84.5, 538.0, 16.0) delta=-13.0,-333.0,15.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 455.0, 16.0) screen=(175.0, 10.5, 455.0, 16.0) delta=70.0,-407.0,-68.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 468.0, 16.0) screen=(162.0, -26.5, 468.0, 16.0) delta=57.0,-444.0,-55.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 447.5, 16.0) screen=(182.5, -63.5, 447.5, 16.0) delta=77.5,-481.0,-75.5,0.0
+PASS: User ID uses native secure control
+PASS: User ID accepts native focus
+PASS: User ID accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: VMess native edits reach encoded endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select TUIC
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=3.5,-74.0,-1.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=69.5,-148.0,-67.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 306.5, 538.0, 16.0) delta=-7.5,-185.0,9.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=17.5,-37.0,-15.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=83.5,-111.0,-81.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 306.5, 538.0, 16.0) delta=6.5,-148.0,-4.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 585.5) size=(509.5, 16.0) converted=(118.5, 380.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,111.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,74.0,37.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=-15.5,37.0,17.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=50.5,-37.0,-48.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 306.5, 538.0, 16.0) delta=-26.5,-74.0,28.5,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+GEOMETRY: User ID AX point=(105.0, 548.5) size=(523.0, 16.0) converted=(105.0, 417.5, 523.0, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-7.5,74.0,9.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-21.5,37.0,23.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 527.0, 16.0) screen=(103.0, 417.5, 527.0, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=11.5,-37.0,-9.5,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=64.0,-74.0,-62.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 538.0, 16.0) screen=(92.0, 306.5, 538.0, 16.0) delta=-13.0,-111.0,15.0,0.0
+PASS: User ID uses native secure control
+PASS: User ID accepts native focus
+PASS: User ID accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: TUIC native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select AnyTLS
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=17.0,-74.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=69.5,-111.0,-67.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=31.0,-37.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=83.5,-74.0,-81.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 548.5) size=(509.5, 16.0) converted=(118.5, 417.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,74.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,37.0,37.0,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 417.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 380.5, 461.0, 16.0) delta=50.5,-37.0,-48.5,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: AnyTLS native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Naive QUIC
+GEOMETRY: Server AX point=(99.5, 474.5) size=(528.5, 16.0) converted=(99.5, 491.5, 528.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-16.0,-37.0,18.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=20.5,-74.0,-18.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=17.0,-111.0,-15.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=69.5,-148.0,-67.5,0.0
+PASS: Server uses native secure control
+PASS: Server accepts native focus
+PASS: Server accepts changed text
+GEOMETRY: Port AX point=(85.5, 511.5) size=(542.5, 16.0) converted=(85.5, 454.5, 542.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=12.0,37.0,-10.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=34.5,-37.0,-32.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=31.0,-74.0,-29.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=83.5,-111.0,-81.5,0.0
+PASS: Port uses native secure control
+PASS: Port accepts native focus
+PASS: Port accepts changed text
+GEOMETRY: Password AX point=(118.5, 585.5) size=(509.5, 16.0) converted=(118.5, 380.5, 509.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 532.5, 16.0) screen=(97.5, 491.5, 532.5, 16.0) delta=-21.0,111.0,23.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 546.5, 16.0) screen=(83.5, 454.5, 546.5, 16.0) delta=-35.0,74.0,37.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 510.0, 16.0) screen=(120.0, 417.5, 510.0, 16.0) delta=1.5,37.0,0.5,0.0
+GEOMETRY: native AppKitSecureTextField bounds=(0.0, 0.0, 513.5, 16.0) screen=(116.5, 380.5, 513.5, 16.0) delta=-2.0,0.0,4.0,0.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 461.0, 16.0) screen=(169.0, 343.5, 461.0, 16.0) delta=50.5,-37.0,-48.5,0.0
+PASS: Password uses native secure control
+PASS: Password accepts native focus
+PASS: Password accepts changed text
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Naive QUIC native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select SS
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: SS native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select SOCKS5
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: SOCKS5 native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select VLESS
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: VLESS native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select SSH
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: SSH native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Trojan
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Trojan native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select HTTP
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: HTTP native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select HTTPS
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: HTTPS native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Naive H2
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Naive H2 native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select MASQUE
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: MASQUE native edits reach explicit endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Hysteria2
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Hysteria2 native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select VMess
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: VMess native edits reach encoded endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select TUIC
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: TUIC native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select AnyTLS
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: AnyTLS native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select Naive QUIC
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Naive QUIC native edits reach generated endpoint
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: open own protocol picker
+PASS: select AnyTLS
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Raw authority fixture contains generated host
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: Raw authority blocks stale generated form
+ACTION own-process AX press Restore generated access key: result=-25200
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: Restore recovers exact generated draft bytes
+ACTION own-process AX press Save: result=-25200
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: mock validated generated save dismisses
+PASS: save persists actual edited draft exactly once
+GEOMETRY: Name AX point=(95.5, 363.5) size=(532.5, 16.0) converted=(95.5, 602.5, 532.5, 16.0) sheet=(0.0, 240.0, 680.0, 520.0) screenTop=982.0
+GEOMETRY: native AppKitTextField bounds=(0.0, 0.0, 536.5, 16.0) screen=(93.5, 602.5, 536.5, 16.0) delta=-2.0,0.0,4.0,0.0
+PASS: Name uses native secure control
+PASS: Name accepts native focus
+PASS: Name accepts changed text
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: imported generated link masked en dark=false
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXGroup) | 
+AX Optional(AXGroup) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXScrollArea) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXStaticText) | AnyTLS
+AX Optional(AXHeading) | Access key
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Link
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Show access key
+AX Optional(AXCheckBox) | 
+AX Optional(AXStaticText) | The complete link is preserved, including transport and security parameters.
+AX Optional(AXHeading) | ShadowTLS v3
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Enable ShadowTLS wrapper
+AX Optional(AXCheckBox) | 
+AX Optional(AXStaticText) | Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility.
+AX Optional(AXScrollBar) | 
+AX Optional(AXValueIndicator) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+BLOCKED: native editor interaction sequence: Error Domain=Missing toggle Code=4 "(null)"
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: independent Raw displays exact fixture bytes
+PASS: independent Raw accepts own-window focus
+ACTION own-process AX press Save: result=-25200
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: independent mock Raw save dismisses
+PASS: independent Raw edit persists exact bytes once
+ACTION own-process AX press Save: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: independent localized mock rejection retains editor en dark=false
+PASS: independent rejection preserves persisted bytes
+ACTION own-process AX press Save: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: independent localized mock rejection retains editor en dark=true
+PASS: independent rejection preserves persisted bytes
+ACTION own-process AX press Сохранить: result=0
+PASS: navigation AX press Сохранить
+PASS: independent localized mock rejection retains editor ru dark=false
+PASS: independent rejection preserves persisted bytes
+ACTION own-process AX press Сохранить: result=0
+PASS: navigation AX press Сохранить
+PASS: independent localized mock rejection retains editor ru dark=true
+PASS: independent rejection preserves persisted bytes
+EXECUTED: independent Raw/save/mock-error scenarios; forced cleanup is not cancel coverage
+FAIL: Error Domain=Missing toggle Code=4 "(null)"

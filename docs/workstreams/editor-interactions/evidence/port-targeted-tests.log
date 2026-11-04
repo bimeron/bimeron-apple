@@ -1,0 +1,43 @@
+[0/1] Planning build
+Building for debugging...
+[0/5] Write sources
+[1/5] Write swift-version--58304C5D6DBC2206.txt
+[3/5] Emitting module BimeronModelTests
+[4/5] Compiling BimeronModelTests EditorCreationTests.swift
+[4/6] Write Objects.LinkFileList
+[5/6] Linking BimeronPackageTests
+Build complete! (3.40s)
+Test Suite 'Selected tests' started at 2026-11-05 01:42:52.774.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-05 01:42:52.775.
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-05 01:42:52.775.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 01:42:52.775.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test protocolDefaultPortsSerializeValidEndpoints() started.
+◇ Test importedPortsAndRawAuthorityRemainExplicit() started.
+◇ Test inactiveDraftEditsSurviveReturningToInitialProtocol() started.
+◇ Test editorVariantsKeepIndependentDrafts() started.
+◇ Test generatedValuesValidateNamesAndEncodedLinks() started.
+◇ Test generatedURIContractsEscapeCredentialsAndIPv6() started.
+◇ Test generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() started.
+◇ Test creationPortDefaultsRemainSeparateFromExplicitDrafts() started.
+◇ Test rawPortRevertDoesNotRecoverStalePlaceholderState() started.
+◇ Test generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() started.
+◇ Test generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() started.
+◇ Test generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() started.
+✔ Test inactiveDraftEditsSurviveReturningToInitialProtocol() passed after 0.011 seconds.
+✔ Test rawPortRevertDoesNotRecoverStalePlaceholderState() passed after 0.011 seconds.
+✔ Test editorVariantsKeepIndependentDrafts() passed after 0.011 seconds.
+✔ Test generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() passed after 0.011 seconds.
+✔ Test creationPortDefaultsRemainSeparateFromExplicitDrafts() passed after 0.011 seconds.
+✔ Test generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() passed after 0.015 seconds.
+✔ Test importedPortsAndRawAuthorityRemainExplicit() passed after 0.015 seconds.
+✔ Test generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() passed after 0.018 seconds.
+✔ Test generatedURIContractsEscapeCredentialsAndIPv6() passed after 0.021 seconds.
+✔ Test generatedValuesValidateNamesAndEncodedLinks() passed after 0.021 seconds.
+✔ Test generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() passed after 0.024 seconds.
+✔ Test protocolDefaultPortsSerializeValidEndpoints() passed after 0.024 seconds.
+✔ Test run with 12 tests passed after 0.025 seconds.
