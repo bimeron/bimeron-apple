@@ -37,10 +37,12 @@ import BimeronCoreCLI
     let model = AppModel(library: library, coreCLI: success, defaults: defaults)
     // No-op, BOM, CRLF and missing final newline pass through the actual model path.
     try Data(text.utf8).write(to: expected)
-    #expect(await model.save(original, original: original))
+    try #require(await model.save(original, original: original),
+                 "No-op save failed:\n\(model.diagnosticSnapshot().text(includeFreeText: false))")
     #expect(try Data(contentsOf: destination) == Data(text.utf8))
     try Data(draft.document.text.utf8).write(to: expected)
-    #expect(await model.save(draft, original: original))
+    try #require(await model.save(draft, original: original),
+                 "Draft save failed:\n\(model.diagnosticSnapshot().text(includeFreeText: false))")
     #expect(try Data(contentsOf: destination) == Data(contentsOf: captured))
     #expect((try FileManager.default.attributesOfItem(atPath: destination.path)[.posixPermissions] as? NSNumber)?.intValue == 0o600)
 
