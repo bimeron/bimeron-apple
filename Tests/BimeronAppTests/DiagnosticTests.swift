@@ -22,8 +22,9 @@ import BimeronCoreCLI
     #expect(history.textBytes == DiagnosticHistory.textLimit - 1)
 }
 
-@Test @MainActor func diagnosticExportsRequireFreeTextOptInAndFreezeHistory() {
-    let model = AppModel(coreCLI: nil)
+@Test @MainActor func diagnosticExportsRequireFreeTextOptInAndFreezeHistory() throws {
+    let settings = try IsolatedAppSettings()
+    let model = AppModel(coreCLI: nil, defaults: settings.defaults)
     let first = UUID()
     let second = UUID()
     model.record(DiagnosticEvent(source: .gui, kind: .profileSave, outcome: .started, attemptID: first))
@@ -45,7 +46,7 @@ import BimeronCoreCLI
     #expect(document.text == safe)
     #expect(!snapshot.text(includeFreeText: true).contains("later-secret"))
     #expect(model.log.count == 1)
-    #expect(AppModel(coreCLI: nil).log.isEmpty)
+    #expect(AppModel(coreCLI: nil, defaults: settings.defaults).log.isEmpty)
 }
 
 @Test func diagnosticLifecycleDoesNotClaimDisconnectedAfterIPCLoss() {
@@ -64,6 +65,7 @@ import BimeronCoreCLI
 }
 
 @Test @MainActor func diagnosticSaveEventsFollowActualCLIValidation() async throws {
+    let settings = try IsolatedAppSettings()
     let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -76,7 +78,7 @@ import BimeronCoreCLI
         let script = "#!/bin/sh\ntest \"$1\" = validate || exit 9\necho stderr-password-secret >&2\nexit \(rejected ? 1 : 0)\n"
         try Data(script.utf8).write(to: executable)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
-        let model = AppModel(library: library, coreCLI: CoreCLI(executableURL: executable))
+        let model = AppModel(library: library, coreCLI: CoreCLI(executableURL: executable), defaults: settings.defaults)
         #expect(await model.save(draft, original: original) == !rejected)
         let events = model.log.compactMap(\.event)
         #expect(events.map(\.source) == (rejected ? [.gui, .coreCLI, .gui] : [.gui, .coreCLI, .coreCLI, .gui]))
@@ -96,7 +98,7 @@ import BimeronCoreCLI
             #expect(model.log.compactMap(\.event).map(\.outcome) == [.started, .started, .success, .rejected])
         }
     }
-    let unavailable = AppModel(library: library, coreCLI: nil)
+    let unavailable = AppModel(library: library, coreCLI: nil, defaults: settings.defaults)
     #expect(await unavailable.save(original, original: draft) == false)
     #expect(unavailable.log.compactMap(\.event).map(\.outcome) == [.started, .unavailable])
     #expect(unavailable.log.compactMap(\.event).allSatisfy { $0.source == .gui && $0.kind == .profileSave })
