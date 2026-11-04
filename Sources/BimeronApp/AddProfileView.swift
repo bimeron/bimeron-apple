@@ -1,6 +1,7 @@
 import AppKit
 import BimeronModel
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct AddProfileView: View {
     @Bindable var model: AppModel
@@ -14,8 +15,8 @@ struct AddProfileView: View {
     @State private var issue: String?
     @State private var clipboardKey: String?
     @State private var pasteboardChangeCount = -1
-    @State private var sshIdentityFile: URL?
-    @State private var sshKnownHostsFile: URL?
+    @State private var sshIdentityPath = ""
+    @State private var sshKnownHostsPath = ""
 
     private var validKey: Bool { Self.accepts(key) }
     private var isSSH: Bool { AccessProtocol(key: key.trimmingCharacters(in: .whitespacesAndNewlines)) == .ssh }
@@ -58,8 +59,8 @@ struct AddProfileView: View {
             }
 
             if isSSH {
-                sshFilePicker("SSH known_hosts file (optional)", selection: $sshKnownHostsFile)
-                sshFilePicker("SSH private key file (optional)", selection: $sshIdentityFile)
+                sshFilePicker("SSH known_hosts file (optional)", path: $sshKnownHostsPath)
+                sshFilePicker("SSH private key file (optional)", path: $sshIdentityPath)
             }
 
             if let issue { Text(issue).font(.subheadline).foregroundStyle(.red) }
@@ -70,8 +71,8 @@ struct AddProfileView: View {
                     guard canSave else { return }
                     busy = true
                     Task {
-                        if await model.add(name: name, key: key, sshIdentityFile: isSSH ? sshIdentityFile : nil,
-                                           sshKnownHostsFile: isSSH ? sshKnownHostsFile : nil) { dismiss() }
+                        if await model.add(name: name, key: key, sshIdentityFile: isSSH ? Self.fileURL(for: sshIdentityPath) : nil,
+                                           sshKnownHostsFile: isSSH ? Self.fileURL(for: sshKnownHostsPath) : nil) { dismiss() }
                         else {
                             issue = model.alertMessage
                             model.alertMessage = nil
@@ -80,9 +81,12 @@ struct AddProfileView: View {
                     }
                 } label: {
                     Text(model.t("Save"))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
+                        .background(AppPalette.blue.opacity(canSave ? 1 : 0.5), in: .rect(cornerRadius: 5))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(AppPalette.blue)
+                .buttonStyle(.plain)
                 .disabled(!canSave)
                 .keyboardShortcut(.defaultAction)
                 Button(model.t("Cancel")) { dismiss() }
@@ -106,19 +110,33 @@ struct AddProfileView: View {
         return (try? ConfigDocument.validateKey(key)) != nil
     }
 
-    private func sshFilePicker(_ title: String, selection: Binding<URL?>) -> some View {
+    static func fileURL(for path: String) -> URL? {
+        let path = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !path.isEmpty else { return nil }
+        if let url = URL(string: path), url.isFileURL { return url }
+        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+    }
+
+    private func sshFilePicker(_ title: String, path: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.t(title))
             HStack {
-                Text(selection.wrappedValue?.lastPathComponent ?? model.t("No file selected"))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .help(selection.wrappedValue?.path ?? "")
-                Spacer()
-                Button(model.t("Choose file…")) { chooseSSHFile(selection) }
-                if selection.wrappedValue != nil {
-                    Button(model.t("Remove")) { selection.wrappedValue = nil }
+                TextField(model.t("File path"), text: path)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel(model.t(title))
+                    .onPasteCommand(of: [.fileURL]) { providers in
+                        guard let provider = providers.first else { return }
+                        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                            let url = (item as? URL) ?? (item as? Data).flatMap {
+                                URL(dataRepresentation: $0, relativeTo: nil)
+                            }
+                            guard let url, url.isFileURL else { return }
+                            Task { @MainActor in path.wrappedValue = url.path }
+                        }
+                    }
+                Button(model.t("Choose file…")) { chooseSSHFile(path) }
+                if !path.wrappedValue.isEmpty {
+                    Button(model.t("Remove")) { path.wrappedValue = "" }
                 }
             }
         }
@@ -126,14 +144,14 @@ struct AddProfileView: View {
         .accessibilityLabel(model.t(title))
     }
 
-    private func chooseSSHFile(_ selection: Binding<URL?>) {
+    private func chooseSSHFile(_ path: Binding<String>) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         panel.showsHiddenFiles = true
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh", directoryHint: .isDirectory)
         panel.begin { response in
-            if response == .OK { selection.wrappedValue = panel.url }
+            if response == .OK, let url = panel.url { path.wrappedValue = url.path }
         }
     }
 

@@ -46,3 +46,11 @@ import Testing
     #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
     #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == nil)
 }
+
+@Test @MainActor func sshFilePathsAcceptTypedAndPastedLocations() {
+    #expect(AddProfileView.fileURL(for: "  ") == nil)
+    #expect(AddProfileView.fileURL(for: "/tmp/private key")?.path == "/tmp/private key")
+    #expect(AddProfileView.fileURL(for: "file:///tmp/private%20key")?.path == "/tmp/private key")
+    #expect(AddProfileView.fileURL(for: "~/.ssh/known_hosts")?.path ==
+            FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh/known_hosts").path)
+}

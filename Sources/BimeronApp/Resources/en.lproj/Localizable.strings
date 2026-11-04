@@ -174,3 +174,5 @@
 "No file selected" = "No file selected";
 
 "SSH known_hosts file (optional)" = "SSH known_hosts file (optional)";
+
+"File path" = "File path";
