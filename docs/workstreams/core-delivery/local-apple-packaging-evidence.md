@@ -374,3 +374,35 @@ Embedded claims and clean metadata do not prove honest source derivation.
 Independent parent review, production key/candidate/review-policy approval,
 source reproducibility, extraction safety, installation and daemon/session
 readiness remain separate gates. No hosted CI was run under the global pause.
+
+
+## Final independent review and parent verification
+
+Independent read-only Sol MEDIUM round four reviewed code commit
+`52be97decbc9d583e22cea8c979ae1914fa5d8eb` against pinned Go/Core creator
+modes, EOCD/ZIP64, counts, offsets, bounds and payload handling. It reported
+no actionable P1/P2 findings. It independently passed the full Swift suite
+with all 348 signed archive vectors and confirmed the exact mode reproducer
+hash. It did not rerun Core parity or the release build. Prior review findings
+are resolved; a finite corpus does not prove universal parser parity.
+
+The parent then independently passed the full Swift suite at the same code
+commit using `.build/apple-interop/vectors-round3-fix` (348 entries):
+27 XCTest and 59 Swift Testing tests. Log: `.build/apple-parent-348-final.log`.
+Earlier parent status messages incorrectly described runs using the older
+`vectors-final` directory (94 entries) as covering the expanded corpus.
+Those runs passed, but only this final explicit directory run establishes the
+parent's 348-vector Swift result. The independent review's 348-vector result
+is separate evidence.
+
+Production trust/candidate/review approvals, honest source derivation, safe
+extraction, installation and runtime readiness remain separate gates. No
+archived binary was executed, including arm64; both CPU archives were checked
+statically. Original G/E/L remain untouched. No network, remote mutations,
+hosted CI, installation or production approval occurred.
+
+The parent additionally reran the offline pinned Go authenticated parity harness
+against that exact 348-entry directory after the final Swift run: exit zero,
+`PASS 348 Core archive vectors`. Log: `.build/apple-parent-core-348.log`.
+The harness authenticated the Swift-written sidecars, verified every expected
+archive disposition and refreshed deterministic synthetic Go signatures.
