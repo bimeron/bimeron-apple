@@ -12,6 +12,8 @@ let package = Package(
         .testTarget(name: "BimeronSSHAuthTests", dependencies: ["BimeronSSHAuth"]),
         .target(name: "BimeronDaemon"),
         .testTarget(name: "BimeronDaemonTests", dependencies: ["BimeronDaemon"]),
+        .target(name: "BimeronStatistics"),
+        .testTarget(name: "BimeronStatisticsTests", dependencies: ["BimeronStatistics"], exclude: ["Fixtures"]),
         .systemLibrary(name: "CZlib"),
         .target(name: "BimeronCoreCLI", dependencies: ["CZlib"]),
         .testTarget(name: "BimeronCoreCLITests", dependencies: ["BimeronCoreCLI"]),
