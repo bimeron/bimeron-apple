@@ -4,8 +4,12 @@ Date: 2026-11-04. Branch: `feat/daemon-utun-lifecycle`.
 
 - Full `swift test` with explicit `BIMERON_ACCEPTANCE_FIXTURE_ROOT` pointing to
   `/Users/wrk/.t3/worktrees/bimeron-macos/test-acceptance-scenarios-fixtures/fixtures/acceptance`:
-  passed, 10 daemon XCTest tests and 24 existing Swift Testing tests, zero failures.
-  All five C IDs are checked by the fixture adapter at every event boundary.
+  passed, 15 daemon XCTest tests and 24 existing Swift Testing tests, zero failures.
+  All five C IDs are checked by the fixture adapter at every event boundary;
+  `observe-stop-pending` now translates to Core's `stopping` spelling. Five added
+  deterministic tests cover Core-state adoption, accepted connecting stop,
+  failed-stop explicit recovery, switch cleanup boundaries, and active session
+  identity requirements. No D scenarios or artifacts were changed.
 - External D worktree HEAD at final verification:
   `ce2654d8d5b94bded4db230d317df76e66998ca3`. Manifest and lifecycle fixture bytes
   have no diff against required `f8988b7`; later D documentation/CI changes remain

@@ -12,7 +12,14 @@ read-only reconciliation if Core reports a pending transition.
 `DaemonLifecycle` is the deterministic reducer used by that actor. `DaemonProfile`
 contains a stable profile ID and an absolute config path, not configuration bytes.
 Unknown adopted profile IDs remain usable session identities without rewriting or
-restarting them. Static config validation remains a separate caller prerequisite.
+restarting them. Core's six states remain distinguishable (`disconnected` maps to
+`stopped`); `starting` is only a locally pending start request. After start acceptance,
+a known active session can be explicitly stopped while connecting or reconnecting.
+An outstanding stop blocks duplicate mutations until confirmed cleanup or failure.
+Stop failure clears any queued replacement and permits an explicit guarded stop of
+the observed active session; it never resumes the replacement automatically.
+Unknown IPC state or an absent/empty active session identity blocks stop.
+Static config validation remains a separate caller prerequisite.
 
 The production transport attaches only to `/var/run/bimeron/control.sock`, uses
 nonblocking I/O, authenticates peer UID 0 with macOS `getpeereid` before any write,

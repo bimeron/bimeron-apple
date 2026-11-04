@@ -1,7 +1,7 @@
 import Foundation
 
 public enum LifecycleState: Equatable, Sendable {
-    case unknown, stopped, connected, starting, stopping, cleanupUnconfirmed
+    case unknown, stopped, connecting, connected, reconnecting, failed, starting, stopping, cleanupUnconfirmed
 }
 
 public struct DaemonProfile: Equatable, Sendable {
@@ -40,6 +40,8 @@ public struct DaemonLifecycle: Sendable {
             state = .cleanupUnconfirmed
             return nil
         }
+        // Start acceptance completes the request even while the session is connecting.
+        if state == .starting { pending = false }
         if response.status.cleanupConfirmed {
             state = .stopped
             pending = false
@@ -47,19 +49,26 @@ public struct DaemonLifecycle: Sendable {
                 replacement = nil
                 return connect(next)
             }
-        } else if response.status.State == "connected", session?.active == true {
-            if !pending { state = .connected }
-            else if state == .starting { pending = false; state = .connected }
-        } else if !pending { state = .unknown }
+        } else {
+            switch response.status.State {
+            case "connecting": state = .connecting
+            case "connected": state = .connected
+            case "reconnecting": state = .reconnecting
+            case "stopping": state = .stopping
+            case "failed": state = .failed
+            default: state = .unknown
+            }
+        }
         return nil
     }
 
     public mutating func connect(_ profile: DaemonProfile) -> DaemonRequest? {
         guard !pending, guardsSupported, let instance else { return nil }
-        if state == .connected {
+        if [.connecting, .connected, .reconnecting, .failed].contains(state), session?.active == true {
             guard session?.profile_id != profile.id else { return nil }
+            guard let request = disconnect() else { return nil }
             replacement = profile
-            return disconnect()
+            return request
         }
         guard state == .stopped, profile.configPath.hasPrefix("/") else { return nil }
         pending = true
@@ -68,7 +77,7 @@ public struct DaemonLifecycle: Sendable {
     }
 
     public mutating func disconnect() -> DaemonRequest? {
-        guard !pending, guardsSupported, state == .connected,
+        guard !pending, guardsSupported, state != .unknown, state != .starting,
               let instance, let session, session.active, !session.id.isEmpty else { return nil }
         pending = true
         state = .stopping

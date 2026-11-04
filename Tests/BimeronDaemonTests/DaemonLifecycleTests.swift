@@ -4,10 +4,10 @@ import XCTest
 
 final class DaemonLifecycleTests: XCTestCase {
     private func response(state: String = "disconnected", profile: String? = nil, active: Bool = false,
-                          instance: String = "one", error: String? = nil, guards: Bool = true) throws -> DaemonResponse {
+                          instance: String = "one", sessionID: String = "session", error: String? = nil, guards: Bool = true) throws -> DaemonResponse {
         var object: [String: Any] = ["version": 1, "id": "test", "instance": instance,
             "daemon_session_guards": guards, "status": ["State": state,
-                "Session": ["id": "session", "active": active, "profile_id": profile ?? ""]]]
+                "Session": ["id": sessionID, "active": active, "profile_id": profile ?? ""]]]
         if let error { object["error"] = error }
         return try JSONDecoder().decode(DaemonResponse.self, from: JSONSerialization.data(withJSONObject: object))
     }
@@ -59,7 +59,7 @@ final class DaemonLifecycleTests: XCTestCase {
                     command = lifecycle.observe(try response())
                     if switchPending { expected.append("start:B"); switchPending = false }
                 case "observe-stop-pending":
-                    command = lifecycle.observe(try response(state: "disconnecting", profile: "A", active: true))
+                    command = lifecycle.observe(try response(state: "stopping", profile: "A", active: true))
                 case "observe-stop-failed":
                     command = lifecycle.observe(try response(state: "failed", profile: "A", active: true, error: "session_stop_failed"))
                     switchPending = false
@@ -86,6 +86,7 @@ final class DaemonLifecycleTests: XCTestCase {
         XCTAssertNil(lifecycle.disconnect())
         lifecycle.loseIPC() // Timeout/cancellation/IPC failure have the same uncertain outcome.
         XCTAssertEqual(lifecycle.state, .unknown)
+        XCTAssertNil(lifecycle.disconnect())
         XCTAssertNil(lifecycle.connect(a))
         XCTAssertNil(lifecycle.observe(try response(state: "connected", profile: "A", active: true), handshake: true))
         XCTAssertEqual(lifecycle.connect(DaemonProfile(id: "B", configPath: "/B"))?.command, "stop")
@@ -130,6 +131,73 @@ final class DaemonLifecycleTests: XCTestCase {
             XCTAssertEqual(lifecycle.state, .cleanupUnconfirmed)
             XCTAssertNil(lifecycle.observe(try response()))
             XCTAssertEqual(lifecycle.state, .stopped)
+        }
+    }
+
+    func testAdoptsCoreStatesAndStopsKnownActiveSessions() throws {
+        for (core, expected) in [("connecting", LifecycleState.connecting), ("connected", .connected),
+                                 ("reconnecting", .reconnecting), ("stopping", .stopping), ("failed", .failed)] {
+            var lifecycle = DaemonLifecycle()
+            _ = lifecycle.observe(try response(state: core, active: true), handshake: true)
+            XCTAssertEqual(lifecycle.state, expected)
+            XCTAssertEqual(lifecycle.disconnect()?.session, "session", core)
+            XCTAssertNil(lifecycle.disconnect())
+        }
+    }
+
+    func testAcceptedConnectingCanStopButUnidentifiedStartCannot() throws {
+        var lifecycle = DaemonLifecycle()
+        _ = lifecycle.observe(try response(), handshake: true)
+        XCTAssertEqual(lifecycle.connect(DaemonProfile(id: "A", configPath: "/A"))?.command, "start")
+        XCTAssertNil(lifecycle.disconnect())
+        _ = lifecycle.observe(try response(state: "connecting", profile: "A", active: true))
+        XCTAssertEqual(lifecycle.state, .connecting)
+        XCTAssertEqual(lifecycle.disconnect()?.command, "stop")
+        _ = lifecycle.observe(try response(state: "stopping", profile: "A", active: true))
+        XCTAssertEqual(lifecycle.state, .stopping)
+        XCTAssertNil(lifecycle.disconnect())
+        XCTAssertNil(lifecycle.connect(DaemonProfile(id: "B", configPath: "/B")))
+    }
+
+    func testFailedStopAllowsExplicitRecoveryWithoutResumingReplacement() throws {
+        var lifecycle = DaemonLifecycle()
+        _ = lifecycle.observe(try response(state: "reconnecting", profile: "A", active: true), handshake: true)
+        let b = DaemonProfile(id: "B", configPath: "/B")
+        XCTAssertEqual(lifecycle.connect(b)?.command, "stop")
+        XCTAssertNil(lifecycle.observe(try response(state: "failed", active: true, error: "session_stop_failed")))
+        XCTAssertEqual(lifecycle.state, .cleanupUnconfirmed)
+        XCTAssertNil(lifecycle.connect(b))
+        XCTAssertEqual(lifecycle.disconnect()?.session, "session")
+        XCTAssertNil(lifecycle.disconnect())
+        XCTAssertNil(lifecycle.observe(try response()))
+        XCTAssertEqual(lifecycle.state, .stopped)
+        XCTAssertEqual(lifecycle.connect(b)?.command, "start")
+    }
+
+    func testSwitchWaitsForConfirmedCleanupAcrossCoreStates() throws {
+        for core in ["connecting", "reconnecting", "failed"] {
+            var lifecycle = DaemonLifecycle()
+            _ = lifecycle.observe(try response(state: core, profile: "A", active: true), handshake: true)
+            XCTAssertEqual(lifecycle.connect(DaemonProfile(id: "B", configPath: "/B"))?.command, "stop")
+            for observed in ["stopping", "connected", "disconnected"] {
+                XCTAssertNil(lifecycle.observe(try response(state: observed, profile: "A", active: true)))
+                XCTAssertNil(lifecycle.disconnect())
+                XCTAssertNil(lifecycle.connect(DaemonProfile(id: "C", configPath: "/C")))
+            }
+            XCTAssertEqual(lifecycle.observe(try response())?.config, "/B")
+            XCTAssertNil(lifecycle.observe(try response(state: "connecting", profile: "B", active: true)))
+        }
+    }
+
+    func testStopRequiresConfirmedActiveSessionIdentity() throws {
+        for observation in [try response(state: "connecting", active: true, sessionID: ""),
+                            try response(state: "connecting", active: false),
+                            try response(state: "unrecognized", active: true)] {
+            var lifecycle = DaemonLifecycle()
+            _ = lifecycle.observe(observation, handshake: true)
+            XCTAssertNil(lifecycle.disconnect())
+            XCTAssertNil(lifecycle.connect(DaemonProfile(id: "B", configPath: "/B")))
+            XCTAssertNil(lifecycle.observe(try response()))
         }
     }
 
