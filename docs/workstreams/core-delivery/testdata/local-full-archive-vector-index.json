@@ -60,6 +60,30 @@
     "sha256": "6147f53aad5a6c61501db5e9825d686c8c908d8663ad815950aedb681cb5170c"
   },
   {
+    "file": "amd64-deflate-trailing-descriptor.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "78c1cdfbc4fb173f37b51c3229e595f878f54feb30e13bd8540bfb7911c59e56"
+  },
+  {
+    "file": "amd64-deflate-trailing-no-descriptor.zip",
+    "arch": "amd64",
+    "accept": true,
+    "sha256": "38d0de2cfe00f7b5203fc2cb77579fd90c6c0dd84629602850ea57a2d6fc33d7"
+  },
+  {
+    "file": "amd64-deflate-truncated-descriptor.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "27787c22de04877ec78e8913782d58b480079244310cebf6519d969fe0f82376"
+  },
+  {
+    "file": "amd64-deflate-truncated-no-descriptor.zip",
+    "arch": "amd64",
+    "accept": false,
+    "sha256": "f78368bbf539d5e5fbf1e25854ad31e3de95f185a85db19d4943456a357b4c89"
+  },
+  {
     "file": "amd64-descriptor-crc.zip",
     "arch": "amd64",
     "accept": false,
@@ -448,6 +472,30 @@
     "arch": "arm64",
     "accept": false,
     "sha256": "d5f4af3f06e03086d38286d3b3108883376ccd71a486ef877a774fe0f635fbe7"
+  },
+  {
+    "file": "arm64-deflate-trailing-descriptor.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "3484002fc8f7531aed02ace3e7cf3bb364962e57b2cc70df23d980445dbf82af"
+  },
+  {
+    "file": "arm64-deflate-trailing-no-descriptor.zip",
+    "arch": "arm64",
+    "accept": true,
+    "sha256": "05d695d5f9d3cee4d0e2ac1e63c2338856f2d4af226456e59ffda9f148b6857e"
+  },
+  {
+    "file": "arm64-deflate-truncated-descriptor.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "21b347eabd59a85c097673d33a2210fc165e3957cd7279442d6eec42a3d62755"
+  },
+  {
+    "file": "arm64-deflate-truncated-no-descriptor.zip",
+    "arch": "arm64",
+    "accept": false,
+    "sha256": "463b658362012651c3486b07718f016af22fe95c2d09e68a4e8603d5a97f2118"
   },
   {
     "file": "arm64-descriptor-crc.zip",

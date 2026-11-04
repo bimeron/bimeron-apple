@@ -35,6 +35,37 @@ def pack(entries):
     return target.getvalue()
 
 
+def change_first_deflate(data, trailing):
+    """Insert bytes after EOS or remove the final stream byte, preserving ZIP offsets."""
+    end = data.rfind(b'PK\x05\x06')
+    directory = struct.unpack_from('<I', data, end + 16)[0]
+    count = struct.unpack_from('<H', data, end + 10)[0]
+    local = struct.unpack_from('<I', data, directory + 42)[0]
+    compressed = struct.unpack_from('<I', data, directory + 20)[0]
+    assert struct.unpack_from('<H', data, directory + 10)[0] == 8
+    payload_end = local + 30 + sum(struct.unpack_from('<HH', data, local + 26)) + compressed
+    delta = len(trailing) if trailing else -1
+    cut = payload_end if trailing else payload_end - 1
+    modified = bytearray(data[:cut] + trailing + data[cut + (0 if trailing else 1):])
+    p = directory
+    for i in range(count):
+        n, e, c = struct.unpack_from('<HHH', data, p + 28)
+        old_local = struct.unpack_from('<I', data, p + 42)[0]
+        struct.pack_into('<I', modified, p + delta + 42, old_local + (delta if old_local >= cut else 0))
+        if i == 0:
+            struct.pack_into('<I', modified, p + delta + 20, compressed + delta)
+        p += 46 + n + e + c
+    struct.pack_into('<I', modified, end + delta + 16, directory + delta)
+    flags = struct.unpack_from('<H', data, directory + 8)[0]
+    if flags & 8:
+        descriptor = payload_end + delta
+        signed = modified[descriptor:descriptor + 4] == b'PK\x07\x08'
+        struct.pack_into('<I', modified, descriptor + (8 if signed else 4), compressed + delta)
+    else:
+        struct.pack_into('<I', modified, local + 18, compressed + delta)
+    return modified
+
+
 for arch in ('amd64', 'arm64'):
     original = (source / f'bimeron-v0.1.0-beta.1-macos-{arch}.zip').read_bytes()
     write(arch, 'original', original, True)
@@ -51,7 +82,11 @@ for arch in ('amd64', 'arm64'):
         entries = [(f.filename, z.read(f), f.external_attr >> 16) for f in z.infolist()]
     binary_index = next(i for i, e in enumerate(entries) if e[0].endswith('/bimeron'))
     name, binary, mode = entries[binary_index]
-    write(arch, 'repacked', pack(entries), True)
+    repacked = pack(entries)
+    write(arch, 'repacked', repacked, True)
+    for label, base in [('descriptor', original), ('no-descriptor', repacked)]:
+        write(arch, 'deflate-trailing-' + label, change_first_deflate(base, b'X'), True)
+        write(arch, 'deflate-truncated-' + label, change_first_deflate(base, b''))
     target = io.BytesIO()
     with zipfile.ZipFile(target, 'w') as z:
         for n, content, permissions in entries:

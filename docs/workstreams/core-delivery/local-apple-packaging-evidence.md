@@ -89,16 +89,20 @@ signed manifests, logs and working index remain ignored under `.build/apple-inte
 
 ## Results and remaining gates
 
-Final results: all 130 archive vectors have identical expected dispositions in
+Final results: all 138 archive vectors have identical expected dispositions in
 Swift and Core, including exact Swift-signed manifest verification, complete
 Core archive-pair verification and tampering rejection. Full `swift test` with
-the corpus passed: 26 XCTest tests and 59 Swift Testing tests. `swift build -c
-release` passed. `python3 fixtures/acceptance/check.py` passed 26 scenarios and
+the corpus passed: 26 XCTest tests and 59 Swift Testing tests. Scoped
+`git diff --check` passed.
+
+The prior fix at `5d6cf55` also passed `swift build -c release`. `python3 fixtures/acceptance/check.py` passed 26 scenarios and
 29 fixture files, including its corruption/coverage/lifecycle rejection controls.
 Offline Core `go test ./internal/appleversion ./release/...` passed all three
-packages (0.677s, 2.521s and 6.156s). Scoped `git diff --check` passed.
+packages (0.677s, 2.521s and 6.156s). Those unchanged release/acceptance/Core
+package checks were not repeated for the one-line DEFLATE condition fix; the
+changed Swift path was compiled and exercised by the complete Swift suite.
 
-Review-fix logs: `.build/apple-interop/review-fix-swift.log`,
+Prior first-round-fix logs: `.build/apple-interop/review-fix-swift.log`,
 `review-fix-parity.log`, `review-fix-release.log`, `review-fix-fixtures.log`,
 `review-fix-core-tests.log`, `review-fix-targeted.log`. Archive-build evidence
 remains in `builder-notags.log`. No runtime performance benchmark is claimed
@@ -110,7 +114,7 @@ The release build completed in 3.73 seconds.
 
 The sorted index is retained as
 `testdata/local-full-archive-vector-index.json`, SHA-256
-`826273adee719e4a0725b1289f5768f11499c2c3371f91273cc38634660884ef`.
+`90718990f86d2c5c8166734e011c4f3f8c845d18773dab7247b7dc92a35fb56b`.
 The deterministic full-archive synthetic-reviewed manifest is retained as
 `testdata/local-full-archive-synthetic-reviewed.json`, SHA-256
 `32627976fae87ed9407dbe27f781b414904830914567e0c1ad475ef6390b4bf9`,
@@ -182,6 +186,65 @@ in unsigned/ZIP64 forms; ignored descriptor sizes; and no-descriptor zero CRC.
 Descriptors are placed at true EOF in the EOCD comment for truncation controls,
 preventing accidental reads from the next header. Every vector is synthetically
 signed and checked by Swift and Core with full archive-pair verification.
+
+## Independent round-two review disposition at 5d6cf55
+
+The parent reports that the independent second review confirmed both first-round
+fixes, all 130 signed parity vectors and the full Swift suite. It found a new P2:
+Swift required the DEFLATE decoder to consume every byte of the central-directory
+compressed range, while pinned Go stops at the final block and ignores trailing
+bytes within that bounded range. The finding is accepted. No independent review
+was performed or delegated by this implementation turn; fresh parent-owned
+review remains pending.
+
+The reviewer archive `/tmp/apple-rereview.7SFMVS/trailing-deflate.zip` has SHA-256
+`38d0de2cfe00f7b5203fc2cb77579fd90c6c0dd84629602850ea57a2d6fc33d7`.
+The generated amd64 `deflate-trailing-no-descriptor` vector matches it byte for
+byte. It inserts `X` after the first compressed stream in the repacked archive
+and updates compressed sizes, following local offsets and central-directory
+offset without changing uncompressed content.
+
+Installed Go 1.26.9 `src/archive/zip/reader.go` opens a section reader bounded by
+the central compressed size and uses the registered DEFLATE reader.
+`src/archive/zip/register.go` uses `flate.NewReader`;
+`src/compress/flate/inflate.go` explicitly states that the reader returns EOF
+after the final block and ignores trailing data. Swift now requires
+`Z_STREAM_END` and exact decompressed size without requiring `total_in` to equal
+the supplied bounded payload length. Archive signature/SHA-256, payload bounds,
+CRC checks, descriptor checks and static binary evidence are unchanged.
+Descriptors remain located after the entire declared compressed range.
+
+Eight new synthetically signed full-archive controls cover both architectures:
+trailing-byte acceptance and final-stream-byte removal rejection, each with and
+without data descriptors. The generator updates central/local compressed sizes,
+following entry offsets and descriptor placement consistently. The new
+truncation cases retain valid ZIP structure and exercise missing DEFLATE EOS,
+rather than simply deleting the ZIP trailer.
+
+Round-two-fix results: the full 138-vector Swift corpus passed before and after
+the Core deterministic-signature handoff. Core reported `PASS 138 Core archive
+vectors`, including manifest signature verification, complete archive pairs,
+`CheckArchive` and tampering rejection. The final complete Swift run passed
+26 XCTest tests (8.529 seconds) and 59 Swift Testing tests (6.238 seconds).
+Scoped `git diff --check` passed. Logs are
+`.build/apple-interop/round2-fix-swift-initial.log`, `round2-fix-parity.log` and
+`round2-fix-swift-final.log`. The original full-archive manifest/signature hashes
+and source-built archive hashes remain unchanged. No release build, acceptance
+fixture or unchanged Core package-test rerun was needed for this fix.
+
+The exact corpus/handoff commands use the same `ROOT`, installed `GO` and
+explicit offline Go environment from the reproduction block above, with the
+existing tag-free exact-source checkout:
+
+```sh
+python3 scripts/apple-local-vectors.py .build/apple-interop/core-notags/.tmp/apple-release .build/apple-interop/vectors-round2-fix
+BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-round2-fix" swift test
+cd .build/apple-interop/core-notags
+"$GO" run "$ROOT/scripts/apple-local-parity.go" "$ROOT/.build/apple-interop/vectors-round2-fix"
+cd "$ROOT"
+BIMERON_APPLE_VECTORS="$ROOT/.build/apple-interop/vectors-round2-fix" swift test
+"$GIT" diff --check
+```
 
 The bounded reader supports thin 64-bit little-endian Mach-O and inline Go build
 information emitted by the pinned compiler. Unsupported layouts fail closed and

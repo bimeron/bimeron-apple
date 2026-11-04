@@ -1,7 +1,8 @@
 # Local issue: authenticate Apple Core packaging and static provenance
 
-Status: implemented locally; two P2 findings from review at `686415c` fixed locally;
-new independent parent review pending. No remote issue.
+Status: implemented locally; first-round descriptor/local-header findings and
+second-round trailing-DEFLATE finding fixed locally; fresh independent parent
+review pending. No remote issue.
 
 Base consumer commit: `70e7f218c62d8ebcf04813e59d4fac3ecd5e95db`.
 The base verifies manifest signatures and archive hashes but has no packaging or

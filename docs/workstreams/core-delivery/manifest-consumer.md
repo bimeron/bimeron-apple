@@ -21,7 +21,9 @@ payload decoding; local-header names, flags and methods are not compared. The
 bounded local header supplies only the lengths needed to locate payload bytes.
 Flag-3 data descriptors require matching CRC with optional signature, following
 the pinned Go reader; descriptor size words are ignored in favor of central
-sizes. Without flag 3, zero central CRC means unspecified, as in Core. The binary must have executable permissions and be
+sizes. Without flag 3, zero central CRC means unspecified, as in Core. DEFLATE
+requires EOS and exact decompressed size; bytes after EOS inside the bounded
+compressed payload are ignored, matching pinned Go. The binary must have executable permissions and be
 a thin executable Mach-O of the selected CPU. Its unique readable non-writable
 `__TEXT` segment must contain one bounded `__rodata` section with consistent
 file/virtual ranges and exactly one canonical ADR0032 version record equal to the

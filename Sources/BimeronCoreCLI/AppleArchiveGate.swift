@@ -133,7 +133,8 @@ enum AppleArchiveGate {
                 return CZlib.inflate(&stream, Z_FINISH)
             }
         }
-        try require(status == Z_STREAM_END && stream.total_out == size && stream.total_in == input.count)
+        // Go flate stops at the final block; unused bytes inside the bounded payload are ignored.
+        try require(status == Z_STREAM_END && stream.total_out == size)
         return output.prefix(size)
     }
 
