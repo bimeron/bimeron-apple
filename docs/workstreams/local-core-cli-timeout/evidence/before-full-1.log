@@ -1,0 +1,321 @@
+Building for debugging...
+[0/25] /Users/wrk/.t3/worktrees/bimeron-macos/fix-local-core-cli-timeout-test/.build/arm64-apple-macosx/debug/BimeronPackageTests.derived/runner.swift
+[1/25] Write sources
+[5/25] Copying Info.plist
+[5/25] Write sources
+[8/25] Copying menu-disconnected-44.png
+[9/25] Copying Localizable.strings
+[9/25] Write sources
+[11/25] Copying Info.plist
+[11/25] Write sources
+[13/25] Copying blue-64.png
+[14/25] Write sources
+[15/25] Copying bimeron.icns
+[15/25] Copying Localizable.strings
+[17/25] Write Bimeron-entitlement.plist
+[18/25] Copying Fixtures
+[19/25] Write swift-version--58304C5D6DBC2206.txt
+[21/47] Compiling BimeronModel RoutingRule.swift
+[22/47] Compiling BimeronModel AccessProtocol.swift
+[23/47] Compiling BimeronModel ConfigDocument.swift
+[24/47] Emitting module BimeronModel
+[25/48] Compiling BimeronModel EditorProtocol.swift
+[26/48] Compiling BimeronModel EditorSaveError.swift
+[27/48] Compiling BimeronCoreCLI CoreCLIError.swift
+[28/48] Compiling BimeronModel ProfileError.swift
+[29/48] Compiling BimeronModel ProfileInput.swift
+[30/48] Compiling BimeronModel ProtocolDrafts.swift
+[31/48] Compiling BimeronCoreCLI CapturedStream.swift
+[32/48] Emitting module BimeronCoreCLI
+[33/48] Compiling BimeronCoreCLI CLIOutput.swift
+[34/48] Compiling BimeronCoreCLI CLIBuildInfo.swift
+[35/48] Compiling BimeronCoreCLI CLIPlatformCapabilities.swift
+[36/48] Compiling BimeronCoreCLI CoreCLI.swift
+[37/48] Emitting module BimeronDaemon
+[38/48] Compiling BimeronDaemon DaemonProtocol.swift
+[39/48] Compiling BimeronDaemon DaemonLifecycle.swift
+[40/48] Compiling BimeronDaemon DaemonClient.swift
+[41/48] Compiling BimeronDaemon DaemonSocketTransport.swift
+[42/48] Compiling BimeronModel ProfileLibrary.swift
+[43/48] Compiling BimeronModel StoredProfile.swift
+[44/80] Compiling BimeronModelTests CommittedSaveCancellationTests.swift
+[45/80] Compiling BimeronModelTests resource_bundle_accessor.swift
+[46/80] Compiling BimeronModelTests ProfileLibraryTests.swift
+[47/80] Compiling BimeronModelTests CoreProfileCompatibilityTests.swift
+[48/80] Compiling BimeronCoreCLITests CoreParserSamples.swift
+[49/80] Emitting module BimeronCoreCLITests
+[50/80] Compiling BimeronCoreCLITests CoreCLITests.swift
+[51/80] Compiling BimeronModelTests EditorCreationTests.swift
+[52/80] Emitting module BimeronModelTests
+[53/80] Compiling BimeronModelTests ConfigPreservationTests.swift
+[54/80] Emitting module BimeronApp
+[55/82] Compiling BimeronApp MenuBarContent.swift
+[56/82] Compiling BimeronApp Page.swift
+[57/82] Compiling BimeronApp SettingsView.swift
+[58/82] Compiling BimeronApp resource_bundle_accessor.swift
+[59/82] Compiling BimeronApp AppPalette.swift
+[60/82] Compiling BimeronApp BimeronApp.swift
+[61/82] Compiling BimeronApp ConfigTextEditor.swift
+[62/82] Compiling BimeronApp LogView.swift
+[63/82] Compiling BimeronApp MainWindow.swift
+[64/82] Compiling BimeronApp LogDocument.swift
+[65/82] Compiling BimeronApp LogEntry.swift
+[66/82] Compiling BimeronApp ProfilesView.swift
+[67/82] Compiling BimeronApp ProtocolField.swift
+[68/82] Compiling BimeronApp AboutView.swift
+[69/82] Compiling BimeronApp AddProfileView.swift
+[70/82] Compiling BimeronApp AppModel.swift
+[71/82] Compiling BimeronDaemonTests DaemonClientTests.swift
+[72/82] Compiling BimeronDaemonTests DaemonProtocolTests.swift
+[73/82] Compiling BimeronDaemonTests DaemonLifecycleTests.swift
+[74/82] Emitting module BimeronDaemonTests
+[75/82] Compiling BimeronApp EditorTab.swift
+[76/82] Compiling BimeronApp EditorView.swift
+[77/82] Compiling BimeronApp Localization.swift
+[77/82] Write Objects.LinkFileList
+[78/82] Linking Bimeron
+[79/82] Applying Bimeron
+[81/90] Compiling BimeronAppTests LocalizationTests.swift
+[82/90] Compiling BimeronAppTests EditorCreationTests.swift
+[83/90] Compiling BimeronAppTests EditorSaveTests.swift
+[84/90] Compiling BimeronAppTests OfflineCoreCreationTests.swift
+[85/90] Compiling BimeronAppTests ConfigTextEditorTests.swift
+[86/90] Compiling BimeronAppTests LocalUIAuditTests.swift
+[87/90] Emitting module BimeronAppTests
+[88/90] Compiling BimeronAppTests AccessLinkTests.swift
+[89/92] Compiling BimeronPackageTests runner.swift
+[90/92] Emitting module BimeronPackageTests
+[90/92] Write Objects.LinkFileList
+[91/92] Linking BimeronPackageTests
+Build complete! (18.62s)
+Test Suite 'All tests' started at 2026-11-04 18:30:24.449.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-04 18:30:24.450.
+Test Suite 'DaemonClientTests' started at 2026-11-04 18:30:24.451.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testCancellationDoesNotBecomeStopped]' started.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testCancellationDoesNotBecomeStopped]' passed (0.004 seconds).
+Test Case '-[BimeronDaemonTests.DaemonClientTests testInvalidationDiscardsLateSuccessfulResponse]' started.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testInvalidationDiscardsLateSuccessfulResponse]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonClientTests testTimeoutCoalescesClicksAndRequiresExplicitReconciliation]' started.
+Test Case '-[BimeronDaemonTests.DaemonClientTests testTimeoutCoalescesClicksAndRequiresExplicitReconciliation]' passed (0.000 seconds).
+Test Suite 'DaemonClientTests' passed at 2026-11-04 18:30:24.455.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'DaemonLifecycleTests' started at 2026-11-04 18:30:24.455.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAcceptedConnectingCanStopButUnidentifiedStartCannot]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAcceptedConnectingCanStopButUnidentifiedStartCannot]' passed (0.001 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptionUnknownProfileFailedStopAndOldDaemon]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptionUnknownProfileFailedStopAndOldDaemon]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptsCoreStatesAndStopsKnownActiveSessions]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testAdoptsCoreStatesAndStopsKnownActiveSessions]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCleanupRequiresDisconnectedAndInactive]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCleanupRequiresDisconnectedAndInactive]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCoreGuardRejectionsNeverRetryOrResumeSwitch]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testCoreGuardRejectionsNeverRetryOrResumeSwitch]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testFailedStopAllowsExplicitRecoveryWithoutResumingReplacement]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testFailedStopAllowsExplicitRecoveryWithoutResumingReplacement]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testPendingClicksRestartAndAmbiguousTimeoutNeverRetry]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testPendingClicksRestartAndAmbiguousTimeoutNeverRetry]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSharedAcceptanceScriptsAtEveryBoundary]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSharedAcceptanceScriptsAtEveryBoundary]' passed (0.003 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testStopRequiresConfirmedActiveSessionIdentity]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testStopRequiresConfirmedActiveSessionIdentity]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSwitchWaitsForConfirmedCleanupAcrossCoreStates]' started.
+Test Case '-[BimeronDaemonTests.DaemonLifecycleTests testSwitchWaitsForConfirmedCleanupAcrossCoreStates]' passed (0.000 seconds).
+Test Suite 'DaemonLifecycleTests' passed at 2026-11-04 18:30:24.461.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'DaemonProtocolTests' started at 2026-11-04 18:30:24.461.
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testGuardHandshakeCannotDowngradeOrCrossInstances]' started.
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testGuardHandshakeCannotDowngradeOrCrossInstances]' passed (0.000 seconds).
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testRejectsMalformedMaliciousOversizedAndMismatchedResponses]' started.
+Test Case '-[BimeronDaemonTests.DaemonProtocolTests testRejectsMalformedMaliciousOversizedAndMismatchedResponses]' passed (0.001 seconds).
+Test Suite 'DaemonProtocolTests' passed at 2026-11-04 18:30:24.463.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-04 18:30:24.463.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'All tests' passed at 2026-11-04 18:30:24.463.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.011 (0.013) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test editorVariantsKeepIndependentDrafts() started.
+◇ Test shadowTLSGateAndDisabledDraftRestoreExactBytes() started.
+◇ Test tcpVLESSAllowsFalseGRPCMultiMode() started.
+◇ Test preservationNoOpRetainsEveryByte() started.
+◇ Test generatedURIContractsEscapeCredentialsAndIPv6() started.
+◇ Suite CoreCLITests started.
+◇ Test legacyProfilesKeepAlphabeticalOrderOnFirstAdd() started.
+◇ Test preservationOmittedDefaultsAndDecodedRuleNoOp() started.
+◇ Test failedImportLeavesNoProfile() started.
+◇ Test preservationPointEditKeepsMixedEndingsAndUnknownContent() started.
+◇ Test vlessInspectionAndUnrelatedEditPreserveOpaqueURI() started.
+◇ Test preservationPartialDisabledDraftCanBeEditedAndCleared() started.
+◇ Test generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() started.
+◇ Test noPersistedChangeBeforeUpdate() started.
+◇ Test importedSSHAndMASQUEKeepFileReferencesAfterRelocation() started.
+◇ Test validatedCreationAppendsToVisibleOrder() started.
+◇ Test preservationLibraryReopensDisabledDraftAndProtectsDuplicateSections() started.
+◇ Test rejectBadDNSAndOversizedConfig() started.
+◇ Test selectingProxyModeRemovesIncompatibleVPNOptions() started.
+◇ Test cancellationAfterEditorCommitPreservesSuccessAndReload() started.
+◇ Test preservationRulesKeepQuotesCommentsAndBoundaries() started.
+◇ Test generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() started.
+◇ Test generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() started.
+◇ Test profileRoundTripAndPrivateStorage() started.
+◇ Test fileBackedNewProtocolsImportWithoutChangingKeyFiles() started.
+◇ Test editorCreationFailureLeavesNoPartialProfile(_:) started.
+✘ Test offlineCoreAcceptsCreationVariant(_:) skipped: "Set BIMERON_CORE_EXECUTABLE to an absolute offline Core CLI path"
+◇ Test accessLinksSurviveCreationEditingAndReload() started.
+◇ Test sshDefaultsSuggestOnlyExistingFiles() started.
+◇ Test protocolFieldMetadataMasksPluginOptionsAndNamesGeneratedFields() started.
+◇ Test profileOrderSurvivesReloadAndRestore() started.
+◇ Test orderFailureAfterCommitReturnsCreatedProfileAndWarning() started.
+◇ Test editorCreationRequiresActualCLIAndRetainsDraftOnFailure() started.
+◇ Test localUIAuditRendering() started.
+◇ Test incompatibleExplicitOptionsRetainDraftAndOfferFeedback() started.
+◇ Test sshFilePathsAcceptTypedAndPastedLocations() started.
+◇ Test validatorRewritingStagedBytesKeepsOriginalAndCleansUp() started.
+◇ Test inactiveDraftEditsSurviveReturningToInitialProtocol() started.
+◇ Test addDialogAcceptsCurrentCoreSchemesIncludingTrojan() started.
+◇ Test editorSaveUsesProtectedExactBytesAndPreservesFailures() started.
+◇ Test unifiedAddImportsQuotedFileAndAddsQuotedURIWithLocalChecks() started.
+◇ Test preservationShadowTLSRoundTripKeepsSecretsAndComments() started.
+◇ Test preservationOptionalClearingAndRequiredFieldValidation() started.
+◇ Test addingSSHProfilePersistsOnlyTheOptionalFilePaths() started.
+◇ Test rawFieldsAndRuleOrderSurviveFormChange() started.
+◇ Test concurrentEditorReplacementRejectsStaleOriginal() started.
+◇ Test cancellationImmediatelyBeforeCommitKeepsOriginal() started.
+◇ Test dynamicShadowsocksIsDistinguishedFromStatic() started.
+◇ Test currentCoreExamplesImportWithoutLosingFields() started.
+◇ Test editorCreationValidatesProtectedExactBytesAndCommits() started.
+◇ Test stagedReadFailureKeepsOriginalAndCleansUp() started.
+◇ Test translationResourcesResolve() started.
+◇ Test preservationEmptyShadowTLSRemovalRetainsOriginalComments() started.
+◇ Test mixedSourcesWrongSchemesAndUnsupportedExplicitTypesAreRejected() started.
+◇ Test preservationFieldInsertionStaysOutsideDisabledDraft() started.
+◇ Test rawEditorTracksDisabledEnvironmentWithoutChangingTextOrSelection() started.
+◇ Test restoredProfileReturnsToOriginalPosition() started.
+◇ Test removingOptionalFieldsAndShadowTLSKeepsSurroundingConfig() started.
+◇ Test preservationLibraryNoOpAfterExplicitImportTransformation() started.
+◇ Test generatedValuesValidateNamesAndEncodedLinks() started.
+◇ Test preservationAcceptanceByteFixture(_:) started.
+◇ Test importResolvesRelativeFileWithoutTouchingOriginal() started.
+◇ Test languageSelectionAndPersistence() started.
+◇ Test preservationAmbiguityLoadsInProtectedRaw() started.
+◇ Test profilesKeepCreationOrderAfterRename() started.
+◇ Test unifiedInputNormalizesOnlyMatchingQuotes() started.
+◇ Test preservationDisabledEmptyAssignmentsAreOmittedAndIncompatibleDraftRetained() started.
+◇ Test generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() started.
+◇ Passing 1 argument mode → "reject" to editorCreationFailureLeavesNoPartialProfile(_:)
+◇ Passing 1 argument mode → "tamper" to editorCreationFailureLeavesNoPartialProfile(_:)
+◇ Passing 1 argument mode → "cancel" to editorCreationFailureLeavesNoPartialProfile(_:)
+◇ Passing 1 argument scenarioID → "A-BOM-CRLF-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-BOM-CRLF-EDIT" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-UNKNOWN-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-UNKNOWN-EDIT" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-AMBIGUOUS-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-AMBIGUOUS-RAW" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-DISABLED-SHADOWTLS-NOOP" to preservationAcceptanceByteFixture(_:)
+◇ Passing 1 argument scenarioID → "A-DISABLED-SHADOWTLS-EDIT" to preservationAcceptanceByteFixture(_:)
+✔ Test preservationNoOpRetainsEveryByte() passed after 0.058 seconds.
+✔ Test preservationOmittedDefaultsAndDecodedRuleNoOp() passed after 0.058 seconds.
+✔ Test preservationPointEditKeepsMixedEndingsAndUnknownContent() passed after 0.058 seconds.
+◇ Test "B-VERSION-SUPPORTED: source-derived Core build schema" started.
+✔ Test vlessInspectionAndUnrelatedEditPreserveOpaqueURI() passed after 0.058 seconds.
+✔ Test tcpVLESSAllowsFalseGRPCMultiMode() passed after 0.058 seconds.
+✔ Test failedImportLeavesNoProfile() passed after 0.058 seconds.
+✔ Test preservationPartialDisabledDraftCanBeEditedAndCleared() passed after 0.058 seconds.
+✔ Test editorVariantsKeepIndependentDrafts() passed after 0.058 seconds.
+✔ Test noPersistedChangeBeforeUpdate() passed after 0.058 seconds.
+✔ Test generatedURIContractsEscapeCredentialsAndIPv6() passed after 0.058 seconds.
+✔ Test rejectBadDNSAndOversizedConfig() passed after 0.058 seconds.
+✔ Test shadowTLSGateAndDisabledDraftRestoreExactBytes() passed after 0.058 seconds.
+✔ Test preservationRulesKeepQuotesCommentsAndBoundaries() passed after 0.058 seconds.
+✔ Test selectingProxyModeRemovesIncompatibleVPNOptions() passed after 0.058 seconds.
+✔ Test generatedDraftGuardAllowsUnrelatedRawEditsButRejectsChangedSources() passed after 0.058 seconds.
+✔ Test preservationLibraryReopensDisabledDraftAndProtectsDuplicateSections() passed after 0.058 seconds.
+✔ Test validatedCreationAppendsToVisibleOrder() passed after 0.058 seconds.
+✔ Test importedSSHAndMASQUEKeepFileReferencesAfterRelocation() passed after 0.058 seconds.
+✔ Test generatedDraftGuardRejectsSourceReplacementAndAllowsExactRevert() passed after 0.058 seconds.
+✔ Test legacyProfilesKeepAlphabeticalOrderOnFirstAdd() passed after 0.061 seconds.
+✔ Test incompatibleExplicitOptionsRetainDraftAndOfferFeedback() passed after 0.061 seconds.
+✔ Test profileRoundTripAndPrivateStorage() passed after 0.061 seconds.
+✔ Test generatedRestorePreservesBytesAndRefusesConflictingRawSchemas() passed after 0.061 seconds.
+✔ Test orderFailureAfterCommitReturnsCreatedProfileAndWarning() passed after 0.061 seconds.
+✔ Test protocolFieldMetadataMasksPluginOptionsAndNamesGeneratedFields() passed after 0.061 seconds.
+✔ Test preservationOptionalClearingAndRequiredFieldValidation() passed after 0.062 seconds.
+✔ Test inactiveDraftEditsSurviveReturningToInitialProtocol() passed after 0.062 seconds.
+✔ Test preservationShadowTLSRoundTripKeepsSecretsAndComments() passed after 0.062 seconds.
+✔ Test rawFieldsAndRuleOrderSurviveFormChange() passed after 0.062 seconds.
+✔ Test dynamicShadowsocksIsDistinguishedFromStatic() passed after 0.062 seconds.
+✔ Test validatorRewritingStagedBytesKeepsOriginalAndCleansUp() passed after 0.062 seconds.
+✔ Test translationResourcesResolve() passed after 0.062 seconds.
+✔ Test editorCreationValidatesProtectedExactBytesAndCommits() passed after 0.062 seconds.
+✔ Test preservationEmptyShadowTLSRemovalRetainsOriginalComments() passed after 0.062 seconds.
+✔ Test stagedReadFailureKeepsOriginalAndCleansUp() passed after 0.062 seconds.
+✔ Test preservationFieldInsertionStaysOutsideDisabledDraft() passed after 0.062 seconds.
+✔ Test concurrentEditorReplacementRejectsStaleOriginal() passed after 0.062 seconds.
+✔ Test mixedSourcesWrongSchemesAndUnsupportedExplicitTypesAreRejected() passed after 0.062 seconds.
+✔ Test generatedValuesValidateNamesAndEncodedLinks() passed after 0.062 seconds.
+✔ Test removingOptionalFieldsAndShadowTLSKeepsSurroundingConfig() passed after 0.062 seconds.
+✔ Test profileOrderSurvivesReloadAndRestore() passed after 0.062 seconds.
+✔ Test preservationAcceptanceByteFixture(_:) passed after 0.062 seconds.
+✔ Test preservationLibraryNoOpAfterExplicitImportTransformation() passed after 0.062 seconds.
+✔ Test restoredProfileReturnsToOriginalPosition() passed after 0.062 seconds.
+✔ Test importResolvesRelativeFileWithoutTouchingOriginal() passed after 0.062 seconds.
+✔ Test unifiedInputNormalizesOnlyMatchingQuotes() passed after 0.062 seconds.
+✔ Test preservationAmbiguityLoadsInProtectedRaw() passed after 0.062 seconds.
+✔ Test sshDefaultsSuggestOnlyExistingFiles() passed after 0.064 seconds.
+✔ Test preservationDisabledEmptyAssignmentsAreOmittedAndIncompatibleDraftRetained() passed after 0.064 seconds.
+✔ Test editorCreationFailureLeavesNoPartialProfile(_:) passed after 0.066 seconds.
+✔ Test cancellationImmediatelyBeforeCommitKeepsOriginal() passed after 0.065 seconds.
+✔ Test cancellationAfterEditorCommitPreservesSuccessAndReload() passed after 0.066 seconds.
+✔ Test generatedFormSaveRequiresLatestParametersWhileRawRemainsAuthoritative() passed after 0.066 seconds.
+✔ Test profilesKeepCreationOrderAfterRename() passed after 0.066 seconds.
+✔ Test fileBackedNewProtocolsImportWithoutChangingKeyFiles() passed after 0.104 seconds.
+✔ Test accessLinksSurviveCreationEditingAndReload() passed after 0.156 seconds.
+✔ Test currentCoreExamplesImportWithoutLosingFields() passed after 0.201 seconds.
+✔ Test "B-VERSION-SUPPORTED: source-derived Core build schema" passed after 0.360 seconds.
+◇ Test "B-VERSION-UNSUPPORTED: unknown version decodes; compatibility policy pending" started.
+✔ Test "B-VERSION-UNSUPPORTED: unknown version decodes; compatibility policy pending" passed after 0.397 seconds.
+◇ Test "B-CAPABILITIES-SUPPORTED: source-derived macOS declarations" started.
+✔ Test "B-CAPABILITIES-SUPPORTED: source-derived macOS declarations" passed after 0.344 seconds.
+◇ Test "B-CAPABILITIES-UNSUPPORTED: all false flags decode without changing config" started.
+✔ Test "B-CAPABILITIES-UNSUPPORTED: all false flags decode without changing config" passed after 0.335 seconds.
+◇ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields" started.
+◇ Passing 1 argument command → "version" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields"
+◇ Passing 1 argument command → "capabilities" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields"
+✔ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: missing required fields" passed after 0.730 seconds.
+◇ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON" started.
+◇ Passing 1 argument command → "version" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON"
+◇ Passing 1 argument command → "capabilities" to "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON"
+✔ Test "B-VERSION-MALFORMED / B-CAPABILITIES-MALFORMED: invalid JSON" passed after 0.571 seconds.
+◇ Test "B-VALIDATE-VALID" started.
+✔ Test "B-VALIDATE-VALID" passed after 0.338 seconds.
+◇ Test "B-NONZERO-STDERR" started.
+✔ Test "B-NONZERO-STDERR" passed after 0.336 seconds.
+◇ Test "B-VALIDATE-INVALID: exit one preserves editable input" started.
+✔ Test "B-VALIDATE-INVALID: exit one preserves editable input" passed after 0.350 seconds.
+◇ Test "B-MISSING" started.
+✔ Test "B-MISSING" passed after 0.002 seconds.
+◇ Test concurrentOutputIsDrainedAndBounded(limit:) started.
+◇ Passing 1 argument limit → 1024 to concurrentOutputIsDrainedAndBounded(limit:)
+✔ Test localUIAuditRendering() passed after 4.040 seconds.
+◇ Passing 1 argument limit → 1048576 to concurrentOutputIsDrainedAndBounded(limit:)
+✔ Test sshFilePathsAcceptTypedAndPastedLocations() passed after 4.251 seconds.
+✔ Test addDialogAcceptsCurrentCoreSchemesIncludingTrojan() passed after 4.252 seconds.
+✔ Test languageSelectionAndPersistence() passed after 4.362 seconds.
+✔ Test unifiedAddImportsQuotedFileAndAddsQuotedURIWithLocalChecks() passed after 4.398 seconds.
+✔ Test addingSSHProfilePersistsOnlyTheOptionalFilePaths() passed after 4.406 seconds.
+✔ Test concurrentOutputIsDrainedAndBounded(limit:) passed after 0.623 seconds.
+◇ Test "B-TRUNCATED" started.
+✔ Test rawEditorTracksDisabledEnvironmentWithoutChangingTextOrSelection() passed after 4.578 seconds.
+✔ Test editorCreationRequiresActualCLIAndRetainsDraftOnFailure() passed after 4.874 seconds.
+✔ Test editorSaveUsesProtectedExactBytesAndPreservesFailures() passed after 5.402 seconds.
+✔ Test "B-TRUNCATED" passed after 1.088 seconds.
+◇ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" started.
+◇ Passing 1 argument cancel → false to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+◇ Passing 1 argument cancel → true to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+✔ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" passed after 2.132 seconds.
+◇ Test "B-CANCEL" started.
+✔ Test "B-CANCEL" passed after 0.001 seconds.
+✔ Suite CoreCLITests passed after 7.674 seconds.
+✔ Test run with 81 tests passed after 7.675 seconds.
