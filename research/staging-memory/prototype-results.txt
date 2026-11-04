@@ -1,0 +1,47 @@
+Local prototype results (2026-11-04)
+Platform: Darwin arm64; Apple Swift 6.1.2, target arm64-apple-macosx16.0.
+Scope: prototype.swift and this file only. No production integration, network,
+installation, commits, remote operations, archive parsing/reopening or payload execution.
+Read local AGENTS.md, ponytail/SKILL.md, and the supplied safe-extraction-proposal.md
+working-tree contents. The cited b12d285 revision was not independently verified.
+
+Final exact build/run commands (assertions enabled; no -O):
+run_dir=$(mktemp -d /private/tmp/staging-prototype-build.XXXXXX)
+swiftc research/staging-memory/prototype.swift -o "$run_dir/prototype"
+"$run_dir/prototype"
+
+Result: swiftc exit 0; prototype exit 0.
+PASS: success; incomplete archive/count/quota rejection; external NSData ownership; cancellation before/during/after publish; exclusive collision preserves target; known-leaf cleanup; unknown residual preservation; full mock evidence retention
+
+Fixtures are tiny synthetic text, far below 1 MiB; binary content is never executed.
+Three decoded Data snapshots are privately constructed only after all fixture checks.
+Evidence retains manifest/signature bytes and policy/context identities, explicitly
+SYNTHETIC_UNTRUSTED_MOCK_AUTHENTICATION; no signature verification is implemented.
+Output uses private 0700 directories, fixed 0600 leaves, descriptor-relative exclusive
+nofollow creation, bounded writes, readback SHA256 checks and RENAME_EXCL publication.
+Pre-publication cancellation cleans known leaves; post-publication cancellation
+returns success. Collision preserves original inode/content and cleans incomplete state.
+Unknown cleanup children retain a residual. Tests use recursive teardown only for
+their own newly created temporary fixture root; staging cleanup is nonrecursive.
+
+Limitations: no production verifier or real archive fixture; no ACL/xattr/flags checks,
+no nofollow ancestry acquisition, no adversarial same-UID guarantee, no maximum-size
+memory benchmark, no exact quota-boundary allocations, no ENOSPC/close/short-write
+fault injection, no hostile concurrent identity-substitution test, no fsync/crash
+durability, no published-but-unconfirmed bookkeeping path, no privileged intake.
+Parent revision: readback uses incremental SHA256 with a buffer capped at 65536 bytes;
+no payload-sized readback copy. Parent rebuilt with a temporary module cache and
+reran the full assert suite: compiler and executable exit 0, same PASS output.
+The parent FD is caller-supplied and checked for directory/UID/mode only. Same-UID
+mutation between checks is outside this prototype's guarantees. Build temporary
+directories/binaries remain in /private/tmp; test fixture roots are removed.
+
+Parent build command: /usr/bin/swiftc -module-cache-path <temp>/cache research/staging-memory/prototype.swift -o <temp>/prototype
+Parent verified cited U revision resolves to b12d2854ec9839b7e1eaedbd5197bbcbcb0abae3.
+
+Review correction: cleanupIncomplete now carries the incomplete directory name;
+open/fstat failures after mkdir retain uncertain state and report that name.
+Parent reran compiler/assert suite after correction: exit 0, same PASS output.
+Binary fixture now has 131073 synthetic bytes, exercising multiple 64KiB chunks.
+No fault injection claim follows; early-fstat failure classification is inspected
+in source rather than forced experimentally.

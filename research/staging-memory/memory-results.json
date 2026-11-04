@@ -1,0 +1,865 @@
+{
+  "scope": "Local synthetic memory/staging experiment, no parser or real release; no production claims.",
+  "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+  "swift_version": "swift-driver version: 1.120.5 Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)\nTarget: arm64-apple-macosx16.0\n",
+  "proposal_revision_read": "b12d285",
+  "before": {
+    "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3838.\nPages active:                                 284905.\nPages inactive:                               282863.\nPages speculative:                              1947.\nPages throttled:                                   0.\nPages wired down:                             116232.\nPages purgeable:                                 570.\n\"Translation faults\":                      756631553.\nPages copy-on-write:                        53838690.\nPages zero filled:                         438448547.\nPages reactivated:                          43677661.\nPages purged:                                4870024.\nFile-backed pages:                            244360.\nAnonymous pages:                              325355.\nPages stored in compressor:                   762471.\nPages occupied by compressor:                 319106.\nDecompressions:                             30790399.\nCompressions:                               38812954.\nPageins:                                    19547659.\nPageouts:                                     201105.\nSwapins:                                        3365.\nSwapouts:                                      58276.\n",
+    "sysctl": "hw.memsize: 17179869184\nkern.memorystatus_vm_pressure_level: 1\n"
+  },
+  "after": {
+    "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                    18162.\nPages active:                                 270367.\nPages inactive:                               265860.\nPages speculative:                              4623.\nPages throttled:                                   0.\nPages wired down:                             117805.\nPages purgeable:                                 140.\n\"Translation faults\":                      756908785.\nPages copy-on-write:                        53904741.\nPages zero filled:                         438529907.\nPages reactivated:                          43758416.\nPages purged:                                4870653.\nFile-backed pages:                            235703.\nAnonymous pages:                              305147.\nPages stored in compressor:                   783934.\nPages occupied by compressor:                 332182.\nDecompressions:                             30793450.\nCompressions:                               38838021.\nPageins:                                    19598357.\nPageouts:                                     201120.\nSwapins:                                        3365.\nSwapouts:                                      58276.\n",
+    "sysctl": "hw.memsize: 17179869184\nkern.memorystatus_vm_pressure_level: 1\n"
+  },
+  "reproduce": "python3 research/staging-memory/run-memory.py",
+  "compile_command_template": "/usr/bin/swiftc -O -module-cache-path <temp>/module-cache research/staging-memory/memory.swift -o <temp>/memory",
+  "run_command_template": "<temp>/memory <semantics|owned|cow|release|chunked> <temp>/<unique-output>.bin",
+  "compile_output": "",
+  "fixture_assumptions_bytes": {
+    "archive": 8388608,
+    "decoded": [
+      12582912,
+      262144,
+      262144
+    ]
+  },
+  "maximum_arithmetic_only_bytes": {
+    "archive": 268435456,
+    "decoded": 276824064,
+    "archive_plus_decoded": 545259520,
+    "archive_plus_decoded_and_owned_payload_copy": 822083584,
+    "cow_unique_storage_without_mutation": 545259520,
+    "after_archive_release_retained_payload": 276824064,
+    "chunked_write_retaining_archive_and_decoded": 545259520,
+    "hypothetical_streaming_archive_plus_64KiB_output": 268500992
+  },
+  "caveats": [
+    "Full 520 MiB and duplicate maximum scenarios were not allocated: unsafe under observed host memory pressure. Maximum RSS cannot be empirically validated safely here.",
+    "96 MiB cap covers modeled synthetic live buffers, not Swift runtime/compiler, allocator metadata, kernel cache, or total process RSS; fixture maximum is only 33 MiB.",
+    "Current RSS is MACH_TASK_BASIC_INFO resident_size; process peak RSS is Darwin getrusage ru_maxrss in bytes. Neither is physical footprint; physical footprint was not measured.",
+    "Logical retained byte counts describe unique expected synthetic storage, not observed allocations. Data COW assignment is not an ownership guarantee for external mutable storage.",
+    "Release may leave allocator pages resident. Compression, scheduling, allocator behavior, cache and sampling affect RSS/time; phases can miss transients, process peak includes all earlier phases.",
+    "Initial buffers are touched byte-by-byte; owned staging copies additionally mutate one byte per host page to force private writable pages (synthetic contents intentionally differ). Timings include generation, sampling and buffered writes; no fsync, durability, parser, inflater, hashing or real release performance is measured.",
+    "Chunked mode retains all decoded buffers and only avoids staging copies. Hypothetical streaming arithmetic requires a different validated inflater design and does not describe this implementation.",
+    "No scaled small-fixture RSS is presented as measured maximum. Owned archive ingress copy and source coexistence are not included; an extra archive buffer would add 268435456 bytes at maximum.",
+    "External mutable NSData test uses an explicit bytesNoCopy view; it does not generalize all NSData bridging implementations."
+  ],
+  "runs": [
+    {
+      "checks": {
+        "explicit_copy_preserves_bytes": true,
+        "no_copy_external_mutation_visible": true,
+        "owned_snapshot_survives_external_mutation": true,
+        "swift_value_mutation_preserves_retained": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "semantics",
+      "phases": [
+        {
+          "elapsed_ms": 0.027292,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 0.246167,
+          "explicit_copied_bytes_cumulative": 131072,
+          "logical_retained_bytes": 393216,
+          "phase": "semantics_checked",
+          "process_peak_rss_bytes": 6062080,
+          "rss_bytes": 6062080
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 1
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "owned",
+      "phases": [
+        {
+          "elapsed_ms": 0.025042,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.220125,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.98725,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.662167,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 34603008,
+          "phase": "explicit_owned_copies",
+          "process_peak_rss_bytes": 40501248,
+          "rss_bytes": 40501248
+        },
+        {
+          "elapsed_ms": 11.940917,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 34603008,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 40501248,
+          "rss_bytes": 40501248
+        },
+        {
+          "elapsed_ms": 11.972334,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 40517632,
+          "rss_bytes": 40517632
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 34603008,
+      "repetition": 1
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "cow",
+      "phases": [
+        {
+          "elapsed_ms": 0.0245,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.098417,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.748459,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 2.752,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "cow_retained_no_mutation",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.673459,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.70225,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 1
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "release",
+      "phases": [
+        {
+          "elapsed_ms": 0.0265,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.118,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.985792,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 2.993834,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 13107200,
+          "phase": "archive_released",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.084584,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 13107200,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.106167,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 1
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "chunked",
+      "phases": [
+        {
+          "elapsed_ms": 0.025084,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.148834,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.790209,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.564084,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.582375,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21561344,
+      "repetition": 1
+    },
+    {
+      "checks": {
+        "explicit_copy_preserves_bytes": true,
+        "no_copy_external_mutation_visible": true,
+        "owned_snapshot_survives_external_mutation": true,
+        "swift_value_mutation_preserves_retained": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "semantics",
+      "phases": [
+        {
+          "elapsed_ms": 0.024417,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 0.185584,
+          "explicit_copied_bytes_cumulative": 131072,
+          "logical_retained_bytes": 393216,
+          "phase": "semantics_checked",
+          "process_peak_rss_bytes": 6062080,
+          "rss_bytes": 6062080
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 2
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "owned",
+      "phases": [
+        {
+          "elapsed_ms": 0.024,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.155958,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.937875,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 6.288125,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 34603008,
+          "phase": "explicit_owned_copies",
+          "process_peak_rss_bytes": 40501248,
+          "rss_bytes": 40501248
+        },
+        {
+          "elapsed_ms": 11.237625,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 34603008,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 40501248,
+          "rss_bytes": 40501248
+        },
+        {
+          "elapsed_ms": 11.272875,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 40517632,
+          "rss_bytes": 40517632
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 34603008,
+      "repetition": 2
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "cow",
+      "phases": [
+        {
+          "elapsed_ms": 0.023459,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.102292,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.751084,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 2.754417,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "cow_retained_no_mutation",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 6.992334,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.019875,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 2
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "release",
+      "phases": [
+        {
+          "elapsed_ms": 0.023042,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.120959,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.756042,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 2.761667,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 13107200,
+          "phase": "archive_released",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 6.63525,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 13107200,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 6.663959,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 2
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "chunked",
+      "phases": [
+        {
+          "elapsed_ms": 0.024209,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.126209,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.766917,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 13.595167,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 13.621084,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21561344,
+      "repetition": 2
+    },
+    {
+      "checks": {
+        "explicit_copy_preserves_bytes": true,
+        "no_copy_external_mutation_visible": true,
+        "owned_snapshot_survives_external_mutation": true,
+        "swift_value_mutation_preserves_retained": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "semantics",
+      "phases": [
+        {
+          "elapsed_ms": 0.028084,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 0.1965,
+          "explicit_copied_bytes_cumulative": 131072,
+          "logical_retained_bytes": 393216,
+          "phase": "semantics_checked",
+          "process_peak_rss_bytes": 6062080,
+          "rss_bytes": 6062080
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 3
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "owned",
+      "phases": [
+        {
+          "elapsed_ms": 0.027417,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.093209,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 3.060209,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 7.142709,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 34603008,
+          "phase": "explicit_owned_copies",
+          "process_peak_rss_bytes": 40517632,
+          "rss_bytes": 40517632
+        },
+        {
+          "elapsed_ms": 12.9855,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 34603008,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 40517632,
+          "rss_bytes": 40517632
+        },
+        {
+          "elapsed_ms": 13.018167,
+          "explicit_copied_bytes_cumulative": 13107200,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 40534016,
+          "rss_bytes": 40534016
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 34603008,
+      "repetition": 3
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "cow",
+      "phases": [
+        {
+          "elapsed_ms": 0.024417,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.158958,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 3.043125,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 3.047542,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "cow_retained_no_mutation",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 8.536167,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 8.565792,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 3
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "release",
+      "phases": [
+        {
+          "elapsed_ms": 0.028958,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.196417,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 3.004667,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 3.010958,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 13107200,
+          "phase": "archive_released",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 12.118125,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 13107200,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 12.1625,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21495808,
+      "repetition": 3
+    },
+    {
+      "checks": {
+        "written_exact_payload": true
+      },
+      "hard_cap_bytes": 100663296,
+      "mode": "chunked",
+      "phases": [
+        {
+          "elapsed_ms": 0.022167,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "baseline",
+          "process_peak_rss_bytes": 5783552,
+          "rss_bytes": 5783552
+        },
+        {
+          "elapsed_ms": 1.200625,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 8388608,
+          "phase": "archive_touched",
+          "process_peak_rss_bytes": 14221312,
+          "rss_bytes": 14221312
+        },
+        {
+          "elapsed_ms": 2.935167,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "three_decoded_touched",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 6.74725,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 21495808,
+          "phase": "chunked_write_complete",
+          "process_peak_rss_bytes": 27377664,
+          "rss_bytes": 27377664
+        },
+        {
+          "elapsed_ms": 6.774625,
+          "explicit_copied_bytes_cumulative": 0,
+          "logical_retained_bytes": 0,
+          "phase": "all_released",
+          "process_peak_rss_bytes": 27394048,
+          "rss_bytes": 27394048
+        }
+      ],
+      "synthetic_live_allocation_upper_bound_bytes": 21561344,
+      "repetition": 3
+    }
+  ],
+  "observed_ranges": {
+    "owned": {
+      "process_peak_rss_bytes": [
+        40517632,
+        40534016
+      ],
+      "total_elapsed_ms": [
+        11.272875,
+        13.018167
+      ]
+    },
+    "cow": {
+      "process_peak_rss_bytes": [
+        27394048,
+        27394048
+      ],
+      "total_elapsed_ms": [
+        7.019875,
+        8.565792
+      ]
+    },
+    "release": {
+      "process_peak_rss_bytes": [
+        27394048,
+        27394048
+      ],
+      "total_elapsed_ms": [
+        6.663959,
+        12.1625
+      ]
+    },
+    "chunked": {
+      "process_peak_rss_bytes": [
+        27394048,
+        27394048
+      ],
+      "total_elapsed_ms": [
+        6.774625,
+        13.621084
+      ]
+    }
+  }
+}
