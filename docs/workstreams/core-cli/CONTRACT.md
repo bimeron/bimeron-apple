@@ -17,10 +17,42 @@ Limits: process creation is Foundation's synchronous launch call; cancellation i
 
 Fixtures are uniquely named in the system temporary directory under BimeronCoreCLITests-prefixed directories and removed after testing. Only test fixtures use shell scripts; production launches no shell. No real Core binary is executed and no network or runtime readiness acceptance is claimed.
 
-Local verification (2026-11-04, macOS arm64):
-- `swift test`: passed, 34 test declarations total (24 baseline plus 10 new, with parameterized cases).
-- `sh scripts/build-app.sh`: passed, including `swift build -c release` and app assembly.
-- `test -x dist/Bimeron.app/Contents/MacOS/Bimeron`: passed.
-- `git diff --check`: passed.
+## Shared acceptance mapping
 
-An initial release build was invalidated by a source-file move during compilation. The complete build was rerun after edits finished and passed. The initial interruption fixtures used deadlines too short for concurrent Foundation launches; the deadline now starts after successful launch, and the fixture suite is serialized with longer interruption windows. Final tests verify the killed PID no longer exists.
+Dependency: workstream D commit `f8988b7` on `test/acceptance-scenarios-fixtures`,
+`docs/acceptance/README.md`, `fixtures/acceptance/manifest.json` and `cli/*.json`.
+These were read in D's worktree; no fixtures are copied or loaded here and no
+ancestry change is required. D owns fixture integrity and its CI checker.
+Combined acceptance adapter integration remains pending on that dependency.
+D stdout/stderr are synthetic observations, not Core wire format; parser sample
+provenance is recorded in [parser-samples/README.md](parser-samples/README.md).
+
+The following stable IDs appear in CoreCLITests display names. Coverage here is
+low-level process/parser behavior only; D's full acceptance scenarios remain
+adapter-test-pending.
+
+| D scenario | B test | Verified here / pending caller obligation |
+| --- | --- | --- |
+| B-MISSING | missingExecutable | Launch error, unchanged input / disable dependent actions |
+| B-VERSION-SUPPORTED | versionContract | Selected version schema decodes / compatibility decision, separate daemon identity |
+| B-VERSION-UNSUPPORTED | unknownVersionDecodes | Unknown valid version decodes, unchanged input / incompatible action block; no compatibility policy exists |
+| B-VERSION-MALFORMED | malformedJSON, missingFieldsRejected | Invalid JSON and missing required field reject / present unknown compatibility |
+| B-CAPABILITIES-SUPPORTED | capabilitiesContract | Source-correct macOS flags decode / enable only confirmed operations |
+| B-CAPABILITIES-UNSUPPORTED | unsupportedCapabilitiesDecode | Every false flag retained, config unchanged / block unsupported operations |
+| B-CAPABILITIES-MALFORMED | malformedJSON, missingFieldsRejected | Invalid JSON and missing nested field reject / unknown support and action gate |
+| B-VALIDATE-VALID | validationPreservesArgumentAndFile | Exact path argument, successful exit, unchanged input / save/start gate; no connected claim |
+| B-VALIDATE-INVALID | invalidValidationPreservesInput | Exit 1, diagnostic, unchanged input / preserve separate original and draft, block save/start |
+| B-NONZERO-STDERR | nonzeroPreservesDiagnosticsAndInput | Exit 7 retains both streams, unchanged input / bounded user-facing failure presentation |
+| B-TIMEOUT | timeoutAndCancellationKillResistantProcess(false) | Bounded termination and PID gone, unchanged input / block action and ignore late caller results |
+| B-CANCEL | timeoutAndCancellationKillResistantProcess(true), cancellationBeforeLaunch | Reaped process or no launch, unchanged input / retain UI draft and ignore late caller results |
+| B-TRUNCATED | truncatedJSONIsRejected, concurrentOutputIsDrainedAndBounded | Reject truncated JSON, independently bounded streams / never infer support |
+
+No UI save/start gates, document integration, compatibility policy, daemon
+readiness, launchd readiness, live networking, or actual Core execution is proved.
+The process layer's ownership and cleanup limits above still apply.
+
+Verification for this test/docs adaptation (2026-11-04, macOS arm64):
+`swift test --filter CoreCLITests` passed (14 test declarations, including
+parameterized cases); `swift test` passed (38 test declarations, including
+parameterized cases); `git diff --check` passed.
+Existing CI runs Swift tests; no hosted CI run or new release build is claimed.

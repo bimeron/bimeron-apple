@@ -7,3 +7,10 @@ Process execution drains stdout and stderr independently with bounded capture an
 Shared integration edit: Package.swift adds only the standalone target and its test target. BimeronApp gains no dependency. Existing CI already runs `swift test` and the release app build; no workflow changes are necessary.
 
 Local acceptance results are recorded in CONTRACT.md. This is a local PR draft only: no remote issue/PR, push, hosted CI run, or real Core execution is part of this workstream.
+
+Acceptance mapping follows D `f8988b7` without copying synthetic fixtures or
+changing ancestry. Source-derived parser constants are pinned to upstream commit
+`66d84d8f4dcfc6ada625eb11894b19feea51b7ba`; macOS IKEv2 flags are all false.
+Tests cover unknown versions, all-false capabilities, required-field rejection,
+and invalid validation without adding caller compatibility or UI policy.
+See CONTRACT.md for stable scenario IDs and pending adapter obligations.

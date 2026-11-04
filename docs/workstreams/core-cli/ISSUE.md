@@ -11,3 +11,7 @@ Acceptance:
 - Run the existing test and release build checks locally; record limits without claiming live Core acceptance or hosted CI execution.
 
 Architecture agreed before implementation: Core owns routes, DNS, and cleanup. CLI capability declarations cannot establish runtime or daemon readiness. No UI or document integration belongs to this workstream.
+
+Acceptance follow-up: map D `f8988b7` stable B IDs to controlled process tests,
+keep source-derived parser samples separate from synthetic observations, and
+record caller policy/UI obligations as pending. No production policy/API change.
