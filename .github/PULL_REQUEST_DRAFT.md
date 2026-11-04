@@ -30,7 +30,12 @@ Validation:
 - `git diff --check` and localization plist validation pass.
 
 The existing macOS CI workflow runs the tests, release build, and bundle check.
-Hosted CI has not run for this local branch; no push is included in this work.
 NetworkExtension, daemon IPC, connections, full core validation, updates, and
 SSH authentication prompts remain outside this change. Link parameters are
 edited as complete links; advanced settings remain available in Raw config.
+
+Known follow-up limitations:
+- Parsing normalizes BOM/CRLF; byte-identical document preservation is not claimed.
+- Disabling ShadowTLS removes its section; retaining disabled drafts is follow-up work.
+- Local checks do not enforce the complete protocol/transport compatibility matrix.
+- Finder file paste and the latest default-path controls have not been manually exercised.
