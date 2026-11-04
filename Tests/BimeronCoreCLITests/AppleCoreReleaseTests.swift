@@ -12,7 +12,7 @@ final class AppleCoreReleaseTests: XCTestCase {
     private func fixture() -> [String: Any] {
         let hash = SHA256.hash(data: archive).map { String(format: "%02x", $0) }.joined()
         return ["schema": 1, "product": "bimeron-apple-core", "tag": "v1.2.3-rc.1", "core_version": "1.2.3-rc.1",
-                "channel": "candidate", "source_revision": revision, "key_id": "139e3940e64b5491",
+                "channel": "beta", "source_revision": revision, "key_id": "139e3940e64b5491",
                 "compatibility": ["schema": 1, "app_min": "0.1.0", "app_max_exclusive": "0.1.1", "apple_reviewed": true,
                                   "ipc_min": 1, "ipc_max": 1, "profile_format": 1, "daemon_session_guards": true],
                 "archives": ["amd64", "arm64"].map { ["os": "macos", "arch": $0, "name": "bimeron-v1.2.3-rc.1-macos-\($0).zip", "size": archive.count, "sha256": hash] as [String: Any] }]
@@ -27,7 +27,7 @@ final class AppleCoreReleaseTests: XCTestCase {
         let sig = try signature ?? Data((key.signature(for: data).base64EncodedString() + "\n").utf8)
         return try AppleCoreRelease.verifyManifest(data, signature: sig, trustedPublicKey: publicKey ?? key.publicKey.rawRepresentation,
             approval: approval ?? AppleCoreReleaseApproval(tag: "v1.2.3-rc.1", sourceRevision: revision),
-            appVersion: app, channel: "candidate", architecture: "arm64")
+            appVersion: app, channel: "beta", architecture: "arm64")
     }
     func testReviewedApprovedArchive() throws {
         let manifest = try verify(bytes(fixture()))
@@ -71,6 +71,15 @@ final class AppleCoreReleaseTests: XCTestCase {
         XCTAssertThrowsError(try verify(bytes(object)))
         object["archives"] = [archives[0]]
         XCTAssertThrowsError(try verify(bytes(object)))
+    }
+    func testIntegerTokensAreExact() throws {
+        let text = String(decoding: try bytes(fixture()), as: UTF8.self)
+        for token in ["1.00000000000000001", "1.0", "1e0", "-1", "01"] {
+            let changed = text.replacingOccurrences(of: "\"schema\":1", with: "\"schema\":\(token)")
+            XCTAssertThrowsError(try verify(Data(changed.utf8)), token)
+        }
+        let changed = text.replacingOccurrences(of: "\"size\":\(archive.count)", with: "\"size\":268435456.000000001")
+        XCTAssertThrowsError(try verify(Data(changed.utf8)))
     }
     func testFramingDuplicatesAndBounds() throws {
         let data = try bytes(fixture())

@@ -67,7 +67,8 @@ public enum AppleCoreRelease {
         guard manifest.schema == 1, manifest.product == "bimeron-apple-core",
               validCoreVersion(manifest.core_version), manifest.tag == "v" + manifest.core_version,
               matches(manifest.source_revision, "^[0-9a-f]{40}$"),
-              manifest.channel == channel, !channel.isEmpty,
+              manifest.channel == channel,
+              channel == (manifest.core_version.contains("-") ? "beta" : "stable"),
               manifest.key_id == hex(SHA256.hash(data: trustedPublicKey).prefix(8)),
               c.schema == 1, c.ipc_min == 1, c.ipc_max == 1, c.profile_format == 1,
               c.daemon_session_guards,
@@ -101,11 +102,12 @@ public enum AppleCoreRelease {
         value.range(of: pattern, options: .regularExpression) == value.startIndex..<value.endIndex
     }
     private static func triplet(_ value: String) -> [UInt64]? {
-        guard matches(value, "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$") else { return nil }
+        guard value.utf8.count <= 128, matches(value, "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$") else { return nil }
         let numbers = value.split(separator: ".").compactMap { UInt64($0) }
         return numbers.count == 3 ? numbers : nil
     }
     private static func validCoreVersion(_ value: String) -> Bool {
+        guard value.utf8.count <= 128 else { return false }
         let parts = value.split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
         guard triplet(String(parts[0])) != nil else { return false }
         guard parts.count == 2 else { return true }
@@ -140,6 +142,17 @@ public enum AppleCoreRelease {
             case 125:
                 guard !objects.isEmpty else { throw AppleCoreReleaseError.invalidManifest }
                 objects.removeLast()
+            case 45, 48...57:
+                let start = index
+                while index < bytes.count && ([45, 43, 46, 69, 101].contains(bytes[index])
+                        || (48...57).contains(bytes[index])) {
+                    index += 1
+                }
+                let token = String(decoding: bytes[start..<index], as: UTF8.self)
+                guard matches(token, "^(0|[1-9][0-9]*)$") else {
+                    throw AppleCoreReleaseError.invalidManifest
+                }
+                index -= 1
             case 34:
                 let start = index
                 index += 1

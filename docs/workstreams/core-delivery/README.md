@@ -70,3 +70,12 @@ remains gated and cancellation belongs to the guarded lifecycle stop owner.
 This stream owns installation/readiness and connection UI. H owns forms/editor;
 I owns SSH/auth contract; J owns logs/export policy and diagnostics; K owns narrow
 accessibility fixes. Coordinate small AppModel/export hooks before integration.
+
+## Current executable provenance blocker
+
+Publisher inspection with Go 1.26.9 found that the current distribution build's
+`-trimpath` omits the linker metadata needed to prove the embedded Core version
+without executing it. The strict publisher validator rejects these binaries.
+Synthetic signed vectors do not resolve this real-build blocker. No workaround,
+compatibility approval, production trust pin or candidate approval is supplied;
+changing build provenance requires a separate justified decision.
