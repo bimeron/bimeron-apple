@@ -55,6 +55,15 @@ A reentrant library test replaces the profile during validation and verifies the
 stale save cannot overwrite it. Existing profile-preservation and portable
 fixture checks remain applicable to local editing semantics (stage A).
 
+The final P1 review found that Raw's AppKit text view ignored SwiftUI's disabled
+state, allowing draft edits during validation that a successful snapshot save
+could discard. `ConfigTextEditor` now applies the environment's `isEnabled` to
+`NSTextView.isEditable` at creation and before the unchanged-text early return.
+A hosted SwiftUI/AppKit wrapper regression covers initial disabled creation and
+enable/disable/re-enable with unchanged text, retaining the same text view,
+selection, selectable reading and exact content. Removing the propagation makes
+this regression fail for both initial creation and the disabled update.
+
 These are regression tests of orchestration, not live Core validation evidence.
 SwiftUI dismissal and discard interactions are code-reviewed rather than driven
 by UI automation. The document bridge and runtime/service acceptance remain
@@ -81,13 +90,13 @@ remains with Core, with no Network Extension or unguarded/local-only fallback.
 
 Combined local checks (default fixture root; no fixture override):
 
-- `swift test`: passed, 15 XCTest tests and 58 Swift Testing tests (73 total),
+- `swift test`: passed, 15 XCTest tests and 59 Swift Testing tests (74 total),
   zero failures. This includes all C lifecycle/client/protocol tests and F editor
   save regression coverage.
 - `python3 fixtures/acceptance/check.py`: passed, 26 scenarios and 29 fixture
   files; also rejected byte corruption, missing coverage and unsafe lifecycle
   expectations. This is offline integrity evidence only.
-- `sh scripts/build-app.sh`: passed, release build completed in 8.89 seconds.
+- `sh scripts/build-app.sh`: passed, release app bundle rebuilt successfully.
 - `test -x dist/Bimeron.app/Contents/MacOS/Bimeron`: passed.
 - `plutil -lint dist/Bimeron.app/Contents/Info.plist`: OK.
 - `git diff --check` and `git diff --cached --check`: passed.
