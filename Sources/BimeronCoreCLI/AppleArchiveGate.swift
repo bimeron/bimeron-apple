@@ -88,7 +88,8 @@ enum AppleArchiveGate {
         return (!directory && !special, directory && !special, permissions)
     }
 
-    static func check(_ data: Data, architecture: String, revision: String, version: String) throws {
+    @discardableResult
+    static func check(_ data: Data, architecture: String, revision: String, version: String) throws -> [AppleCorePayloadRole: Data] {
         let b = Bytes(data: data)
         guard b.count >= 22 else { throw AppleCoreReleaseError.invalidArchive }
         var end: Int?
@@ -143,6 +144,8 @@ enum AppleArchiveGate {
         try require((3...4).contains(entries.count) && UInt64(entries.count) == (records & 0xffff))
         let parent = "macos-\(architecture)/"
         var seen = Set<String>()
+        var retained: [AppleCorePayloadRole: Data] = [:]
+        var total = 0
         for entry in entries {
             guard let name = String(data: entry.name, encoding: .utf8) else { throw AppleCoreReleaseError.invalidArchive }
             let flags = entry.flags, method = entry.method, crc = entry.crc
@@ -169,6 +172,9 @@ enum AppleArchiveGate {
                 let limit = payloadOffset <= (Int.max &- compressed) ? (payloadOffset &+ compressed) : Int.max
                 let readable = limit > payloadOffset ? min(b.count - payloadOffset, limit - payloadOffset) : 0
                 let payload = try b.slice(payloadOffset, readable)
+                let (next, overflow) = total.addingReportingOverflow(size)
+                try require(!overflow && next <= 276_824_064)
+                total = next
                 let contents = try inflate(payload, size: size, method: method)
                 let actualCRC = contents.withUnsafeBytes { crc32(0, $0.bindMemory(to: Bytef.self).baseAddress, uInt(contents.count)) }
                 if flags & 8 != 0 {
@@ -184,9 +190,15 @@ enum AppleArchiveGate {
                     try require(UInt64(actualCRC) == crc)
                 }
                 if name == parent + "bimeron" { try binary(contents, architecture: architecture, revision: revision, version: version) }
+                guard let role = AppleCorePayloadRole(rawValue: String(name.dropFirst(parent.count))) else {
+                    throw AppleCoreReleaseError.invalidArchive
+                }
+                // Stored slices are subdata copies; inflated buffers are already verifier-owned.
+                retained[role] = contents
             }
         }
         try require(["bimeron", "LICENSE", "THIRD_PARTY_NOTICES.txt"].allSatisfy { seen.contains(parent + $0) })
+        return retained
     }
 
     private static func inflate(_ input: Data, size: Int, method: Int) throws -> Data {
