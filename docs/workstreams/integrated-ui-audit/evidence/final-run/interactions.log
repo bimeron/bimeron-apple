@@ -1,0 +1,251 @@
+PASS: NSApplication event loop and driver on main thread
+PASS: explicit scoped temporary root
+PASS: in-memory preference reads/writes
+ISOLATION VERIFIED BEFORE WINDOW: explicit library, memory defaults, nil Core, sandbox preflight; no AddProfileView, panels, daemon or clipboard
+PASS: existing AX trust; no permission request
+EVENT own sheet keyCode=48, responder=Optional(<_TtC7SwiftUIP33_C58093E7172B0A541A997680E343D0D527_SystemTextFieldFieldEditor: 0x92bc80800>
+    Frame = {{0.00, 0.00}, {536.50, 16.00}}, Bounds = {{0.00, 0.00}, {536.50, 16.00}}
+    Horizontally resizable: YES, Vertically resizable: YES
+    MinSize = {536.50, 16.00}, MaxSize = {40000.00, 40000.00}
+)
+PASS: Tab changes first responder
+EVENT own sheet keyCode=36, responder=Optional(<_TtC7SwiftUIP33_C58093E7172B0A541A997680E343D0D527_SystemTextFieldFieldEditor: 0x92bc80800>
+    Frame = {{0.00, 0.00}, {536.50, 16.00}}, Bounds = {{0.00, 0.00}, {536.50, 16.00}}
+    Horizontally resizable: YES, Vertically resizable: YES
+    MinSize = {536.50, 16.00}, MaxSize = {40000.00, 40000.00}
+)
+OBSERVED Return visible offline error: false; retained editor: true
+ACTION own-process AX press Save: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXGroup) |
+AX Optional(AXGroup) |
+AX Optional(AXButton) |
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXScrollArea) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Name
+AX Optional(AXTextField) | Synthetic original
+AX Optional(AXStaticText) | Key source
+AX Optional(AXStaticText) | socks5
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXStaticText) | SOCKS5
+AX Optional(AXStaticText) | Mode
+AX Optional(AXPopUpButton) | System VPN
+AX Optional(AXStaticText) | Core validation is unavailable
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+PASS: visible offline validation error
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: Raw tab exposes native NSTextView
+ACTION own-process AX press Save: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: visible Raw parse/validation error
+ACTION own-process AX press General: result=0
+PASS: navigation AX press General
+PASS: invalid Raw blocks switch to General
+EVENT own sheet keyCode=53, responder=Optional(<NSTextView: 0x92cd3d800>
+    Frame = {{0.00, 0.00}, {621.00, 308.50}}, Bounds = {{0.00, 0.00}, {621.00, 308.50}}
+    Horizontally resizable: NO, Vertically resizable: YES
+    MinSize = {621.00, 308.50}, MaxSize = {621.00, 10000000.00}
+)
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXGroup) |
+AX Optional(AXGroup) |
+AX Optional(AXButton) |
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+OBSERVED: Escape leaves no attached editor sheet; discard confirmation not established
+ACTION own-process AX press Save: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: mock validation success dismisses create sheet
+PASS: create persists exactly one synthetic profile
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+ACTION own-process AX press Save: result=-25200
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: mock validated edit dismisses sheet
+PASS: Raw edit save persists changed name without duplicate
+ACTION own-process AX press Save: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: mock rejection retains sheet
+PASS: visible mock rejection error
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXGroup) |
+AX Optional(AXGroup) |
+AX Optional(AXButton) |
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXScrollArea) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Name
+AX Optional(AXTextField) | Synthetic updated
+AX Optional(AXStaticText) | Key source
+AX Optional(AXStaticText) | socks5
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXStaticText) | SOCKS5
+AX Optional(AXStaticText) | Mode
+AX Optional(AXPopUpButton) | System VPN
+AX Optional(AXStaticText) | Core rejected the configuration
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+ACTION own-process AX press Cancel: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: unchanged Cancel dismisses sheet
+PASS: rejection and cancel preserve stored profile count
+PASS: rejection and cancel preserve stored content
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+ACTION own-process AX press Cancel: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXGroup) |
+AX Optional(AXGroup) |
+AX Optional(AXButton) |
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXStaticText) | Raw profile text. Fields not shown in the form are preserved.
+AX Optional(AXScrollArea) |
+AX Optional(AXTextArea) | Raw profile text | [Profile]
+Name = Synthetic updated
+Version = 1
+[AccessKey]
+Port = 1080
+Server = example.invalid
+Type = socks5
+[Interface]
+Mode = vpn
+[Routing]
+Default = proxy
+
+# synthetic unsaved change
+
+AX Optional(AXScrollBar) |
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+AX Optional(AXSheet) | alert
+AX Optional(AXStaticText) | Discard changes?
+AX Optional(AXStaticText) |
+AX Optional(AXButton) | Discard changes
+AX Optional(AXButton) | Keep editing
+ACTION own-process AX press Keep editing: result=-25205
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: Keep editing retains dirty Raw editor and dismisses confirmation
+ACTION own-process AX press Cancel: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+ACTION own-process AX press Discard changes: result=-25205
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: Discard changes dismisses dirty editor
+PASS: edited Cancel leaves stored bytes unchanged
+PASS: open own creation protocol picker
+PASS: select generated AnyTLS creation draft
+ACTION own-process AX press Raw config: result=0
+PASS: navigation AX press Raw config
+PASS: generated draft exposes explicit restore action
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: edited generated Raw blocks stale parameter form
+ACTION own-process AX press Restore generated access key: result=-25200
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: restore replaces generated source while preserving Raw profile name
+OBSERVED generated baseline bytes: 121
+ACTION own-process AX press Protocol: result=0
+PASS: navigation AX press Protocol
+PASS: restored generated source allows parameter form
+ACTION own-process AX press Cancel: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+ACTION own-process AX press Discard changes: result=-25205
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: generated draft discard dismisses
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Integrated UI audit — synthetic data only
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXGroup) |
+AX Optional(AXButton) |
+AX Optional(AXStaticText) |
+AX Optional(AXSheet) |
+AX Optional(AXGroup) |
+AX Optional(AXStaticText) | Profiles
+AX Optional(AXStaticText) | Core: not connected
+AX Optional(AXStaticText) | TRAFFIC
+AX Optional(AXImage) | Круг
+AX Optional(AXStaticText) | VPN connection will be added in the next stage
+AX Optional(AXStaticText) | ↓ 0 B   ↑ 0 B
+AX Optional(AXStaticText) | Available profiles
+AX Optional(AXStaticText) | Profiles: 1
+AX Optional(AXScrollArea) |
+AX Optional(AXOpaqueProviderGroup) |
+AX Optional(AXScrollBar) |
+AX Optional(AXValueIndicator) |
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXButton) |
+AX Optional(AXButton) | Add profile
+AX Optional(AXButton) | Remove
+AX Optional(AXButton) | Connect
+BLOCKED K: own-process AX exposes opaque lazy profile list without row controls; no selection or focus acceptance claimed
+PASS: J snapshot contains H edit validation hooks
+PASS: J raw text excluded by default in actual preview
+ACTION own-process toggle: 0
+PASS: diagnostics consent AX action
+PASS: J opt-in reveals synthetic raw text in actual preview
+PASS: J preview remains frozen after append and clear
+ACTION own-process toggle: 0
+PASS: diagnostics consent AX action
+PASS: J consent can be revoked before export
+ACTION own-process AX press Cancel: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+PASS: J cancel dismisses without opening file exporter
+PASS: J reopened sheet resets consent
+ACTION own-process AX press Cancel: result=0
+OBSERVED: single mutation attempt; subsequent state/storage assertions determine outcome
+COMPLETE: mock validator only; no real Core compatibility claim
