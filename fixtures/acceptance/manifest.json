@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "provenance": "Handwritten synthetic fixtures; not captured Core output or an IPC schema",
+  "desktop_revision": "296130e3e5f255410dd70c0680b37b0ed351165b",
+  "core_reference": "v0.3.0-beta.2",
+  "references": {
+    "desktop-edit": "https://github.com/bimeron/bimeron-desktop/blob/296130e3e5f255410dd70c0680b37b0ed351165b/docs/gui-profile-editing-contract.md",
+    "desktop-edit-test": "https://github.com/bimeron/bimeron-desktop/blob/296130e3e5f255410dd70c0680b37b0ed351165b/tests/ProfileVlessTest.cpp#L598",
+    "desktop-cli-test": "https://github.com/bimeron/bimeron-desktop/blob/296130e3e5f255410dd70c0680b37b0ed351165b/tests/DeveloperModeTest.cpp#L324",
+    "desktop-connection": "https://github.com/bimeron/bimeron-desktop/blob/296130e3e5f255410dd70c0680b37b0ed351165b/docs/connection-management.md",
+    "desktop-lifecycle-test": "https://github.com/bimeron/bimeron-desktop/blob/296130e3e5f255410dd70c0680b37b0ed351165b/tests/ConnectionManagementTest.h#L1683"
+  },
+  "sha256": {
+    "config/ambiguous.input.conf": "3126b1297324d483d56d4440e9a4404e480db18d94e67fad228e44099ad73054",
+    "config/bom-crlf.edit.expected.conf": "ce2059d02d3c2f2c9e814cb338503d2223ddab27225c8066b918e669191de17a",
+    "config/unknown.noop.expected.conf": "d66eab50db1035d7b402c38b71344ea7d4ed896bbed183925c3f2695dd124c7b",
+    "config/ambiguous.noop.expected.conf": "3126b1297324d483d56d4440e9a4404e480db18d94e67fad228e44099ad73054",
+    "config/disabled-shadowtls.noop.expected.conf": "f567921fec5e7e731c01ff50e990427d9baad6ca9ba4b27dc1c76ecc4b30d0ba",
+    "config/unknown.input.conf": "d66eab50db1035d7b402c38b71344ea7d4ed896bbed183925c3f2695dd124c7b",
+    "config/bom-crlf.noop.expected.conf": "d3828772acd12f4c5a88a906816dd6fbb7b96690747732fa2fb9d1d09e82c25e",
+    "config/unknown.edit.expected.conf": "a7d847349431b341c2bca94515c423116b3b116a1e2e2c984f86e19ee4d90358",
+    "config/disabled-shadowtls.input.conf": "f567921fec5e7e731c01ff50e990427d9baad6ca9ba4b27dc1c76ecc4b30d0ba",
+    "config/disabled-shadowtls.edit.expected.conf": "604703985183d3276164327a76cba2986f837d5d068422b8030641c017d7ebe2",
+    "config/bom-crlf.input.conf": "d3828772acd12f4c5a88a906816dd6fbb7b96690747732fa2fb9d1d09e82c25e",
+    "cli/version-supported.json": "795129127a3ad305913e0cbd9ff2995560bbd7652da4361e09deb9929b873bd1",
+    "cli/nonzero-stderr.json": "996b439dc254a218cffccd9712bd14411fe652f3fe4fccc3a89bf9e5a29d9aaf",
+    "cli/truncated.json": "380bda07c163d193398bd2814cc29385330984c2cded79d5d645bf49b37e2704",
+    "cli/capabilities-malformed.json": "9ce0afaab4f86bc64a2d70cb8e3c9cd9a8f7c853e3382f4fbcc8d232fe640661",
+    "cli/timeout.json": "c425eeb23883c7c3d8833757f01d1c8f2dedfc86bfff34451da11e46d54c5317",
+    "cli/missing.json": "9d7bb3ff7ae5ff80dae55374eff0f62262ccf39cacf5428979708a6e20f203ea",
+    "cli/capabilities-supported.json": "b7afe02fc0445fee822d54091b161c1b77704fbbc6e9e9f2e10e102725f3477c",
+    "cli/version-unsupported.json": "d0ce838ca8e0563696c5bc956d6a3d04f7c0811c8158598506fb089348f01ae0",
+    "cli/capabilities-unsupported.json": "2da2ab45d85cc5dad59bbe2601ccf12fd5bd83a99b7ec144549c90abcab197f6",
+    "cli/validate-valid.json": "5ab3162e7d7451bc1e281fe41e183bfdf77a7fc8d3db6a6fb962bcb794738d9d",
+    "cli/validate-invalid.json": "033a85cea1076fe1aa24d5c9864770196c42b04af3825b6b4b15134f681b9e9a",
+    "cli/cancel.json": "1121e8ddfb0663535c5d47ff2e73b369f85c1c65993073abeec54abda38389da",
+    "cli/version-malformed.json": "242c67aed722f897bf8c46330ae45aa1399bf3d59602ecc645c785d717237497",
+    "lifecycle/switch.json": "72e68692336fd223cdf88613d2f84b45dc74e2d8367a483928436b3030355fa8",
+    "lifecycle/adopt.json": "cdc8c5266712f423b7aa3cf57c7447a6de8787e4abe5b1cb060c98e9c9169e67",
+    "lifecycle/failed-stop.json": "4e1170e60f515a7234415dfa97e8af26ff629f73521c963589d7a86c3cfde20b",
+    "lifecycle/repeat.json": "b59cd69ab7de3f879c64de746a3b947e59487b166f4fe37caeabc3ae698be991",
+    "lifecycle/ipc-loss.json": "6df745d9c4f0c7b2d824ef25f7933f4638c03d8e9f9b466da832d1ef49726f8c"
+  },
+  "scenarios": [
+    {
+      "id": "A-BOM-CRLF-NOOP",
+      "owner": "A",
+      "fixture": "config/bom-crlf.input.conf",
+      "expected": "Preserve all bytes",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/bom-crlf.noop.expected.conf",
+      "operation": "noop"
+    },
+    {
+      "id": "A-BOM-CRLF-EDIT",
+      "owner": "A",
+      "fixture": "config/bom-crlf.input.conf",
+      "expected": "Change only Profile.Name from Original to Edited; retain every other byte",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/bom-crlf.edit.expected.conf",
+      "operation": "edit"
+    },
+    {
+      "id": "A-UNKNOWN-NOOP",
+      "owner": "A",
+      "fixture": "config/unknown.input.conf",
+      "expected": "Preserve all bytes",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/unknown.noop.expected.conf",
+      "operation": "noop"
+    },
+    {
+      "id": "A-UNKNOWN-EDIT",
+      "owner": "A",
+      "fixture": "config/unknown.input.conf",
+      "expected": "Change only Profile.Name from Original to Edited; retain every other byte",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/unknown.edit.expected.conf",
+      "operation": "edit"
+    },
+    {
+      "id": "A-AMBIGUOUS-NOOP",
+      "owner": "A",
+      "fixture": "config/ambiguous.input.conf",
+      "expected": "Preserve all bytes",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/ambiguous.noop.expected.conf",
+      "operation": "noop"
+    },
+    {
+      "id": "A-DISABLED-SHADOWTLS-NOOP",
+      "owner": "A",
+      "fixture": "config/disabled-shadowtls.input.conf",
+      "expected": "Preserve all bytes",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/disabled-shadowtls.noop.expected.conf",
+      "operation": "noop"
+    },
+    {
+      "id": "A-DISABLED-SHADOWTLS-EDIT",
+      "owner": "A",
+      "fixture": "config/disabled-shadowtls.input.conf",
+      "expected": "Change only Profile.Name from Original to Edited; retain every other byte",
+      "references": [
+        "desktop-edit",
+        "desktop-edit-test"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/disabled-shadowtls.edit.expected.conf",
+      "operation": "edit"
+    },
+    {
+      "id": "A-AMBIGUOUS-RAW",
+      "owner": "A",
+      "fixture": "config/ambiguous.input.conf",
+      "expected": "Block visual field edit; retain original bytes and Raw draft; never choose a duplicate silently",
+      "references": [
+        "desktop-edit"
+      ],
+      "status": "adapter-test-pending",
+      "expected_fixture": "config/ambiguous.noop.expected.conf",
+      "operation": "reject-visual-edit"
+    },
+    {
+      "id": "B-MISSING",
+      "owner": "B",
+      "fixture": "cli/missing.json",
+      "expected": "Report missing CLI; disable dependent actions",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-VERSION-SUPPORTED",
+      "owner": "B",
+      "fixture": "cli/version-supported.json",
+      "expected": "Accept selected CLI version only; runtime identity remains separate",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-VERSION-UNSUPPORTED",
+      "owner": "B",
+      "fixture": "cli/version-unsupported.json",
+      "expected": "Block incompatible CLI action",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-VERSION-MALFORMED",
+      "owner": "B",
+      "fixture": "cli/version-malformed.json",
+      "expected": "Report unreadable version; do not infer compatibility",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-CAPABILITIES-SUPPORTED",
+      "owner": "B",
+      "fixture": "cli/capabilities-supported.json",
+      "expected": "Enable only confirmed supported operations",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-CAPABILITIES-UNSUPPORTED",
+      "owner": "B",
+      "fixture": "cli/capabilities-unsupported.json",
+      "expected": "Block unsupported operation without deleting config",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-CAPABILITIES-MALFORMED",
+      "owner": "B",
+      "fixture": "cli/capabilities-malformed.json",
+      "expected": "Treat capabilities as unknown; block dependent action",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-VALIDATE-VALID",
+      "owner": "B",
+      "fixture": "cli/validate-valid.json",
+      "expected": "Permit next save/start gate; do not claim connected",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-VALIDATE-INVALID",
+      "owner": "B",
+      "fixture": "cli/validate-invalid.json",
+      "expected": "Retain original and editable draft; block save/start",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-NONZERO-STDERR",
+      "owner": "B",
+      "fixture": "cli/nonzero-stderr.json",
+      "expected": "Report bounded failure; never treat stdout as success",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-TIMEOUT",
+      "owner": "B",
+      "fixture": "cli/timeout.json",
+      "expected": "Terminate/reap owned probe; block action and ignore late result",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-CANCEL",
+      "owner": "B",
+      "fixture": "cli/cancel.json",
+      "expected": "Cancel owned probe; preserve draft and ignore late result",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "B-TRUNCATED",
+      "owner": "B",
+      "fixture": "cli/truncated.json",
+      "expected": "Reject incomplete output; never infer support",
+      "references": [
+        "desktop-cli-test",
+        "desktop-connection"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "C-REPEAT",
+      "owner": "C",
+      "fixture": "lifecycle/repeat.json",
+      "expected": "Coalesce repeated connect/disconnect intentions; one start and one stop",
+      "references": [
+        "desktop-connection",
+        "desktop-lifecycle-test"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "C-ADOPT",
+      "owner": "C",
+      "fixture": "lifecycle/adopt.json",
+      "expected": "Adopt existing session without start/stop",
+      "references": [
+        "desktop-connection",
+        "desktop-lifecycle-test"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "C-IPC-LOSS",
+      "owner": "C",
+      "fixture": "lifecycle/ipc-loss.json",
+      "expected": "IPC loss does not prove tunnel stopped; prohibit automatic replacement start",
+      "references": [
+        "desktop-connection",
+        "desktop-lifecycle-test"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "C-SWITCH",
+      "owner": "C",
+      "fixture": "lifecycle/switch.json",
+      "expected": "Stop A and confirm cleanup before starting B exactly once",
+      "references": [
+        "desktop-connection",
+        "desktop-lifecycle-test"
+      ],
+      "status": "adapter-test-pending"
+    },
+    {
+      "id": "C-FAILED-STOP",
+      "owner": "C",
+      "fixture": "lifecycle/failed-stop.json",
+      "expected": "Failed stop cancels switch; no start B until explicit recovery and confirmed cleanup",
+      "references": [
+        "desktop-connection",
+        "desktop-lifecycle-test"
+      ],
+      "status": "adapter-test-pending"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "kind": "synthetic-process-result",
+  "operation": "validate",
+  "termination": "exited",
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "",
+  "output_complete": true,
+  "decoded_observation": "valid"
+}
