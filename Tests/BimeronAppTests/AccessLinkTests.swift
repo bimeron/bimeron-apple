@@ -1,0 +1,73 @@
+import BimeronModel
+import Foundation
+import Testing
+@testable import BimeronApp
+
+@Test @MainActor func addDialogAcceptsCurrentCoreSchemesIncludingTrojan() {
+    for link in ["trojan://password@example.com:443", "vmess://encoded", "https://example.com:443",
+                 "masque://example.com:443", "naive+quic://user:password@example.com:443",
+                 "hysteria2://password@example.com:443", "hy2://password@example.com:443",
+                 "anytls://password@example.com:443", "ssh://user@example.com:22", "tuic://example.com:443"] {
+        #expect(AddProfileView.accepts("\n " + link + " \n"))
+    }
+    #expect(!AddProfileView.accepts("https://"))
+    #expect(!AddProfileView.accepts("wireguard://example.com"))
+}
+
+@Test @MainActor func addingSSHProfilePersistsOnlyTheOptionalFilePaths() async throws {
+    let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let identity = directory.appending(path: "private key")
+    let knownHosts = directory.appending(path: "known_hosts")
+    let contents = Data("placeholder private key contents".utf8)
+    try contents.write(to: identity)
+    let suite = "BimeronSSHAddTests-" + UUID().uuidString
+    let defaults = try #require(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+    let library = ProfileLibrary(directory: directory.appending(path: "profiles"))
+    let model = AppModel(library: library, defaults: defaults)
+
+    #expect(await model.add(name: "SSH with identity", key: "ssh://alice@example.com:22", sshIdentityFile: identity, sshKnownHostsFile: knownHosts))
+    let saved = try #require(try await library.load().profiles.first)
+    #expect(saved.document.value("AccessKey", "IdentityFile") == identity.path)
+    #expect(saved.document.value("AccessKey", "KnownHostsFile") == knownHosts.path)
+    #expect(saved.document.accessKey == "ssh://alice@example.com:22")
+    #expect(!saved.document.text.contains("placeholder private key contents"))
+    #expect(try Data(contentsOf: identity) == contents)
+
+    #expect(await model.add(name: "SSH without identity", key: "ssh://alice@example.com:22"))
+    #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
+    #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == nil)
+    #expect(await model.add(name: "SSH with known hosts only", key: "ssh://alice@example.com:22", sshKnownHostsFile: knownHosts))
+    #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == knownHosts.path)
+    #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
+    #expect(await model.add(name: "Other protocol", key: "trojan://password@example.com:443", sshIdentityFile: identity, sshKnownHostsFile: knownHosts))
+    #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
+    #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == nil)
+}
+
+@Test @MainActor func sshFilePathsAcceptTypedAndPastedLocations() {
+    #expect(AddProfileView.fileURL(for: "  ") == nil)
+    #expect(AddProfileView.fileURL(for: "/tmp/private key")?.path == "/tmp/private key")
+    #expect(AddProfileView.fileURL(for: "file:///tmp/private%20key")?.path == "/tmp/private key")
+    #expect(AddProfileView.fileURL(for: "~/.ssh/known_hosts")?.path ==
+            FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh/known_hosts").path)
+}
+
+@Test @MainActor func sshDefaultsSuggestOnlyExistingFiles() throws {
+    let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity.isEmpty)
+    #expect(AddProfileView.defaultSSHPaths(in: directory).knownHosts.isEmpty)
+    try FileManager.default.createDirectory(at: directory.appending(path: "id_ed25519"), withIntermediateDirectories: true)
+    try Data().write(to: directory.appending(path: "id_rsa"))
+    try Data().write(to: directory.appending(path: "known_hosts"))
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity == directory.appending(path: "id_rsa").path)
+    #expect(AddProfileView.defaultSSHPaths(in: directory).knownHosts == directory.appending(path: "known_hosts").path)
+    try Data().write(to: directory.appending(path: "id_ecdsa"))
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity == directory.appending(path: "id_ecdsa").path)
+    try FileManager.default.removeItem(at: directory.appending(path: "id_ed25519"))
+    try Data().write(to: directory.appending(path: "id_ed25519"))
+    #expect(AddProfileView.defaultSSHPaths(in: directory).identity == directory.appending(path: "id_ed25519").path)
+}

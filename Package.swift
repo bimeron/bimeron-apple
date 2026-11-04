@@ -9,7 +9,7 @@ let package = Package(
     targets: [
         .target(name: "BimeronModel"),
         .executableTarget(name: "BimeronApp", dependencies: ["BimeronModel"], resources: [.process("Resources")]),
-        .testTarget(name: "BimeronModelTests", dependencies: ["BimeronModel"]),
+        .testTarget(name: "BimeronModelTests", dependencies: ["BimeronModel"], resources: [.copy("Fixtures")]),
         .testTarget(name: "BimeronAppTests", dependencies: ["BimeronApp"])
     ]
 )

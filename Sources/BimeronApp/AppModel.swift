@@ -48,9 +48,15 @@ import Observation
         } catch { report(error) }
     }
 
-    func add(name: String, key: String) async -> Bool {
+    func add(name: String, key: String, sshIdentityFile: URL? = nil, sshKnownHostsFile: URL? = nil) async -> Bool {
         do {
-            let document = try ConfigDocument.new(name: name, key: key)
+            var document = try ConfigDocument.new(name: name, key: key)
+            if document.accessProtocol == .ssh, let sshIdentityFile {
+                document.set("AccessKey", "IdentityFile", sshIdentityFile.path)
+            }
+            if document.accessProtocol == .ssh, let sshKnownHostsFile {
+                document.set("AccessKey", "KnownHostsFile", sshKnownHostsFile.path)
+            }
             let profile = try await library.add(document)
             await load()
             selectedID = profile.id

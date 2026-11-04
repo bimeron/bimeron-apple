@@ -26,7 +26,7 @@ struct EditorView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(model.t("Profile settings")).font(.title2.bold())
             HStack(spacing: 16) {
-                ForEach(EditorTab.allCases.filter { $0 != .vless || document.protocolName == "VLESS" }, id: \.self) { item in
+                ForEach(EditorTab.allCases, id: \.self) { item in
                     Button(model.t(item.title)) { switchTo(item) }
                         .buttonStyle(.plain)
                         .foregroundStyle(tab == item ? Color.accentColor : .secondary)
@@ -41,7 +41,7 @@ struct EditorView: View {
             Group {
                 switch tab {
                 case .general: general
-                case .vless: vless
+                case .upstream: upstream
                 case .network: network
                 case .routing: routing
                 case .raw: raw
@@ -51,7 +51,7 @@ struct EditorView: View {
 
             if let issue { Text(issue).foregroundStyle(.red).font(.subheadline).lineLimit(2) }
             HStack {
-                Text(model.t("Core validation will be added with VPN support"))
+                Text(model.t("Only basic checks are available. Core validation and connections are not integrated."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -63,11 +63,11 @@ struct EditorView: View {
                     guard !busy else { return }
                     save()
                 } label: {
-                    Text(model.t("Save")).foregroundStyle(.white)
+                    Text(model.t("Save"))
                 }
                     .buttonStyle(.borderedProminent)
-                    .tint(busy ? AppPalette.blueDisabledButton : AppPalette.blue)
-                    .allowsHitTesting(!busy)
+                    .tint(AppPalette.blue)
+                    .disabled(busy)
                     .keyboardShortcut(.defaultAction)
             }
         }
@@ -85,87 +85,153 @@ struct EditorView: View {
         Form {
             field("Name", "Profile", "Name")
             LabeledContent(model.t("Key source")) { Text(document.source).foregroundStyle(.secondary) }
-            LabeledContent(model.t("Link")) {
-                HStack {
-                    if revealKey { Text(document.accessKey).lineLimit(1).textSelection(.enabled) }
-                    else { Text("••••••••••••").foregroundStyle(.secondary) }
-                    Spacer()
-                    Button(revealKey ? model.t("Hide") : model.t("Show")) { revealKey.toggle() }
-                }
-            }
+            LabeledContent(model.t("Protocol"), value: document.protocolName)
             Picker(model.t("Mode"), selection: fieldBinding("Interface", "Mode")) {
                 Text(model.t("System VPN")).tag("vpn")
                 Text(model.t("Local proxy")).tag("proxy")
-            }
-            if document.source == "explicit" || ["shadowsocks", "socks5", "vless", "trojan"].contains(document.source) {
-                field("Server", "AccessKey", "Server")
-                field("Port", "AccessKey", "Port")
-                field("Encryption", "AccessKey", "Method")
-                field("Username", "AccessKey", "Username")
-                secureField("Password", "AccessKey", "Password")
-                field("Prefix", "AccessKey", "Prefix")
             }
             if document.mode == "proxy" { field("SOCKS5 address", "Interface", "Listen") }
         }
         .formStyle(.grouped)
     }
 
-    private var vless: some View {
-        ScrollView {
-            Form {
-                if document.protocolName == "VLESS" {
-                    Text(model.t("URI parameters are shown in the raw config. Edit the VLESS URI there."))
-                        .foregroundStyle(.secondary)
-                    if document.source == "VLESS" || document.source == "Key" {
-                        ForEach(Array(document.vlessDetails.enumerated()), id: \.offset) { _, item in
-                            LabeledContent(item.0) { Text(item.1).textSelection(.enabled) }
-                        }
+    private var upstream: some View {
+        Form {
+            LabeledContent(model.t("Protocol"), value: document.protocolName)
+            if !document.isExplicit && (AccessProtocol(rawValue: document.source) != nil || document.source == "Key") {
+                Section(model.t("Access key")) {
+                    if revealKey {
+                        TextField(model.t("Link"), text: fieldBinding("AccessKey", document.source), axis: .vertical)
+                            .lineLimit(3...6)
+                    } else {
+                        SecureField(model.t("Link"), text: fieldBinding("AccessKey", document.source))
                     }
-                    if document.source == "vless" {
-                        field("Server", "AccessKey", "Server")
-                        field("Port", "AccessKey", "Port")
-                        field("User ID", "AccessKey", "ID")
-                        field("Encryption", "AccessKey", "Encryption")
-                        field("Transport", "AccessKey", "Network")
-                        field("Security", "AccessKey", "Security")
-                        field("Flow", "AccessKey", "Flow")
-                        field("Server name (SNI)", "AccessKey", "ServerName")
-                        field("REALITY public key", "AccessKey", "PublicKey")
-                        field("REALITY short ID", "AccessKey", "ShortID")
-                        field("SpiderX", "AccessKey", "SpiderX")
-                        field("Client fingerprint", "AccessKey", "Fingerprint")
-                        field("ALPN", "AccessKey", "ALPN")
-                        field("WebSocket path", "AccessKey", "WSPath")
-                        field("WebSocket host", "AccessKey", "WSHost")
-                        field("WebSocket early data", "AccessKey", "WSEarlyData")
-                        field("gRPC service", "AccessKey", "GRPCServiceName")
-                        field("gRPC host", "AccessKey", "GRPCAuthority")
-                        field("gRPC multi mode", "AccessKey", "GRPCMultiMode")
-                        field("XHTTP mode", "AccessKey", "XHTTPMode")
-                        field("XHTTP path", "AccessKey", "XHTTPPath")
-                        field("XHTTP host", "AccessKey", "XHTTPHost")
-                        field("XHTTP extra", "AccessKey", "XHTTPExtra")
-                    }
-                } else {
-                    ContentUnavailableView(model.t("This profile does not use VLESS"), systemImage: "network")
+                    Toggle(model.t("Show access key"), isOn: $revealKey)
+                    Text(model.t("The complete link is preserved, including transport and security parameters."))
+                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
-            .formStyle(.grouped)
+            if let protocolType = document.accessProtocol {
+                if document.isExplicit {
+                    ForEach(ProtocolField.fields(for: protocolType)) { item in
+                        protocolField(item)
+                    }
+                    if document.value("AccessKey", "Type") == "https" {
+                        field("Server name (SNI)", "AccessKey", "ServerName")
+                    }
+                }
+                if protocolType == .ssh {
+                    fileField("SSH identity file", "IdentityFile")
+                    fileField("SSH known_hosts file", "KnownHostsFile")
+                    Text(model.t("SSH requires a trusted known_hosts entry. Password prompts will be available after Core integration."))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if let notice = protocolNotice {
+                    Text(model.t(notice)).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            if canAddShadowTLS || document.hasSection("ShadowTLS") {
+                Section("ShadowTLS v3") {
+                    Toggle(model.t("Enable ShadowTLS wrapper"), isOn: shadowTLSBinding)
+                    if document.hasSection("ShadowTLS") {
+                        field("Server name (SNI)", "ShadowTLS", "ServerName")
+                        secureField("Password", "ShadowTLS", "Password")
+                    }
+                    Text(model.t("ShadowTLS requires a compatible encrypted TCP upstream. Core must validate the combination."))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var protocolNotice: String? {
+        switch document.accessProtocol {
+        case .ssh, .http, .naive:
+            "TCP-only upstream: in VPN mode, DNS uses TCP and other proxied UDP is dropped."
+        case .hysteria2:
+            "Hysteria2 UDP relay depends on server permissions. QUIC fingerprint options stay in the link."
+        case .tuic:
+            "TUIC v5 supports stream-mode UDP relay; QUIC datagram mode is not supported."
+        case .dynamicShadowsocks:
+            "Dynamic keys are fetched by Core at start or reconnect, not periodically during a healthy connection."
+        case .shadowsocks:
+            "Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation."
+        case .vless:
+            "VLESS supports TCP, WebSocket, gRPC and XHTTP. Extended XHTTP settings can remain in the link or raw config."
+        case .vmess:
+            "VMess AEAD settings are stored in the complete vmess:// link, including its encoded JSON."
+        default: nil
+        }
+    }
+
+    private var canAddShadowTLS: Bool {
+        guard let protocolType = document.accessProtocol else { return false }
+        return [.shadowsocks, .dynamicShadowsocks, .vless, .vmess, .trojan, .anytls, .naive, .ssh].contains(protocolType)
+    }
+
+    private var shadowTLSBinding: Binding<Bool> {
+        Binding(get: { document.hasSection("ShadowTLS") }, set: { enabled in
+            if enabled {
+                document.set("ShadowTLS", "ServerName", "")
+                document.set("ShadowTLS", "Password", "")
+            } else {
+                document.removeSection("ShadowTLS")
+            }
+            rawText = document.text
+            issue = nil
+        })
+    }
+
+    @ViewBuilder private func protocolField(_ item: ProtocolField) -> some View {
+        if item.file {
+            fileField(item.title, item.id)
+        } else if item.secret {
+            secureField(item.title, "AccessKey", item.id)
+        } else {
+            field(item.title, "AccessKey", item.id)
+        }
+    }
+
+    private func fileField(_ title: String, _ key: String) -> some View {
+        HStack {
+            field(title, "AccessKey", key)
+            Button(model.t("Choose file…")) {
+                let panel = NSOpenPanel()
+                panel.canChooseDirectories = false
+                panel.allowsMultipleSelection = false
+                panel.begin { response in
+                    if response == .OK, let url = panel.url {
+                        document.set("AccessKey", key, url.path)
+                        rawText = document.text
+                        issue = nil
+                    }
+                }
+            }
+            .accessibilityLabel(model.t("Choose file…") + " " + model.t(title))
         }
     }
 
     private var network: some View {
         Form {
-            field("Interface name", "Interface", "Name")
-            field("MTU", "Interface", "MTU")
-            field("DNS (up to four IPv4 addresses)", "Interface", "DNS")
-            Picker("IPv6", selection: fieldBinding("Interface", "IPv6")) {
-                Text(model.t("Enabled")).tag("enable")
-                Text(model.t("Disabled")).tag("disable")
+            if document.mode == "vpn" {
+                field("Interface name", "Interface", "Name")
+                field("MTU", "Interface", "MTU")
+                Picker("IPv6", selection: fieldBinding("Interface", "IPv6")) {
+                    Text(model.t("Enabled")).tag("enable")
+                    Text(model.t("Disabled")).tag("disable")
+                }
+                Toggle(model.t("Block traffic outside VPN"), isOn: .constant(document.value("Interface", "KillSwitch") == "true")).disabled(true)
+                Text(model.t("Kill switch is not available on macOS yet"))
+                    .font(.caption).foregroundStyle(.secondary)
+                Text(model.t("On macOS, the system assigns utunN; the interface name is a logical label."))
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                field("SOCKS5 address", "Interface", "Listen")
+                Text(model.t("Tunnel interface, MTU and IPv6 controls apply to VPN mode only."))
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            Toggle(model.t("Block traffic outside VPN"), isOn: .constant(document.value("Interface", "KillSwitch") == "true")).disabled(true)
-            Text(model.t("Kill switch is not available on macOS yet"))
-                .font(.caption).foregroundStyle(.secondary)
+            field("DNS (up to four IPv4 addresses)", "Interface", "DNS")
         }
         .formStyle(.grouped)
     }
@@ -211,6 +277,8 @@ struct EditorView: View {
             }
             Text(model.t("Rules are applied from top to bottom: first match wins."))
                 .font(.caption).foregroundStyle(.secondary)
+            Text(model.t("VPN domain rules depend on Core-observed DNS. DoH, cached DNS and direct IP connections may not match them."))
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 
@@ -241,7 +309,10 @@ struct EditorView: View {
             default: return ""
             }
         }, set: { value in
-            document.set(section, key, value)
+            let isAccessSource = section == "AccessKey" && (AccessProtocol(rawValue: key) != nil || key == "Key")
+            if section == "Interface", key == "Mode" { document.setMode(value) }
+            else if value.isEmpty && !isAccessSource { document.remove(section, key) }
+            else { document.set(section, key, value) }
             rawText = document.text
             issue = nil
         })
@@ -259,7 +330,7 @@ struct EditorView: View {
 
     private func switchTo(_ target: EditorTab) {
         if tab == .raw && target != .raw {
-            do { document = try ConfigDocument(rawText); issue = nil }
+            do { document = try ConfigDocument(rawText); selectedRule = nil; issue = nil }
             catch { issue = model.t("Fix the raw config before switching to the form"); return }
         }
         tab = target

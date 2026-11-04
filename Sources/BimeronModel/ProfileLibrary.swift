@@ -93,6 +93,7 @@ public actor ProfileLibrary {
         var document = try ConfigDocument(data: data)
         if document.name.isEmpty { document.set("Profile", "Name", original.deletingPathExtension().lastPathComponent) }
         try document.inlineFile(relativeTo: original)
+        document.resolveFileReferences(relativeTo: original)
         return try add(document)
     }
 

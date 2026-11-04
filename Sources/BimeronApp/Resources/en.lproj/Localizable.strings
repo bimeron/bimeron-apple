@@ -144,3 +144,37 @@
 "Enable beta Core updates" = "Enable beta Core updates";
 "Save diagnostics report…" = "Save diagnostics report…";
 "Russian" = "Russian";
+"Paste an access link" = "Paste an access link";
+"Supported protocols" = "Supported protocols";
+"Protocol" = "Protocol";
+"Show access key" = "Show access key";
+"The complete link is preserved, including transport and security parameters." = "The complete link is preserved, including transport and security parameters.";
+"Only basic checks are available. Core validation and connections are not integrated." = "Only basic checks are available. Core validation and connections are not integrated.";
+"Plugin" = "Plugin";
+"Plugin options" = "Plugin options";
+"CONNECT-UDP path" = "CONNECT-UDP path";
+"CA certificate file" = "CA certificate file";
+"SSH identity file" = "SSH identity file";
+"SSH known_hosts file" = "SSH known_hosts file";
+"Choose file…" = "Choose file…";
+"SSH requires a trusted known_hosts entry. Password prompts will be available after Core integration." = "SSH requires a trusted known_hosts entry. Password prompts will be available after Core integration.";
+"Enable ShadowTLS wrapper" = "Enable ShadowTLS wrapper";
+"ShadowTLS requires a compatible encrypted TCP upstream. Core must validate the combination." = "ShadowTLS requires a compatible encrypted TCP upstream. Core must validate the combination.";
+"TCP-only upstream: in VPN mode, DNS uses TCP and other proxied UDP is dropped." = "TCP-only upstream: in VPN mode, DNS uses TCP and other proxied UDP is dropped.";
+"Hysteria2 UDP relay depends on server permissions. QUIC fingerprint options stay in the link." = "Hysteria2 UDP relay depends on server permissions. QUIC fingerprint options stay in the link.";
+"TUIC v5 supports stream-mode UDP relay; QUIC datagram mode is not supported." = "TUIC v5 supports stream-mode UDP relay; QUIC datagram mode is not supported.";
+"Dynamic keys are fetched by Core at start or reconnect, not periodically during a healthy connection." = "Dynamic keys are fetched by Core at start or reconnect, not periodically during a healthy connection.";
+"Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation." = "Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation.";
+"VLESS supports TCP, WebSocket, gRPC and XHTTP. Extended XHTTP settings can remain in the link or raw config." = "VLESS supports TCP, WebSocket, gRPC and XHTTP. Extended XHTTP settings can remain in the link or raw config.";
+"VMess AEAD settings are stored in the complete vmess:// link, including its encoded JSON." = "VMess AEAD settings are stored in the complete vmess:// link, including its encoded JSON.";
+"VPN domain rules depend on Core-observed DNS. DoH, cached DNS and direct IP connections may not match them." = "VPN domain rules depend on Core-observed DNS. DoH, cached DNS and direct IP connections may not match them.";
+"Tunnel interface, MTU and IPv6 controls apply to VPN mode only." = "Tunnel interface, MTU and IPv6 controls apply to VPN mode only.";
+"On macOS, the system assigns utunN; the interface name is a logical label." = "On macOS, the system assigns utunN; the interface name is a logical label.";
+"SSH private key file (optional)" = "SSH private key file (optional)";
+"No file selected" = "No file selected";
+
+"SSH known_hosts file (optional)" = "SSH known_hosts file (optional)";
+
+"File path" = "File path";
+
+"Use default" = "Use default";

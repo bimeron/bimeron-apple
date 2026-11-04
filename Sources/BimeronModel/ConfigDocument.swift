@@ -22,46 +22,24 @@ public struct ConfigDocument: Equatable, Sendable {
     public var text: String { lines.joined(separator: "\n") }
     public var name: String { value("Profile", "Name") ?? "" }
     public var mode: String { value("Interface", "Mode") ?? "vpn" }
+    private static let sourceKeys = AccessProtocol.allCases.map(\.rawValue) + ["Key", "File"]
     public var source: String {
-        for key in ["SS", "SSConf", "SOCKS5", "VLESS", "Trojan", "Key", "File"] {
+        for key in Self.sourceKeys {
             if value("AccessKey", key) != nil { return key }
         }
         return value("AccessKey", "Type") ?? "explicit"
     }
     public var accessKey: String { value("AccessKey", source) ?? "" }
-    public var protocolName: String {
-        switch source {
-        case "SS", "shadowsocks": "Shadowsocks"
-        case "SSConf": "Shadowsocks ⟳"
-        case "SOCKS5", "socks5": "SOCKS5"
-        case "VLESS", "vless": "VLESS"
-        case "Trojan", "trojan": "Trojan"
-        case "Key": Self.protocolName(for: accessKey)
-        default: "Config"
-        }
+    public var isExplicit: Bool { value("AccessKey", "Type") != nil }
+    public var accessProtocol: AccessProtocol? {
+        if let type = value("AccessKey", "Type") { return AccessProtocol(explicitType: type) }
+        if source == "Key" { return AccessProtocol(key: accessKey) }
+        return AccessProtocol(rawValue: source)
     }
-
-    public var vlessDetails: [(String, String)] {
-        guard source == "VLESS" || (source == "Key" && protocolName == "VLESS"),
-              let url = URLComponents(string: accessKey) else { return [] }
-        var fields: [(String, String)] = []
-        if let host = url.host { fields.append(("Server", host + (url.port.map { ":\($0)" } ?? ""))) }
-        if let user = url.user { fields.append(("ID", user)) }
-        for item in url.queryItems ?? [] {
-            fields.append((item.name, item.value ?? ""))
-        }
-        return fields
-    }
+    public var protocolName: String { accessProtocol?.title ?? "Config" }
 
     public static func protocolName(for key: String) -> String {
-        switch key.components(separatedBy: "://").first?.lowercased() {
-        case "ss": "Shadowsocks"
-        case "ssconf": "Shadowsocks ⟳"
-        case "socks5": "SOCKS5"
-        case "vless": "VLESS"
-        case "trojan": "Trojan"
-        default: "Config"
-        }
+        AccessProtocol(key: key)?.title ?? "Config"
     }
 
     public static func new(name: String, key: String) throws -> Self {
@@ -69,7 +47,7 @@ public struct ConfigDocument: Equatable, Sendable {
         try validateKey(key)
         var doc = try Self("[Profile]\nVersion = 1\n\n[AccessKey]\n\n[Interface]\nMode = vpn\nName = Bimeron\nMTU = 1420\nDNS = 1.1.1.1\nIPv6 = disable\nKillSwitch = false\n\n[Routing]\nDefault = proxy\n")
         doc.set("Profile", "Name", name)
-        let source = ["ss": "SS", "ssconf": "SSConf", "socks5": "SOCKS5", "vless": "VLESS", "trojan": "Trojan"][key.components(separatedBy: "://")[0].lowercased()] ?? "Key"
+        let source = AccessProtocol(key: key)?.rawValue ?? "Key"
         doc.set("AccessKey", source, key)
         try doc.validateLocally()
         return doc
@@ -103,6 +81,47 @@ public struct ConfigDocument: Equatable, Sendable {
         }
     }
 
+    public func hasSection(_ section: String) -> Bool { sectionRange(section) != nil }
+
+    public mutating func remove(_ section: String, _ key: String) {
+        guard let range = sectionRange(section),
+              let index = range.first(where: { (try? Self.pair(lines[$0]))?.0 == key }) else { return }
+        lines.remove(at: index)
+    }
+
+    public mutating func removeSection(_ section: String) {
+        if let range = sectionRange(section) { lines.removeSubrange(range) }
+    }
+
+    public mutating func setMode(_ mode: String) {
+        set("Interface", "Mode", mode)
+        if mode == "proxy" {
+            // Core rejects IPv6 blocking and kill switch protection in proxy mode.
+            remove("Interface", "IPv6")
+            remove("Interface", "KillSwitch")
+        }
+    }
+
+    /// Preserve local file references when the imported profile moves into the library.
+    public mutating func resolveFileReferences(relativeTo original: URL) {
+        func absolute(_ path: String) -> String {
+            let expanded = (path as NSString).expandingTildeInPath
+            return expanded.hasPrefix("/") ? expanded : original.deletingLastPathComponent().appending(path: expanded).standardizedFileURL.path
+        }
+        for key in ["IdentityFile", "KnownHostsFile", "CAFile"] {
+            if let path = value("AccessKey", key), !path.isEmpty { set("AccessKey", key, absolute(path)) }
+        }
+        // Overrides preserve the original SSH URI bytes, including percent encoding.
+        if accessProtocol == .ssh, let url = URLComponents(string: accessKey) {
+            for (query, key) in [("identity", "IdentityFile"), ("known_hosts", "KnownHostsFile")] {
+                if value("AccessKey", key) == nil,
+                   let path = url.queryItems?.first(where: { $0.name == query })?.value, !path.isEmpty {
+                    set("AccessKey", key, absolute(path))
+                }
+            }
+        }
+    }
+
     public mutating func inlineFile(relativeTo original: URL) throws {
         guard let path = value("AccessKey", "File") else { return }
         let url = path.hasPrefix("/") ? URL(fileURLWithPath: path) : original.deletingLastPathComponent().appending(path: path)
@@ -131,13 +150,18 @@ public struct ConfigDocument: Equatable, Sendable {
         guard value("Profile", "Version") == "1" else { throw ProfileError.invalid("Version") }
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
-        let sources = ["SS", "SSConf", "SOCKS5", "VLESS", "Trojan", "Key", "File"].filter { value("AccessKey", $0) != nil }
+        let sources = Self.sourceKeys.filter { value("AccessKey", $0) != nil }
         let explicit = value("AccessKey", "Type") != nil || value("AccessKey", "Server") != nil
         guard sources.count + (explicit ? 1 : 0) == 1 else { throw ProfileError.invalid("AccessKey") }
         // Managed profiles have no stable link to the original import directory.
         if sources.contains("File") { throw ProfileError.invalid("AccessKey.File") }
-        if let source = sources.first, source != "File" { try Self.validateKey(value("AccessKey", source) ?? "") }
+        if let source = sources.first, source != "File" {
+            let key = value("AccessKey", source) ?? ""
+            try Self.validateKey(key)
+            if source != "Key", AccessProtocol(key: key)?.rawValue != source { throw ProfileError.invalid("AccessKey.\(source)") }
+        }
         if explicit {
+            guard let type = value("AccessKey", "Type"), AccessProtocol(explicitType: type) != nil else { throw ProfileError.invalid("AccessKey.Type") }
             guard !(value("AccessKey", "Server") ?? "").isEmpty else { throw ProfileError.missing("Server") }
             guard let port = Int(value("AccessKey", "Port") ?? ""), (1...65535).contains(port) else { throw ProfileError.invalid("Port") }
         }
@@ -154,6 +178,11 @@ public struct ConfigDocument: Equatable, Sendable {
         if let ipv6 = value("Interface", "IPv6"), !["enable", "disable"].contains(ipv6) { throw ProfileError.invalid("IPv6") }
         if let kill = value("Interface", "KillSwitch"), !["true", "false"].contains(kill) { throw ProfileError.invalid("KillSwitch") }
         if let action = value("Routing", "Default"), !["proxy", "direct", "block"].contains(action) { throw ProfileError.invalid("Routing.Default") }
+        if hasSection("ShadowTLS") {
+            for key in ["ServerName", "Password"] {
+                guard !(value("ShadowTLS", key) ?? "").isEmpty else { throw ProfileError.missing("ShadowTLS.\(key)") }
+            }
+        }
         for rule in rules {
             if !rule.enabled { continue }
             guard ["proxy", "direct", "block"].contains(rule.action), !rule.destination.trimmingCharacters(in: .whitespaces).isEmpty else { throw ProfileError.invalid("Rule") }
@@ -174,7 +203,7 @@ public struct ConfigDocument: Equatable, Sendable {
 
     public static func validateKey(_ key: String) throws {
         let scheme = key.components(separatedBy: "://")
-        guard scheme.count >= 2, ["ss", "ssconf", "socks5", "vless", "trojan"].contains(scheme[0].lowercased()),
+        guard scheme.count >= 2, AccessProtocol(key: key) != nil,
               !scheme.dropFirst().joined(separator: "://").isEmpty,
               !key.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
               !key.contains(where: { $0.isWhitespace }) else { throw ProfileError.invalid("AccessKey") }

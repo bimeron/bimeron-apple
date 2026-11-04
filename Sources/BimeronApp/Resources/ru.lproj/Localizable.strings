@@ -144,3 +144,37 @@
 "Enable beta Core updates" = "Включить бета-обновления Core";
 "Save diagnostics report…" = "Сохранить отчёт диагностики…";
 "Russian" = "Русский";
+"Paste an access link" = "Вставьте ссылку доступа";
+"Supported protocols" = "Поддерживаемые протоколы";
+"Protocol" = "Протокол";
+"Show access key" = "Показать ключ доступа";
+"The complete link is preserved, including transport and security parameters." = "Ссылка сохраняется целиком, включая параметры транспорта и безопасности.";
+"Only basic checks are available. Core validation and connections are not integrated." = "Доступна базовая проверка. Проверка через Core и подключения пока не реализованы.";
+"Plugin" = "Плагин";
+"Plugin options" = "Параметры плагина";
+"CONNECT-UDP path" = "Путь CONNECT-UDP";
+"CA certificate file" = "Файл сертификата CA";
+"SSH identity file" = "Файл ключа SSH";
+"SSH known_hosts file" = "Файл known_hosts SSH";
+"Choose file…" = "Выбрать файл…";
+"SSH requires a trusted known_hosts entry. Password prompts will be available after Core integration." = "SSH требует доверенную запись в known_hosts. Запрос пароля станет доступен после интеграции с Core.";
+"Enable ShadowTLS wrapper" = "Включить обёртку ShadowTLS";
+"ShadowTLS requires a compatible encrypted TCP upstream. Core must validate the combination." = "ShadowTLS требует совместимый зашифрованный TCP-протокол. Совместимость должен проверить Core.";
+"TCP-only upstream: in VPN mode, DNS uses TCP and other proxied UDP is dropped." = "Протокол поддерживает только TCP: в режиме VPN DNS передаётся через TCP, остальной UDP через прокси отбрасывается.";
+"Hysteria2 UDP relay depends on server permissions. QUIC fingerprint options stay in the link." = "Передача UDP через Hysteria2 зависит от разрешений сервера. Параметры отпечатка QUIC сохраняются в ссылке.";
+"TUIC v5 supports stream-mode UDP relay; QUIC datagram mode is not supported." = "TUIC v5 передаёт UDP через потоки QUIC; режим QUIC datagram не поддерживается.";
+"Dynamic keys are fetched by Core at start or reconnect, not periodically during a healthy connection." = "Core загружает динамический ключ при запуске или переподключении. Во время стабильного соединения периодического обновления нет.";
+"Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation." = "Плагины Shadowsocks поддерживают только TCP. Длину ключей SS2022 и совместимость плагинов должен проверить Core.";
+"VLESS supports TCP, WebSocket, gRPC and XHTTP. Extended XHTTP settings can remain in the link or raw config." = "VLESS поддерживает TCP, WebSocket, gRPC и XHTTP. Расширенные настройки XHTTP можно оставить в ссылке или тексте конфигурации.";
+"VMess AEAD settings are stored in the complete vmess:// link, including its encoded JSON." = "Настройки VMess AEAD хранятся в полной ссылке vmess://, включая закодированный JSON.";
+"VPN domain rules depend on Core-observed DNS. DoH, cached DNS and direct IP connections may not match them." = "Доменные правила VPN зависят от DNS, который обрабатывает Core. DoH, кэш DNS и подключения по IP могут не соответствовать этим правилам.";
+"Tunnel interface, MTU and IPv6 controls apply to VPN mode only." = "Настройки туннельного интерфейса, MTU и IPv6 применяются только в режиме VPN.";
+"On macOS, the system assigns utunN; the interface name is a logical label." = "В macOS система назначает имя utunN; имя интерфейса служит логической меткой.";
+"SSH private key file (optional)" = "Файл приватного ключа SSH (необязательно)";
+"No file selected" = "Файл не выбран";
+
+"SSH known_hosts file (optional)" = "Файл known_hosts SSH (необязательно)";
+
+"File path" = "Путь к файлу";
+
+"Use default" = "Использовать";
