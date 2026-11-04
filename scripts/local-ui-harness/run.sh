@@ -35,6 +35,11 @@ s=open(p).read(); s='\n'.join(l for l in s.splitlines() if '.testTarget(' not in
 open(p,'w').write(s+'\n')
 PY
 swift build --package-path "$ROOT/package" --scratch-path "$ROOT/build" --disable-automatic-resolution > "$ROOT/evidence/build.log" 2>&1
+# Compile unchanged copied views without launching AppKit or requiring AX trust.
+if [[ "${HARNESS_BUILD_ONLY:-0}" = 1 ]]; then
+  printf 'Build-only evidence: %s/evidence\n' "$ROOT"
+  exit 0
+fi
 cat > "$ROOT/mock-validate" <<'MOCK'
 #!/bin/sh
 [ "$1" = validate ] || exit 92

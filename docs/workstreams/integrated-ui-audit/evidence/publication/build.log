@@ -1,0 +1,69 @@
+Building for debugging...
+[0/16] Write sources
+[0/16] Write Bimeron-entitlement.plist
+[0/16] Write sources
+[2/16] Copying Localizable.strings
+[2/16] Copying menu-disconnected-44.png
+[5/16] Copying bimeron.icns
+[5/16] Copying Info.plist
+[7/16] Write sources
+[9/16] Copying blue-64.png
+[9/16] Copying Localizable.strings
+[11/16] Write sources
+[12/16] Write swift-version--58304C5D6DBC2206.txt
+[14/42] Compiling BimeronCoreCLI CLIOutput.swift
+[15/42] Compiling BimeronModel ProfileError.swift
+[16/43] Compiling BimeronModel RoutingRule.swift
+[17/43] Compiling BimeronCoreCLI CLIBuildInfo.swift
+[18/43] Compiling BimeronModel ProtocolDrafts.swift
+[19/43] Compiling BimeronModel ProfileInput.swift
+[20/43] Compiling BimeronModel EditorProtocol.swift
+[21/43] Compiling BimeronModel EditorSaveError.swift
+[22/43] Compiling BimeronCoreCLI CoreCLIError.swift
+[23/43] Compiling BimeronCoreCLI CLIPlatformCapabilities.swift
+[24/43] Emitting module BimeronModel
+[25/43] Compiling BimeronModel AccessProtocol.swift
+[26/43] Compiling BimeronModel ConfigDocument.swift
+[27/43] Compiling BimeronSSHAuth SSHFilePreflight.swift
+[28/43] Emitting module BimeronSSHAuth
+[29/43] Compiling BimeronSSHAuth SSHAuth.swift
+[30/43] Compiling BimeronModel StoredProfile.swift
+[31/43] Compiling BimeronModel ProfileLibrary.swift
+[32/43] Compiling BimeronDaemon DaemonSocketTransport.swift
+[33/43] Compiling BimeronDaemon DaemonLifecycle.swift
+[34/43] Compiling BimeronDaemon DaemonClient.swift
+[35/43] Emitting module BimeronDaemon
+[36/43] Compiling BimeronDaemon DaemonProtocol.swift
+[37/43] Compiling BimeronCoreCLI CapturedStream.swift
+[38/43] Compiling BimeronCoreCLI CoreCLI.swift
+[39/43] Compiling BimeronCoreCLI AppleCoreRelease.swift
+[40/43] Emitting module BimeronCoreCLI
+[41/65] Emitting module BimeronApp
+[42/68] Compiling BimeronApp ProtocolField.swift
+[43/68] Compiling BimeronApp SettingsView.swift
+[44/68] Compiling BimeronApp resource_bundle_accessor.swift
+[45/68] Compiling BimeronApp DiagnosticSnapshot.swift
+[46/68] Compiling BimeronApp EditorTab.swift
+[47/68] Compiling BimeronApp EditorView.swift
+[48/68] Compiling BimeronApp MenuBarContent.swift
+[49/68] Compiling BimeronApp Page.swift
+[50/68] Compiling BimeronApp ProfilesView.swift
+[51/68] Compiling BimeronApp AppPalette.swift
+[52/68] Compiling BimeronApp ConfigTextEditor.swift
+[53/68] Compiling BimeronApp DiagnosticEvent.swift
+[54/68] Compiling BimeronApp LogEntry.swift
+[55/68] Compiling BimeronApp LogView.swift
+[56/68] Compiling BimeronApp MainWindow.swift
+[57/68] Compiling BimeronApp AboutView.swift
+[58/68] Compiling BimeronApp AddProfileView.swift
+[59/68] Compiling BimeronApp AppModel.swift
+[60/68] Compiling BimeronApp DiagnosticExportView.swift
+[61/68] Compiling BimeronApp DiagnosticHistory.swift
+[62/68] Compiling BimeronApp DiagnosticLifecycleAdapter.swift
+[63/68] Compiling BimeronApp Harness.swift
+[64/68] Compiling BimeronApp Localization.swift
+[65/68] Compiling BimeronApp LogDocument.swift
+[65/68] Write Objects.LinkFileList
+[66/68] Linking Bimeron
+[67/68] Applying Bimeron
+Build complete! (27.92s)
