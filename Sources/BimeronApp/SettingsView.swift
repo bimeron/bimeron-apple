@@ -5,6 +5,8 @@ struct SettingsView: View {
     @Bindable var model: AppModel
     let quit: () -> Void
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showCoreConsent = false
+    @State private var showCorePicker = false
     @State private var exportSnapshot: DiagnosticSnapshot?
 
     var body: some View {
@@ -88,6 +90,21 @@ struct SettingsView: View {
                 .background(AppPalette.surface(colorScheme), in: RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(AppPalette.border(colorScheme)))
 
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(model.t("Session Core executable")).font(.headline)
+                    Text(model.coreSelectionStatus)
+                    Text(model.t("Session only. Metadata is untrusted and does not approve installation or service readiness."))
+                        .foregroundStyle(.secondary)
+                    HStack {
+                        Button(model.t("Select executable…")) { showCoreConsent = true }
+                        Button(model.t("Reset to default")) { model.resetCoreExecutable() }
+                        if case .probing = model.coreSelection {
+                            Button(model.t("Cancel check")) { model.cancelCoreProbe() }
+                        }
+                    }
+                    .disabled(model.validationBusy)
+                }
+
                 HStack {
                     Button { exportSnapshot = model.diagnosticSnapshot() } label: {
                         Text(model.t("Save diagnostics report…"))
@@ -115,6 +132,13 @@ struct SettingsView: View {
             .padding(.bottom, 28)
             .padding(.top, 27)
             .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+        .confirmationDialog(model.t("Allow executing the file you select for version, capabilities, and configuration validation?"),
+                            isPresented: $showCoreConsent, titleVisibility: .visible) {
+            Button(model.t("Choose and allow execution…")) { showCorePicker = true }
+        }
+        .fileImporter(isPresented: $showCorePicker, allowedContentTypes: [.item]) { result in
+            if case .success(let url) = result { model.selectCoreExecutable(url) }
         }
         .sheet(item: $exportSnapshot) { snapshot in
             DiagnosticExportView(model: model, snapshot: snapshot)

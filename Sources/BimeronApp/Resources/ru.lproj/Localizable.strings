@@ -242,3 +242,16 @@
 "Include raw Core and user text" = "Включить исходный текст Core и пользователя";
 "Raw text may contain passwords, keys, links, paths, or other sensitive data. Review it before saving; no redaction is performed." = "Исходный текст может содержать пароли, ключи, ссылки, пути и другие конфиденциальные данные. Проверьте его перед сохранением: данные не скрываются.";
 "Save reviewed snapshot…" = "Сохранить проверенный снимок…";
+
+// Session-only development Core selection.
+"Core: default resolver" = "Core: резолвер по умолчанию";
+"Core: checking selected file" = "Core: проверка выбранного файла";
+"Core: UNTRUSTED development compatibility" = "Core: НЕДОВЕРЕННАЯ совместимость для разработки";
+"Core: selection failed; reselect or reset" = "Core: ошибка выбора; выберите снова или сбросьте";
+"Session Core executable" = "Исполняемый файл Core для сеанса";
+"Session only. Metadata is untrusted and does not approve installation or service readiness." = "Только для сеанса. Метаданные недоверенные и не подтверждают допустимость установки или готовность службы.";
+"Select executable…" = "Выбрать исполняемый файл…";
+"Reset to default" = "Сбросить к значению по умолчанию";
+"Cancel check" = "Отменить проверку";
+"Allow executing the file you select for version, capabilities, and configuration validation?" = "Разрешить выполнение выбранного файла для получения версии, возможностей и проверки конфигурации?";
+"Choose and allow execution…" = "Выбрать и разрешить выполнение…";

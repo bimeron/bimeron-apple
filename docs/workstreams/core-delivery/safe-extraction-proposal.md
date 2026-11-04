@@ -1,5 +1,7 @@
 # Safe Core archive staging proposal
 
+Implementation update: option A and its verifier-owned evidence envelope were approved after the memory discussion and are implemented under issue #31. See [the current contract](authenticated-staging.md). The status and decision wording below records the earlier proposal, not the current implementation authorization.
+
 Status: local design for discussion through main; no production extractor or acceptance authorization. Signature, independent key pin, candidate approval, reviewed compatibility, archive hash and static checks must all succeed first. Their absent production configuration remains closed. Staging is unprivileged and never executes archive content.
 
 ## Local issue and scope
