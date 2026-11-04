@@ -1,0 +1,2 @@
+PASS: 26 scenarios, 29 fixture files; offline integrity only
+PASS: rejected byte corruption, missing coverage, and unsafe lifecycle expectation
