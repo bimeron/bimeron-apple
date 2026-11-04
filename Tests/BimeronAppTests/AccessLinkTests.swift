@@ -14,11 +14,12 @@ import Testing
     #expect(!AddProfileView.accepts("wireguard://example.com"))
 }
 
-@Test @MainActor func addingSSHProfilePersistsOnlyTheOptionalIdentityPath() async throws {
+@Test @MainActor func addingSSHProfilePersistsOnlyTheOptionalFilePaths() async throws {
     let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
     let identity = directory.appending(path: "private key")
+    let knownHosts = directory.appending(path: "known_hosts")
     let contents = Data("placeholder private key contents".utf8)
     try contents.write(to: identity)
     let suite = "BimeronSSHAddTests-" + UUID().uuidString
@@ -27,15 +28,21 @@ import Testing
     let library = ProfileLibrary(directory: directory.appending(path: "profiles"))
     let model = AppModel(library: library, defaults: defaults)
 
-    #expect(await model.add(name: "SSH with identity", key: "ssh://alice@example.com:22", sshIdentityFile: identity))
+    #expect(await model.add(name: "SSH with identity", key: "ssh://alice@example.com:22", sshIdentityFile: identity, sshKnownHostsFile: knownHosts))
     let saved = try #require(try await library.load().profiles.first)
     #expect(saved.document.value("AccessKey", "IdentityFile") == identity.path)
+    #expect(saved.document.value("AccessKey", "KnownHostsFile") == knownHosts.path)
     #expect(saved.document.accessKey == "ssh://alice@example.com:22")
     #expect(!saved.document.text.contains("placeholder private key contents"))
     #expect(try Data(contentsOf: identity) == contents)
 
     #expect(await model.add(name: "SSH without identity", key: "ssh://alice@example.com:22"))
     #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
-    #expect(await model.add(name: "Other protocol", key: "trojan://password@example.com:443", sshIdentityFile: identity))
+    #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == nil)
+    #expect(await model.add(name: "SSH with known hosts only", key: "ssh://alice@example.com:22", sshKnownHostsFile: knownHosts))
+    #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == knownHosts.path)
     #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
+    #expect(await model.add(name: "Other protocol", key: "trojan://password@example.com:443", sshIdentityFile: identity, sshKnownHostsFile: knownHosts))
+    #expect(model.selected?.document.value("AccessKey", "IdentityFile") == nil)
+    #expect(model.selected?.document.value("AccessKey", "KnownHostsFile") == nil)
 }

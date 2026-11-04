@@ -29,7 +29,7 @@ import Testing
     for key in ["Profiles", "Settings", "Error", "Profile added", "Russian", "Protocol",
                 "Paste an access link", "Supported protocols", "Show access key", "Choose file…",
                 "SSH identity file", "SSH known_hosts file", "Enable ShadowTLS wrapper", "Plugin options",
-                "CA certificate file", "CONNECT-UDP path", "SSH private key file (optional)", "No file selected",
+                "CA certificate file", "CONNECT-UDP path", "SSH private key file (optional)", "No file selected", "SSH known_hosts file (optional)",
                 "Only basic checks are available. Core validation and connections are not integrated."] {
         #expect(Localization.text(key, language: "en") == key)
         #expect(Localization.text(key, language: "ru") != key)

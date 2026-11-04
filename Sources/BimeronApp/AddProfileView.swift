@@ -15,6 +15,7 @@ struct AddProfileView: View {
     @State private var clipboardKey: String?
     @State private var pasteboardChangeCount = -1
     @State private var sshIdentityFile: URL?
+    @State private var sshKnownHostsFile: URL?
 
     private var validKey: Bool { Self.accepts(key) }
     private var isSSH: Bool { AccessProtocol(key: key.trimmingCharacters(in: .whitespacesAndNewlines)) == .ssh }
@@ -57,19 +58,8 @@ struct AddProfileView: View {
             }
 
             if isSSH {
-                Text(model.t("SSH private key file (optional)"))
-                HStack {
-                    Text(sshIdentityFile?.lastPathComponent ?? model.t("No file selected"))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .help(sshIdentityFile?.path ?? "")
-                    Spacer()
-                    Button(model.t("Choose file…"), action: chooseSSHIdentityFile)
-                    if sshIdentityFile != nil {
-                        Button(model.t("Remove")) { sshIdentityFile = nil }
-                    }
-                }
+                sshFilePicker("SSH known_hosts file (optional)", selection: $sshKnownHostsFile)
+                sshFilePicker("SSH private key file (optional)", selection: $sshIdentityFile)
             }
 
             if let issue { Text(issue).font(.subheadline).foregroundStyle(.red) }
@@ -80,7 +70,8 @@ struct AddProfileView: View {
                     guard canSave else { return }
                     busy = true
                     Task {
-                        if await model.add(name: name, key: key, sshIdentityFile: isSSH ? sshIdentityFile : nil) { dismiss() }
+                        if await model.add(name: name, key: key, sshIdentityFile: isSSH ? sshIdentityFile : nil,
+                                           sshKnownHostsFile: isSSH ? sshKnownHostsFile : nil) { dismiss() }
                         else {
                             issue = model.alertMessage
                             model.alertMessage = nil
@@ -115,14 +106,34 @@ struct AddProfileView: View {
         return (try? ConfigDocument.validateKey(key)) != nil
     }
 
-    private func chooseSSHIdentityFile() {
+    private func sshFilePicker(_ title: String, selection: Binding<URL?>) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(model.t(title))
+            HStack {
+                Text(selection.wrappedValue?.lastPathComponent ?? model.t("No file selected"))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help(selection.wrappedValue?.path ?? "")
+                Spacer()
+                Button(model.t("Choose file…")) { chooseSSHFile(selection) }
+                if selection.wrappedValue != nil {
+                    Button(model.t("Remove")) { selection.wrappedValue = nil }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(model.t(title))
+    }
+
+    private func chooseSSHFile(_ selection: Binding<URL?>) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         panel.showsHiddenFiles = true
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh", directoryHint: .isDirectory)
         panel.begin { response in
-            if response == .OK { sshIdentityFile = panel.url }
+            if response == .OK { selection.wrappedValue = panel.url }
         }
     }
 

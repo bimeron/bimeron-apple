@@ -21,8 +21,8 @@ SSH, and TUIC v5. These are editable profile formats; this app does not yet
 connect through them.
 
 When a supported link is entered, the profile name appears above the link. SSH
-links also reveal an optional private-key file picker below it; only the file
-path is stored in the profile, not the private-key contents.
+links also reveal optional file pickers for known_hosts and the private key, in
+that order. Only file paths are stored in the profile, not file contents.
 
 The Protocol tab edits complete links without decoding and rewriting their
 parameters. This preserves encoded VMess JSON, QUIC options, and extended

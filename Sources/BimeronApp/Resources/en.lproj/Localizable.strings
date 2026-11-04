@@ -172,3 +172,5 @@
 "On macOS, the system assigns utunN; the interface name is a logical label." = "On macOS, the system assigns utunN; the interface name is a logical label.";
 "SSH private key file (optional)" = "SSH private key file (optional)";
 "No file selected" = "No file selected";
+
+"SSH known_hosts file (optional)" = "SSH known_hosts file (optional)";

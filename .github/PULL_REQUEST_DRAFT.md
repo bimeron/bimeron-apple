@@ -8,7 +8,9 @@ clipboard detection, import, labeling, and editing now share the current access
 source/scheme catalog. Complete links retain their encoded settings, while
 explicit profiles expose protocol-specific fields for Shadowsocks plugins,
 VLESS/Trojan transports, HTTP(S), MASQUE, NaiveProxy, and SSH. Optional ShadowTLS
-settings and SSH/CA file pickers are available in the Protocol tab.
+settings and SSH/CA file pickers are available in the Protocol tab. The add
+dialog offers optional known_hosts and private-key file pickers for SSH, with
+known_hosts above the private key.
 
 Import converts referenced local file paths to absolute paths without copying
 private keys or rewriting SSH URI bytes. Form edits preserve unknown fields,
