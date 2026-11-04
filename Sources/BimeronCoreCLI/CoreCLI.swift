@@ -6,6 +6,29 @@ public struct CoreCLI: Sendable {
     public let timeout: Duration
     public let outputLimit: Int
 
+    private var argumentPrefix: [String] = []
+
+    internal var observer: (@Sendable (Observation) -> Void)?
+
+    // Observation times include synchronous collector delay; exitObserved is not the true exit time.
+    internal enum Observation: Sendable, Equatable {
+        case launchBegin(Duration), launchReturned(Duration)
+        case poll(Duration, running: Bool, stdoutEOF: Bool, stderrEOF: Bool)
+        case deadline(Duration, cancelled: Bool, timedOut: Bool)
+        case exitObserved(Duration)
+        case finished(Duration)
+    }
+
+    internal init(executableURL: URL, timeout: Duration, observer: @escaping @Sendable (Observation) -> Void) {
+        self.init(executableURL: executableURL, timeout: timeout)
+        self.observer = observer
+    }
+
+    internal init(testShellScript: URL, timeout: Duration) {
+        self.init(executableURL: URL(fileURLWithPath: "/bin/sh"), timeout: timeout)
+        argumentPrefix = [testShellScript.path]
+    }
+
     public init(executableURL: URL, timeout: Duration = .seconds(10), outputLimit: Int = 1_048_576) {
         precondition(timeout > .zero && outputLimit > 0)
         self.executableURL = executableURL
@@ -45,7 +68,7 @@ public struct CoreCLI: Sendable {
         let stdout = Pipe()
         let stderr = Pipe()
         process.executableURL = executableURL
-        process.arguments = arguments
+        process.arguments = argumentPrefix + arguments
         process.standardInput = FileHandle.nullDevice
         process.standardOutput = stdout
         process.standardError = stderr
@@ -58,6 +81,13 @@ public struct CoreCLI: Sendable {
         var out = CapturedStream(fd: stdout.fileHandleForReading.fileDescriptor, limit: outputLimit)
         var err = CapturedStream(fd: stderr.fileHandleForReading.fileDescriptor, limit: outputLimit)
         let clock = ContinuousClock()
+        let observationStart = observer == nil ? nil : clock.now
+        func observe(at instant: ContinuousClock.Instant? = nil, _ event: (Duration) -> Observation) {
+            if let observer, let observationStart {
+                observer(event(observationStart.duration(to: instant ?? clock.now)))
+            }
+        }
+        defer { observe { .finished($0) } }
         var stoppedAt: ContinuousClock.Instant?
         var exitedAt: ContinuousClock.Instant?
         var cancelled = false
@@ -67,13 +97,16 @@ public struct CoreCLI: Sendable {
             try out.makeNonblocking()
             try err.makeNonblocking()
             if Task.isCancelled { throw CancellationError() }
+            observe { .launchBegin($0) }
             try process.run()
         } catch is CancellationError {
             throw CoreCLIError.cancelled(output: Self.output(out, err))
         } catch {
             throw CoreCLIError.launch(executable: executableURL, message: error.localizedDescription)
         }
-        let deadline = clock.now.advanced(by: timeout)
+        let launchedAt = clock.now
+        let deadline = launchedAt.advanced(by: timeout)
+        observe(at: launchedAt) { .launchReturned($0) }
         // Close parent writers so EOF is observable after the child closes its descriptors.
         try? stdout.fileHandleForWriting.close()
         try? stderr.fileHandleForWriting.close()
@@ -84,9 +117,11 @@ public struct CoreCLI: Sendable {
             } catch { readFailure = error.localizedDescription }
             let now = clock.now
             let running = process.isRunning
+            observe(at: now) { .poll($0, running: running, stdoutEOF: out.eof, stderrEOF: err.eof) }
             if stoppedAt == nil && (Task.isCancelled || now >= deadline || readFailure != nil) {
                 cancelled = Task.isCancelled
                 timedOut = !cancelled && now >= deadline
+                observe(at: now) { .deadline($0, cancelled: cancelled, timedOut: timedOut) }
                 stoppedAt = now
                 if running { process.terminate() }
             }
@@ -95,7 +130,10 @@ public struct CoreCLI: Sendable {
                 _ = Darwin.kill(process.processIdentifier, SIGKILL)
             }
             if !running {
-                if exitedAt == nil { exitedAt = now }
+                if exitedAt == nil {
+                    exitedAt = now
+                    observe(at: now) { .exitObserved($0) }
+                }
                 if out.eof && err.eof { break }
                 // Descendants may inherit pipes; never wait indefinitely for their EOF.
                 if let exitedAt, now >= exitedAt.advanced(by: .milliseconds(200)) { break }

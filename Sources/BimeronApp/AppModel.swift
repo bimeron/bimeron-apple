@@ -20,6 +20,57 @@ import Observation
     private let defaults: UserDefaults
     let library: ProfileLibrary
     private let coreCLI: CoreCLI?
+    private(set) var coreSelection: SessionCoreSelection = .defaultResolver
+    private(set) var validationBusy = false
+    private var coreProbe: Task<Void, Never>?
+    private var coreProbeGeneration = UUID()
+
+    var coreSelectionStatus: String { t(coreSelection.statusKey) }
+    private var validationCLI: CoreCLI? {
+        switch coreSelection {
+        case .defaultResolver: coreCLI
+        case .compatible(let cli): cli
+        case .probing, .blocked: nil
+        }
+    }
+
+    /// Calling this method confirms consent to execute this candidate for metadata and validation.
+    func selectCoreExecutable(_ url: URL, timeout: Duration = .seconds(10)) {
+        guard !validationBusy else { return }
+        coreProbe?.cancel()
+        let generation = UUID()
+        coreProbeGeneration = generation
+        coreSelection = .probing
+        let cli = CoreCLI(executableURL: url, timeout: timeout, outputLimit: 65_536)
+        coreProbe = Task { [weak self] in
+            do {
+                try await SessionCoreSelection.probe(cli)
+                guard let self, self.coreProbeGeneration == generation, !Task.isCancelled else { return }
+                self.coreSelection = .compatible(cli)
+                self.coreProbe = nil
+            } catch {
+                guard let self, self.coreProbeGeneration == generation else { return }
+                self.coreSelection = .blocked
+                self.coreProbe = nil
+            }
+        }
+    }
+
+    func cancelCoreProbe() {
+        guard !validationBusy else { return }
+        coreProbeGeneration = UUID()
+        coreProbe?.cancel()
+        coreProbe = nil
+        coreSelection = .blocked
+    }
+
+    func resetCoreExecutable() {
+        guard !validationBusy else { return }
+        cancelCoreProbe()
+        coreSelection = .defaultResolver
+    }
+
+    func waitForCoreProbe() async { await coreProbe?.value }
 
     var selected: StoredProfile? { profiles.first { $0.id == selectedID } }
     var canUndoDelete: Bool { !deletedProfiles.isEmpty && !historyBusy }
@@ -71,7 +122,10 @@ import Observation
     }
 
     func create(_ document: ConfigDocument) async -> Bool {
-        guard let coreCLI else {
+        guard !validationBusy else { return false }
+        validationBusy = true
+        defer { validationBusy = false }
+        guard let coreCLI = validationCLI else {
             alertMessage = t("Core validation is unavailable")
             return false
         }
@@ -136,10 +190,14 @@ import Observation
     }
 
     func save(_ profile: StoredProfile, original: StoredProfile) async -> Bool {
+        guard !validationBusy else { return false }
+        validationBusy = true
+        defer { validationBusy = false }
+        let cli = validationCLI
         let attemptID = UUID()
         recordProfileSave(.started, attemptID: attemptID)
         do {
-            guard let coreCLI else {
+            guard let coreCLI = cli else {
                 let message = t("Core validation is unavailable")
                 alertMessage = message
                 recordProfileSave(.unavailable, attemptID: attemptID, message: message)
