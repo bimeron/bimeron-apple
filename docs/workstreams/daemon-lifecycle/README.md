@@ -47,23 +47,27 @@ escaped and casing aliases), malformed JSON, extra lines and incomplete frames a
 
 ## Local checks and dependency boundaries
 
-D commit `f8988b7` is not integrated into this branch. Fixtures are not copied.
-The test adapter reads `fixtures/acceptance` in the repository by default. Missing
-fixtures fail explicitly; they are never skipped or counted as a pass. Local
-checks use the explicit external fixture root:
+Integrated main `d879fd6ba992faaa4fc359bbaeb5fcee8e8a2f88` includes B (#4)
+and merged D (#5). Merge commit `27501da435dfda27a614b934ffbf3135a215d920`
+preserves both modules and their tests. D's fixtures and checker are inherited
+unchanged from main; fixtures are not copied from another worktree.
+The adapter reads repository `fixtures/acceptance` by default. Missing fixtures
+fail explicitly; they are never skipped or counted as a pass. Verify with:
 
 ```sh
-BIMERON_ACCEPTANCE_FIXTURE_ROOT=/Users/wrk/.t3/worktrees/bimeron-macos/test-acceptance-scenarios-fixtures/fixtures/acceptance swift test
+env -u BIMERON_ACCEPTANCE_FIXTURE_ROOT swift test
+python3 fixtures/acceptance/check.py
+sh scripts/build-app.sh
+test -x dist/Bimeron.app/Contents/MacOS/Bimeron
 ```
 
-This proves only local adapter behavior with that external dependency. Default CI
-readiness requires integrating D's commit/fixtures and running the existing macOS
-`swift test` CI job. C does not edit CI or D's docs/fixtures. Core's guard extension
-is committed locally at the pinned revision and must be published in coordination;
-it is not released or remotely CI verified.
-Recheck the final Core contract before integration.
+Default local checks now pass; see check-results.md for exact counts. The merged
+macOS CI workflow runs the same fixture, test, release app build and bundle checks.
+No hosted CI result is claimed. Core's guard extension remains the local, unreleased
+pinned revision above and must be published in coordination; it is not remotely CI
+verified. Recheck the final Core contract before app integration.
 
-All tests use deterministic in-memory observations/exchanges and synthetic bytes.
+Daemon tests use deterministic in-memory observations/exchanges and synthetic bytes.
 They do not connect to the production endpoint, authenticate a live root peer,
 prove privileged socket security, or verify actual utun/routes/DNS cleanup. The
 macOS transport is compiled locally; protected installation/launchd and live
