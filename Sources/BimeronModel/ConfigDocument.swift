@@ -5,21 +5,128 @@ import Darwin
 public struct ConfigDocument: Equatable, Sendable {
     public static let sizeLimit = 65_536
     private var lines: [String]
+    private var bom: String
+    private var newline: String
 
     public init(_ text: String) throws {
         guard text.utf8.count <= Self.sizeLimit else { throw ProfileError.tooLarge }
         let clean = text.hasPrefix("\u{FEFF}") ? String(text.dropFirst()) : text
-        lines = clean.replacing("\r\n", with: "\n").components(separatedBy: "\n")
-        try checkSyntax()
+        bom = text.hasPrefix("\u{FEFF}") ? "\u{FEFF}" : ""
+        newline = clean.first(where: { $0 == "\n" || $0 == "\r\n" }).map(String.init) ?? "\n"
+        lines = []
+        var start = clean.startIndex
+        for index in clean.indices where clean[index] == "\n" || clean[index] == "\r\n" {
+            let end = clean.index(after: index)
+            lines.append(String(clean[start..<end]))
+            start = end
+        }
+        if start < clean.endIndex { lines.append(String(clean[start...])) }
     }
 
     public init(data: Data) throws {
         guard data.count <= Self.sizeLimit else { throw ProfileError.tooLarge }
-        guard let text = String(data: data, encoding: .utf8) else { throw ProfileError.invalidUTF8 }
-        try self.init(text)
+        guard String(data: data, encoding: .utf8) != nil else { throw ProfileError.invalidUTF8 }
+        try self.init(String(decoding: data, as: UTF8.self))
     }
 
-    public var text: String { lines.joined(separator: "\n") }
+    public var text: String {
+        bom + lines.enumerated().map { index, line in
+            index < lines.count - 1 && !(line.hasSuffix("\n") || line.hasSuffix("\r\n")) ? line + newline : line
+        }.joined()
+    }
+
+    private func replacement(_ value: String, for line: String) -> String {
+        value + (line.hasSuffix("\r\n") ? "\r\n" : line.hasSuffix("\n") ? "\n" : "")
+    }
+
+    /// Loading never destroys invalid source; validation still blocks saving it.
+    public var formEditingIssue: String? {
+        do { try checkSyntax() } catch { return "Fix the raw config before switching to the form" }
+        for range in ruleRanges {
+            let enabled = Self.header(lines[range.lowerBound]) != nil
+            let pairs = lines[range.dropFirst()].compactMap { try? Self.pair(enabled ? $0 : Self.uncomment($0)) }
+            for line in lines[range.dropFirst()] {
+                let clean = (enabled ? line : Self.uncomment(line)).trimmingCharacters(in: .whitespacesAndNewlines)
+                if clean.isEmpty || clean.hasPrefix("#") || clean.hasPrefix(";") { continue }
+                if (try? Self.pair(clean)) == nil || !enabled && !line.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("#") {
+                    return "Unsupported routing rules require Raw editing"
+                }
+            }
+            let keys = pairs.map(\.0)
+            if keys.contains(where: { !["Domain", "CIDR", "Action"].contains($0) }) ||
+                Set(keys).count != keys.count || keys.contains("Domain") && keys.contains("CIDR") {
+                return "Unsupported routing rules require Raw editing"
+            }
+        }
+        let shadows = blockRanges("ShadowTLS")
+        if shadows.count > 1 { return "Ambiguous ShadowTLS blocks require Raw editing" }
+        if let range = shadows.first {
+            let disabled = Self.header(lines[range.lowerBound]) == nil
+            var keys = Set<String>()
+            for line in lines[range.dropFirst()] {
+                let clean = disabled ? Self.uncomment(line) : line
+                let trimmed = clean.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.isEmpty || trimmed.hasPrefix("#") || trimmed.hasPrefix(";") { continue }
+                guard let pair = try? Self.pair(clean), ["ServerName", "Password"].contains(pair.0),
+                      keys.insert(pair.0).inserted else {
+                    return "Ambiguous ShadowTLS fields require Raw editing"
+                }
+                if disabled {
+                    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty && !trimmed.hasPrefix("#") {
+                        return "Ambiguous ShadowTLS boundary requires Raw editing"
+                    }
+                }
+            }
+        }
+        return nil
+    }
+
+    public var shadowTLSEnabled: Bool { hasSection("ShadowTLS") }
+    public var hasShadowTLSDraft: Bool { !blockRanges("ShadowTLS").isEmpty }
+
+    public func shadowTLSValue(_ key: String) -> String? {
+        guard let range = blockRanges("ShadowTLS").first else { return nil }
+        let enabled = Self.header(lines[range.lowerBound]) != nil
+        return lines[range.dropFirst()].compactMap { try? Self.pair(enabled ? $0 : Self.uncomment($0)) }
+            .first { $0.0 == key }?.1
+    }
+
+    public mutating func setShadowTLSValue(_ key: String, _ value: String) {
+        guard formEditingIssue == nil, (shadowTLSValue(key) ?? "") != value else { return }
+        let enabled = shadowTLSEnabled
+        if hasShadowTLSDraft && !enabled { setShadowTLSEnabled(true) }
+        if value.isEmpty { remove("ShadowTLS", key) } else { set("ShadowTLS", key, value) }
+        if !enabled { setShadowTLSEnabled(false) }
+    }
+
+    public mutating func setShadowTLSEnabled(_ enabled: Bool) {
+        guard formEditingIssue == nil else { return }
+        guard let range = blockRanges("ShadowTLS").first else {
+            if enabled { lines.append("[ShadowTLS]" + newline) }
+            return
+        }
+        guard enabled != shadowTLSEnabled else { return }
+        if !enabled && ["ServerName", "Password"].allSatisfy({ (shadowTLSValue($0) ?? "").isEmpty }) {
+            // Removing an empty draft must not remove the user's surrounding comments.
+            let comments = lines[range.dropFirst()].filter { (try? Self.pair($0)) == nil }
+            lines.replaceSubrange(range, with: comments)
+            return
+        }
+        let block = lines[range].filter {
+            enabled || (try? Self.pair($0))?.1 != ""
+        }.map { enabled ? Self.uncomment($0) : "# " + $0 }
+        lines.replaceSubrange(range, with: block)
+    }
+
+    private func blockRanges(_ section: String) -> [Range<Int>] {
+        let starts = lines.indices.filter { Self.header(lines[$0]) != nil || ["Rule", "ShadowTLS"].contains(Self.header(Self.uncomment(lines[$0])) ?? "") }
+        return starts.enumerated().compactMap { offset, start in
+            guard Self.header(lines[start]) == section || Self.header(Self.uncomment(lines[start])) == section else { return nil }
+            return start..<(offset + 1 < starts.count ? starts[offset + 1] : lines.count)
+        }
+    }
+
     public var name: String { value("Profile", "Name") ?? "" }
     public var mode: String { value("Interface", "Mode") ?? "vpn" }
     private static let sourceKeys = AccessProtocol.allCases.map(\.rawValue) + ["Key", "File"]
@@ -69,15 +176,16 @@ public struct ConfigDocument: Equatable, Sendable {
     }
 
     public mutating func set(_ section: String, _ key: String, _ value: String) {
+        guard self.value(section, key) != value else { return }
         let replacement = "\(key) = \(Self.encode(value))"
         if let range = sectionRange(section) {
             if let index = range.first(where: { (try? Self.pair(lines[$0]))?.0 == key }) {
-                lines[index] = replacement
+                lines[index] = self.replacement(replacement, for: lines[index])
             } else {
-                lines.insert(replacement, at: range.lowerBound + 1)
+                lines.insert(replacement + newline, at: range.lowerBound + 1)
             }
         } else {
-            lines.append(contentsOf: ["", "[\(section)]", replacement])
+            lines.append(contentsOf: [newline, "[\(section)]" + newline, replacement + newline])
         }
     }
 
@@ -94,6 +202,7 @@ public struct ConfigDocument: Equatable, Sendable {
     }
 
     public mutating func setMode(_ mode: String) {
+        guard self.mode != mode else { return }
         set("Interface", "Mode", mode)
         if mode == "proxy" {
             // Core rejects IPv6 blocking and kill switch protection in proxy mode.
@@ -133,7 +242,7 @@ public struct ConfigDocument: Equatable, Sendable {
         let key = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\u{FEFF}")))
         try Self.validateKey(key)
         guard let range = sectionRange("AccessKey"), let index = range.first(where: { (try? Self.pair(lines[$0]))?.0 == "File" }) else { return }
-        lines[index] = "Key = \(Self.encode(key))"
+        lines[index] = replacement("Key = \(Self.encode(key))", for: lines[index])
     }
 
     public static func readLimited(_ url: URL) throws -> Data {
@@ -148,8 +257,7 @@ public struct ConfigDocument: Equatable, Sendable {
         guard text.utf8.count <= Self.sizeLimit else { throw ProfileError.tooLarge }
         try checkSyntax()
         guard value("Profile", "Version") == "1" else { throw ProfileError.invalid("Version") }
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
+        guard name.count <= 128, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else { throw ProfileError.invalid("Name") }
         let sources = Self.sourceKeys.filter { value("AccessKey", $0) != nil }
         let explicit = value("AccessKey", "Type") != nil || value("AccessKey", "Server") != nil
         guard sources.count + (explicit ? 1 : 0) == 1 else { throw ProfileError.invalid("AccessKey") }
@@ -179,6 +287,9 @@ public struct ConfigDocument: Equatable, Sendable {
         if let kill = value("Interface", "KillSwitch"), !["true", "false"].contains(kill) { throw ProfileError.invalid("KillSwitch") }
         if let action = value("Routing", "Default"), !["proxy", "direct", "block"].contains(action) { throw ProfileError.invalid("Routing.Default") }
         if hasSection("ShadowTLS") {
+            guard let accessProtocol,
+                  [.shadowsocks, .dynamicShadowsocks, .vless, .vmess, .trojan, .anytls, .naive, .ssh].contains(accessProtocol),
+                  !accessKey.hasPrefix("naive+quic://") else { throw ProfileError.invalid("ShadowTLS") }
             for key in ["ServerName", "Password"] {
                 guard !(value("ShadowTLS", key) ?? "").isEmpty else { throw ProfileError.missing("ShadowTLS.\(key)") }
             }
@@ -223,21 +334,27 @@ public struct ConfigDocument: Equatable, Sendable {
 
     public mutating func updateRule(_ rule: RoutingRule) {
         guard ruleRanges.indices.contains(rule.id) else { return }
+        let original = rules[rule.id]
+        guard original != rule else { return }
         let range = ruleRanges[rule.id]
         let wasEnabled = Self.header(lines[range.lowerBound]) == "Rule"
         var block = Array(lines[range]).map { wasEnabled ? $0 : Self.uncomment($0) }
         for (key, value) in [(rule.type, rule.destination), ("Action", rule.action)] {
+            if key == "Action" && original.action == value { continue }
+            if key != "Action" && original.type == key && original.destination == value { continue }
             let candidates = key == "Action" ? ["Action"] : ["CIDR", "Domain"]
             if let index = block.indices.first(where: { candidates.contains((try? Self.pair(block[$0]))?.0 ?? "") }) {
-                block[index] = "\(key) = \(Self.encode(value))"
-            } else { block.append("\(key) = \(Self.encode(value))") }
+                if (try? Self.pair(block[index]))?.0 != key || (try? Self.pair(block[index]))?.1 != value {
+                    block[index] = replacement("\(key) = \(Self.encode(value))", for: block[index])
+                }
+            } else { block.append("\(key) = \(Self.encode(value))" + newline) }
         }
         if !rule.enabled { block = block.map { $0.isEmpty ? $0 : "# " + $0 } }
         lines.replaceSubrange(range, with: block)
     }
 
     public mutating func addRule() {
-        lines.append(contentsOf: ["", "[Rule]", "Domain = example.com", "Action = proxy", ""])
+        lines.append(contentsOf: [newline, "[Rule]" + newline, "Domain = example.com" + newline, "Action = proxy" + newline])
     }
 
     public mutating func removeRule(_ index: Int) {
@@ -255,24 +372,18 @@ public struct ConfigDocument: Equatable, Sendable {
         lines.replaceSubrange(ranges[low], with: highBlock)
     }
 
-    private var ruleRanges: [Range<Int>] {
-        let starts = lines.indices.filter { Self.header(lines[$0]) != nil || Self.header(Self.uncomment(lines[$0])) == "Rule" }
-        return starts.enumerated().compactMap { offset, start in
-            guard Self.header(lines[start]) == "Rule" || Self.header(Self.uncomment(lines[start])) == "Rule" else { return nil }
-            return start..<(offset + 1 < starts.count ? starts[offset + 1] : lines.count)
-        }
-    }
+    private var ruleRanges: [Range<Int>] { blockRanges("Rule") }
 
     private func sectionRange(_ section: String) -> Range<Int>? {
         guard let start = lines.firstIndex(where: { Self.header($0) == section }) else { return nil }
-        let end = lines.indices.dropFirst(start + 1).first { Self.header(lines[$0]) != nil || Self.header(Self.uncomment(lines[$0])) == "Rule" } ?? lines.count
+        let end = lines.indices.dropFirst(start + 1).first { Self.header(lines[$0]) != nil || ["Rule", "ShadowTLS"].contains(Self.header(Self.uncomment(lines[$0])) ?? "") } ?? lines.count
         return start..<end
     }
 
     private func checkSyntax() throws {
         var section: String?; var sections = Set<String>(); var keys = Set<String>()
         for (offset, line) in lines.enumerated() {
-            let clean = line.trimmingCharacters(in: .whitespaces)
+            let clean = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if clean.isEmpty || clean.hasPrefix("#") || clean.hasPrefix(";") { continue }
             if let header = Self.header(clean) {
                 guard header == "Rule" || sections.insert(header).inserted else { throw ProfileError.duplicate(header) }
@@ -288,31 +399,43 @@ public struct ConfigDocument: Equatable, Sendable {
     }
 
     private static func header(_ line: String) -> String? {
-        let value = line.trimmingCharacters(in: .whitespaces)
+        let value = line.trimmingCharacters(in: .whitespacesAndNewlines)
         guard value.hasPrefix("["), value.hasSuffix("]"), value.count > 2 else { return nil }
         return String(value.dropFirst().dropLast()).trimmingCharacters(in: .whitespaces)
     }
 
     private static func uncomment(_ line: String) -> String {
-        let clean = line.trimmingCharacters(in: .whitespaces)
+        let clean = line.drop(while: { $0 == " " || $0 == "\t" })
         guard clean.hasPrefix("#") else { return line }
         let rest = String(clean.dropFirst())
         return rest.hasPrefix(" ") ? String(rest.dropFirst()) : rest
     }
 
     private static func pair(_ line: String) throws -> (String, String)? {
-        let clean = line.trimmingCharacters(in: .whitespaces)
+        let clean = line.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.hasPrefix("#"), !clean.hasPrefix(";"), let equals = clean.firstIndex(of: "=") else { return nil }
         let key = String(clean[..<equals]).trimmingCharacters(in: .whitespaces)
         let value = String(clean[clean.index(after: equals)...]).trimmingCharacters(in: .whitespaces)
-        guard value.hasPrefix("\"") else { return (key, value) }
-        // The documented config escapes are the JSON string escapes (excluding \/ and Unicode escapes).
+        guard value.hasPrefix("\"") else {
+            guard !value.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else {
+                throw ProfileError.invalid("Value")
+            }
+            return (key, value)
+        }
+        // Core only accepts these escapes; JSON's Unicode and slash escapes are unsafe here.
+        var escaping = false
+        for character in value.dropFirst().dropLast() {
+            if escaping {
+                guard ["\\", "\"", "n", "r", "t"].contains(character) else { throw ProfileError.invalid("Quoted value") }
+                escaping = false
+            } else if character == "\\" { escaping = true }
+        }
         let decoded = try JSONDecoder().decode(String.self, from: Data(value.utf8))
         return (key, decoded)
     }
 
     private static func encode(_ value: String) -> String {
-        if value.isEmpty || value != value.trimmingCharacters(in: .whitespaces) || value.contains("\"") || value.contains("\\") || value.contains(where: { $0.isNewline || $0 == "\t" }) {
+        if value.isEmpty || value != value.trimmingCharacters(in: .whitespaces) || value.hasPrefix("\"") || value.contains(where: { $0.isNewline || $0 == "\t" }) {
             let escaped = value.replacing("\\", with: "\\\\").replacing("\"", with: "\\\"").replacing("\n", with: "\\n").replacing("\r", with: "\\r").replacing("\t", with: "\\t")
             return "\"" + escaped + "\""
         }
