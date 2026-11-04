@@ -1,6 +1,6 @@
 # Daemon servicing and recovery: design for review
 
-Status: proposed architecture, not approved for implementation. Local design only, 2026-11-04. No installer, launchd, daemon, network or privileged operations performed. Remote issues, PRs and CI remain paused. This document is the local problem/decision record instead of a remote issue.
+Status: target direction accepted for design; production implementation is not approved. See [the concrete hosting proposal](hosting-proposal.md) for the narrowed recommendation and three material choices. Local design only, 2026-11-04. No installer, launchd, daemon, network or privileged operations performed. Remote issues, PRs and CI remain paused. This document is the local problem/decision record instead of a remote issue.
 
 ## Problem and scope
 
@@ -91,7 +91,7 @@ Stage E, later release gate: trusted Apple pin/candidate/provenance resolution, 
 
 ## Decisions requested before implementation
 
-- Approve option 2 as target while keeping option 1 as current supported behavior, or retain fresh-only indefinitely.
+- Option 2 is accepted as the direction for further design; option 1 remains current supported behavior. Review the three material choices in [the concrete proposal](hosting-proposal.md) before implementation.
 - Choose privileged servicing hosting/authorization and recovery entry, including how incomplete transactions fence startup across reboot. Recommendation: smallest owner that can durably resume without GUI; defer framework choice until platform spike is authorized.
 - Agree Core-owned maintenance/guarded shutdown/receipt and crash-recovery contracts, including failure policy and legacy-client fencing. This is a cross-repository architecture decision.
 - Approve single explicit UID policy and explicit interruption of an observed active session; define account reauthorization and status visibility. No automatic VPN restore is recommended.
