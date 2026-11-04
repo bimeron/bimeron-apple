@@ -1,0 +1,31 @@
+[0/1] Planning build
+Building for debugging...
+[0/5] Write sources
+[1/5] Write swift-version--58304C5D6DBC2206.txt
+[3/5] Emitting module BimeronCoreCLITests
+[4/5] Compiling BimeronCoreCLITests CoreCLITests.swift
+[4/6] Write Objects.LinkFileList
+[5/6] Linking BimeronPackageTests
+Build complete! (2.77s)
+Test Suite 'Selected tests' started at 2026-11-04 18:31:29.403.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-04 18:31:29.404.
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-04 18:31:29.404.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-04 18:31:29.404.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite CoreCLITests started.
+◇ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" started.
+◇ Passing 1 argument cancel → false to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+✘ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" recorded an issue with 1 argument cancel → false at CoreCLITests.swift:225:13: Expectation failed: (!cancel → true) && (output.diagnosticText.contains("ready") → false)
+EXPERIMENT: shell started pid=66579, output="", gone=true
+✘ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" recorded an issue with 1 argument cancel → false at CoreCLITests.swift:236:23: Expectation failed: Int32(output.diagnosticText.split(separator: "\n").first.map(String.init) ?? "" → "") → nil
+◇ Passing 1 argument cancel → true to "B-TIMEOUT / B-CANCEL: resistant process is reaped"
+✘ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" recorded an issue with 1 argument cancel → true at CoreCLITests.swift:219:13: Expectation failed: (cancel → true) && (output.diagnosticText.contains("ready") → false)
+EXPERIMENT: shell started pid=66580, output="", gone=true
+✘ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" recorded an issue with 1 argument cancel → true at CoreCLITests.swift:236:23: Expectation failed: Int32(output.diagnosticText.split(separator: "\n").first.map(String.init) ?? "" → "") → nil
+✘ Test "B-TIMEOUT / B-CANCEL: resistant process is reaped" failed after 1.723 seconds with 4 issues.
+✘ Suite CoreCLITests failed after 1.723 seconds with 4 issues.
+✘ Test run with 1 test failed after 1.723 seconds with 4 issues.
