@@ -78,9 +78,9 @@ session was connected; resynchronize before making further mutation decisions.
 No sibling APIs, test targets, or IPC schema are assumed. A/B/C can load the JSON
 with their own test helpers, preserve the IDs in test names/results, and consume
 byte pairs with native binary I/O. Add adapter tests in their own workstreams;
-this workstream does not modify sibling tests or shared build files.
+this workstream does not modify sibling tests.
 
-## Offline verification and CI integration request
+## Offline verification and CI integration
 
 From repository root, with Python 3.9 or newer:
 
@@ -96,12 +96,13 @@ runs negative checks in temporary copies: byte corruption, missing required
 coverage, and an unsafe failed-stop start expectation with a recomputed hash must
 all be rejected. It checks artifact consistency, not an application's behavior.
 
-CI owner request: add the first command to an existing checkout job with Python
-3.9+ and retain output as evidence. No package install, Core binary, privileges,
-secrets or network setup is needed. Run on changes to either owned directory.
-Add adapter suites when A/B/C land; keep their results separate from fixture
-integrity. No shared CI workflow is edited here. No benchmark is useful for this
-small fixture index; runtime responsiveness belongs to adapter/application tests.
+The existing [macOS workflow](../../.github/workflows/macos.yml) runs the checker
+immediately after checkout. CI is configured; a passing remote run has not yet
+been observed. No package install, Core binary, privileges, secrets or network
+setup is needed for the checker. Add adapter suites when A/B/C land; keep their
+results separate from fixture integrity. Real CLI parser samples and live
+acceptance remain pending. No benchmark is useful for this small fixture index;
+runtime responsiveness belongs to adapter/application tests.
 
 ## Pending live manual acceptance — checklist only
 
