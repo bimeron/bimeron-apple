@@ -1,6 +1,6 @@
 # Daemon servicing and recovery: design for review
 
-Status: target direction accepted for design; production implementation is not approved. See [the concrete hosting proposal](hosting-proposal.md) for the narrowed recommendation and three material choices. Local design only, 2026-11-04. No installer, launchd, daemon, network or privileged operations performed. Remote issues, PRs and CI remain paused. This document is the local problem/decision record instead of a remote issue.
+Status: target direction and the three hosting/recovery/scope constraints accepted; pure offline model and failure-injection tests authorized; production implementation is not approved. See [the concrete hosting proposal](hosting-proposal.md) for the narrowed recommendation and three material choices. Local design only, 2026-11-04. No installer, launchd, daemon, network or privileged operations performed. Remote issues, PRs and CI remain paused. This document is the local problem/decision record instead of a remote issue.
 
 ## Problem and scope
 
@@ -79,7 +79,7 @@ Fresh readiness requires a new request ID on an authenticated current connection
 
 ## Staged acceptance and failure injection
 
-Stage A, offline specification/model: check that replacement/removal is unreachable without cleanup plus exit evidence; concurrent start cannot cross admitted maintenance; changed instance/session invalidates proof; operation retries are idempotent; unknown outcomes block. Model test evidence would validate only the model. No experiment was needed or run for this design.
+Stage A, offline specification/model (see [prototype](../../../scripts/servicing-model/README.md)): check that replacement/removal is unreachable without cleanup plus exit evidence; concurrent start cannot cross admitted maintenance; changed instance/session invalidates proof; operation retries are idempotent; unknown outcomes block. Model test evidence validates only the model. The authorized prototype now exercises these invariants in memory; it supplies no platform acceptance.
 
 Stage B, Core contract tests: race legacy and guarded starts against maintenance; active/idle/stale-instance shutdown; stop failure/cancellation; daemon death before receipt; corrupt/unknown recovery record; startup with unfinished transaction; conflicting network state. Require Core owners to define actual cleanup invariants and safe recovery failure outcomes.
 

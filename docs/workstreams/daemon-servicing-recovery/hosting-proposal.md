@@ -1,6 +1,6 @@
 # Concrete hosting proposal: unsigned DEV servicing first
 
-2026-11-04. Direction accepted for further design: a privileged servicing owner with durable journal and independent cleanup/exit evidence. This proposal narrows the choices; it does not authorize implementation or privileged execution. It supplements [the state model](README.md). No production files are changed.
+2026-11-04. The user approved the three recommended constraints: separate root servicing LaunchDaemon with explicit root CLI for DEV; fail-closed manual recovery/reboot instead of same-boot adoption; future fresh-capable installations only, one backup, no owner self-update, and two-stage uninstall. Authorization now covers a pure offline model/protocol prototype and failure-injection tests. It does not cover production implementation or privileged execution. It supplements [the state model](README.md). No production files are changed.
 
 ## Recommended minimum
 
@@ -98,10 +98,10 @@ Core contract tests must demonstrate legacy-start fencing, root-only maintenance
 
 Separately authorized disposable-Mac acceptance must establish kernel identity/event association, process exit before replacement, persistent disable and independent startup gate, reboot at every boundary, account change, revoked consent/disabled service, actual cleanup failure, owner crash losing observer, candidate crash before result, rollback refusal and final removal. Exercise storage failure without claiming simulated fsync equals power loss. Signing/notarization and trusted delivery are later independent gates. No such tests were executed for this documentation change.
 
-## Three material choices for the user
+## Approved constraints and implementation boundary
 
 1. **Hosting and authorization:** recommend separate root demand/boot LaunchDaemon plus explicit root CLI for DEV, keeping Core directly under launchd. Accept the extra root service and no GUI servicing initially, or choose a signed/notarized SMAppService track with its packaging/consent prerequisites. No automatic production implementation follows either choice.
 2. **Recovery availability:** recommend fail-closed manual resume, and reboot plus Core recovery when exact exit observation is lost. Accept downtime/manual intervention, or fund a separate same-boot adoption/exit-proof design. Both retain cleanup proof and no auto VPN restore.
 3. **Initial servicing scope:** recommend only future servicing-capable fresh installs, one retained prior artifact set, no owner self-update, and two-stage uninstall retaining the servicing tool until explicit finalization. Broader migration/full removal is additional reviewed work; current G installs stay fresh-only.
 
-Core contract details above are the proposed cross-repository review brief, not an additional vague hosting decision. Trusted delivery remains blocked on provenance/pin/candidate work regardless of the three choices.
+All three recommendations above are accepted for the offline model. They are not pending questions. Core contract details remain the proposed cross-repository review brief; those APIs are not implemented in Core. Trusted delivery remains blocked on provenance/pin/candidate work regardless of the three choices.
