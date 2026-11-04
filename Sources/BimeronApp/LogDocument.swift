@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 struct LogDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.plainText] }
-    var text: String
+    let text: String
     init(text: String) { self.text = text }
     init(configuration: ReadConfiguration) throws {
         text = String(data: configuration.file.regularFileContents ?? Data(), encoding: .utf8) ?? ""

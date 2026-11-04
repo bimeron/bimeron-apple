@@ -236,3 +236,9 @@
 "Restore generated access key" = "Restore generated access key";
 "Profile added, but its list order could not be saved" = "Profile added, but its list order could not be saved";
 "Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility." = "Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility.";
+
+"Review diagnostics export" = "Review diagnostics export";
+"Only the preview below will be saved. Nothing is sent over the network." = "Only the preview below will be saved. Nothing is sent over the network.";
+"Include raw Core and user text" = "Include raw Core and user text";
+"Raw text may contain passwords, keys, links, paths, or other sensitive data. Review it before saving; no redaction is performed." = "Raw text may contain passwords, keys, links, paths, or other sensitive data. Review it before saving; no redaction is performed.";
+"Save reviewed snapshot…" = "Save reviewed snapshot…";
