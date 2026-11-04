@@ -38,3 +38,17 @@ import Testing
     }
     #expect(Localization.text("Unknown key", language: "ru") == "Unknown key")
 }
+
+@Test @MainActor func integrationSettingsRemainIsolatedAndAreRemovedAfterUse() throws {
+    var first: IsolatedAppSettings? = try IsolatedAppSettings()
+    let suite = try #require(first?.suite)
+    let defaults = try #require(first?.defaults)
+    let second = try IsolatedAppSettings()
+    let model = AppModel(coreCLI: nil, defaults: defaults, preferredLanguages: ["en"])
+    model.language = "ru"
+    model.theme = "dark"
+    #expect(second.defaults.string(forKey: "language") == nil)
+    #expect(second.defaults.string(forKey: "theme") == nil)
+    first = nil
+    #expect(defaults.persistentDomain(forName: suite) == nil)
+}

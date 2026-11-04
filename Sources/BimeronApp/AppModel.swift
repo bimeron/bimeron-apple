@@ -13,7 +13,8 @@ import Observation
     private(set) var historyBusy = false
     private(set) var orderBusy = false
     var alertMessage: String?
-    var log: [LogEntry] = []
+    private var diagnosticHistory = DiagnosticHistory()
+    var log: [LogEntry] { diagnosticHistory.entries }
     var language: String { didSet { defaults.set(language, forKey: "language") } }
     var theme: String { didSet { defaults.set(theme, forKey: "theme") } }
     private let defaults: UserDefaults
@@ -69,6 +70,52 @@ import Observation
         } catch { report(error); return false }
     }
 
+    func create(_ document: ConfigDocument) async -> Bool {
+        guard let coreCLI else {
+            alertMessage = t("Core validation is unavailable")
+            return false
+        }
+        do {
+            let profile = try await library.add(document, orderWarning: { message in
+                await MainActor.run { self.alertMessage = self.t(message) }
+            }) { url in
+                _ = try await coreCLI.validate(fileURL: url)
+            }
+            await load()
+            selectedID = profile.id
+            record(t("Profile added"))
+            return true
+        } catch {
+            let key: String
+            switch error {
+            case is CancellationError, CoreCLIError.cancelled: key = "Core validation cancelled"
+            case CoreCLIError.launch: key = "Core validation is unavailable"
+            case CoreCLIError.timedOut: key = "Core validation timed out"
+            case is CoreCLIError: key = "Core rejected the configuration"
+            case is EditorSaveError: key = "Staged profile changed; try saving again"
+            default: report(error); return false
+            }
+            alertMessage = t(key)
+            return false
+        }
+    }
+
+    func addInput(name: String, input: String, sshIdentityFile: URL? = nil, sshKnownHostsFile: URL? = nil) async -> Bool {
+        if let url = ProfileInput.fileURL(input) {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let profile = try await library.importFile(url)
+                await load()
+                selectedID = profile.id
+                record(t("Profile imported"))
+                return true
+            } catch { report(error); return false }
+        }
+        return await add(name: name, key: ProfileInput.normalized(input), sshIdentityFile: sshIdentityFile,
+                         sshKnownHostsFile: sshKnownHostsFile)
+    }
+
     func importFile(_ url: URL) async {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
@@ -89,19 +136,27 @@ import Observation
     }
 
     func save(_ profile: StoredProfile, original: StoredProfile) async -> Bool {
+        let attemptID = UUID()
+        recordProfileSave(.started, attemptID: attemptID)
         do {
             guard let coreCLI else {
                 let message = t("Core validation is unavailable")
                 alertMessage = message
-                record(message)
+                recordProfileSave(.unavailable, attemptID: attemptID, message: message)
                 return false
             }
             try await library.update(profile, expectedOriginal: Data(original.document.text.utf8)) { url in
+                await MainActor.run {
+                    self.record(DiagnosticEvent(source: .coreCLI, kind: .validation, outcome: .started, attemptID: attemptID))
+                }
                 _ = try await coreCLI.validate(fileURL: url)
+                await MainActor.run {
+                    self.record(DiagnosticEvent(source: .coreCLI, kind: .validation, outcome: .success, attemptID: attemptID))
+                }
             }
             await load()
             selectedID = profile.id
-            record(t("Profile saved"))
+            recordProfileSave(.success, attemptID: attemptID, message: t("Profile saved"))
             return true
         } catch {
             let key: String
@@ -112,11 +167,20 @@ import Observation
             case CoreCLIError.timedOut: key = "Core validation timed out"
             case is CoreCLIError: key = "Core rejected the configuration"
             case is EditorSaveError: key = "Profile changed; reopen it before saving"
-            default: report(error); return false
+            default:
+                recordProfileSave(.failed, attemptID: attemptID)
+                report(error); return false
             }
             let message = t(key)
             alertMessage = message
-            record(message)
+            let outcome: DiagnosticEvent.Outcome
+            switch error {
+            case is CancellationError, CoreCLIError.cancelled: outcome = .cancelled
+            case CoreCLIError.launch: outcome = .unavailable
+            case CoreCLIError.timedOut: outcome = .timedOut
+            default: outcome = .rejected
+            }
+            recordProfileSave(outcome, attemptID: attemptID, message: message)
             return false
         }
     }
@@ -181,8 +245,22 @@ import Observation
     }
 
     func record(_ message: String) {
-        log.append(LogEntry(message: message))
-        if log.count > 5_000 { log.removeFirst(log.count - 5_000) }
+        diagnosticHistory.append(message)
+    }
+
+    func clearLog() { diagnosticHistory.clear() }
+
+    func diagnosticSnapshot() -> DiagnosticSnapshot {
+        DiagnosticSnapshot(entries: log, profileCount: profiles.count)
+    }
+
+    func record(_ event: DiagnosticEvent) {
+        diagnosticHistory.append(event.outcome.rawValue, event: event)
+    }
+
+    private func recordProfileSave(_ outcome: DiagnosticEvent.Outcome, attemptID: UUID, message: String? = nil) {
+        let event = DiagnosticEvent(source: .gui, kind: .profileSave, outcome: outcome, attemptID: attemptID)
+        diagnosticHistory.append(message ?? outcome.rawValue, event: event)
     }
 
     func report(_ error: Error) {
