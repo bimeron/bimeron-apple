@@ -88,6 +88,32 @@ public actor ProfileLibrary {
         try save(profile, replacing: true)
     }
 
+    /// Editor-only save: validate the exact protected bytes that will be renamed.
+    /// Cancellation observed before the atomic rename blocks the write; after this commit point it cannot undo the save.
+    public func update(_ profile: StoredProfile, expectedOriginal: Data,
+                       validate: @Sendable (URL) async throws -> Void) async throws {
+        try profile.document.validateLocally()
+        try prepareDirectory()
+        let destination = file(for: profile.id)
+        let temporary = try stage(profile)
+        defer { unlink(temporary.path) }
+        let creationDate = try destination.resourceValues(forKeys: [.creationDateKey]).creationDate
+        try await validate(temporary)
+        // Reject a validator that changed the staged document.
+        guard try ConfigDocument.readLimited(temporary) == Data(profile.document.text.utf8) else {
+            throw EditorSaveError.changedStaging
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: temporary.path)
+        if let creationDate {
+            try FileManager.default.setAttributes([.creationDate: creationDate], ofItemAtPath: temporary.path)
+        }
+        guard try ConfigDocument.readLimited(destination) == expectedOriginal else {
+            throw EditorSaveError.staleOriginal
+        }
+        try Task.checkCancellation()
+        guard rename(temporary.path, destination.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+    }
+
     public func importFile(_ original: URL) throws -> StoredProfile {
         let data = try ConfigDocument.readLimited(original)
         var document = try ConfigDocument(data: data)
@@ -121,11 +147,20 @@ public actor ProfileLibrary {
         try prepareDirectory()
         let destination = file(for: profile.id)
         let creationDate = created ?? (replacing ? try? FileManager.default.attributesOfItem(atPath: destination.path)[.creationDate] as? Date : nil)
+        let temporary = try stage(profile)
+        defer { unlink(temporary.path) }
+        if !replacing && FileManager.default.fileExists(atPath: destination.path) { throw ProfileError.duplicate("Profile") }
+        if let creationDate {
+            try FileManager.default.setAttributes([.creationDate: creationDate], ofItemAtPath: temporary.path)
+        }
+        guard rename(temporary.path, destination.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+    }
+
+    private func stage(_ profile: StoredProfile) throws -> URL {
         let temporary = directory.appending(path: UUID().uuidString + ".tmp")
         let data = Data(profile.document.text.utf8)
         let descriptor = open(temporary.path, O_WRONLY | O_CREAT | O_EXCL, 0o600)
         guard descriptor >= 0 else { throw CocoaError(.fileWriteUnknown) }
-        defer { unlink(temporary.path) }
         let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
         do {
             try handle.write(contentsOf: data)
@@ -133,12 +168,9 @@ public actor ProfileLibrary {
             try handle.close()
         } catch {
             try? handle.close()
+            unlink(temporary.path)
             throw error
         }
-        if !replacing && FileManager.default.fileExists(atPath: destination.path) { throw ProfileError.duplicate("Profile") }
-        if let creationDate {
-            try FileManager.default.setAttributes([.creationDate: creationDate], ofItemAtPath: temporary.path)
-        }
-        guard rename(temporary.path, destination.path) == 0 else { throw CocoaError(.fileWriteUnknown) }
+        return temporary
     }
 }

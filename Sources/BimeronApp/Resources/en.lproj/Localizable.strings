@@ -178,3 +178,15 @@
 "File path" = "File path";
 
 "Use default" = "Use default";
+
+"Core validation is unavailable" = "Core validation is unavailable";
+
+"Core validation cancelled" = "Core validation cancelled";
+
+"Core validation timed out" = "Core validation timed out";
+
+"Core rejected the configuration" = "Core rejected the configuration";
+
+"Profile changed; reopen it before saving" = "Profile changed; reopen it before saving";
+
+"Core validates saved configurations. Live connections are not checked." = "Core validates saved configurations. Live connections are not checked.";

@@ -178,3 +178,15 @@
 "File path" = "Путь к файлу";
 
 "Use default" = "Использовать";
+
+"Core validation is unavailable" = "Проверка Core недоступна";
+
+"Core validation cancelled" = "Проверка Core отменена";
+
+"Core validation timed out" = "Время проверки Core истекло";
+
+"Core rejected the configuration" = "Core отклонил конфигурацию";
+
+"Profile changed; reopen it before saving" = "Профиль изменился; откройте его заново перед сохранением";
+
+"Core validates saved configurations. Live connections are not checked." = "Core проверяет сохраняемые конфигурации. Подключения не проверяются.";

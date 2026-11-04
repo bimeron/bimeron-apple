@@ -1,3 +1,4 @@
+import BimeronCoreCLI
 import BimeronModel
 import Foundation
 import Observation
@@ -17,15 +18,18 @@ import Observation
     var theme: String { didSet { defaults.set(theme, forKey: "theme") } }
     private let defaults: UserDefaults
     let library: ProfileLibrary
+    private let coreCLI: CoreCLI?
 
     var selected: StoredProfile? { profiles.first { $0.id == selectedID } }
     var canUndoDelete: Bool { !deletedProfiles.isEmpty && !historyBusy }
     var canRedoDelete: Bool { !restoredProfiles.isEmpty && !historyBusy }
 
     init(library: ProfileLibrary = ProfileLibrary(directory: ProfileLibrary.defaultDirectory()),
+         coreCLI: CoreCLI? = AppModel.defaultCoreCLI(),
          defaults: UserDefaults = .standard,
          preferredLanguages: [String] = Locale.preferredLanguages) {
         self.library = library
+        self.coreCLI = coreCLI
         self.defaults = defaults
         let saved = defaults.string(forKey: "language")
         let systemLanguage = preferredLanguages.first.flatMap { Locale(identifier: $0).language.languageCode?.identifier }
@@ -76,14 +80,45 @@ import Observation
         } catch { report(error) }
     }
 
-    func save(_ profile: StoredProfile) async -> Bool {
+    static func defaultCoreCLI() -> CoreCLI? {
+        if let path = ProcessInfo.processInfo.environment["BIMERON_CORE_EXECUTABLE"] {
+            guard path.hasPrefix("/") else { return nil }
+            return CoreCLI(executableURL: URL(fileURLWithPath: path))
+        }
+        return Bundle.main.url(forAuxiliaryExecutable: "bimeron-core").map { CoreCLI(executableURL: $0) }
+    }
+
+    func save(_ profile: StoredProfile, original: StoredProfile) async -> Bool {
         do {
-            try await library.update(profile)
+            guard let coreCLI else {
+                let message = t("Core validation is unavailable")
+                alertMessage = message
+                record(message)
+                return false
+            }
+            try await library.update(profile, expectedOriginal: Data(original.document.text.utf8)) { url in
+                _ = try await coreCLI.validate(fileURL: url)
+            }
             await load()
             selectedID = profile.id
             record(t("Profile saved"))
             return true
-        } catch { report(error); return false }
+        } catch {
+            let key: String
+            switch error {
+            case is CancellationError: key = "Core validation cancelled"
+            case CoreCLIError.cancelled: key = "Core validation cancelled"
+            case CoreCLIError.launch: key = "Core validation is unavailable"
+            case CoreCLIError.timedOut: key = "Core validation timed out"
+            case is CoreCLIError: key = "Core rejected the configuration"
+            case is EditorSaveError: key = "Profile changed; reopen it before saving"
+            default: report(error); return false
+            }
+            let message = t(key)
+            alertMessage = message
+            record(message)
+            return false
+        }
     }
 
     func moveSelected(by offset: Int) async {
