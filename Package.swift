@@ -19,9 +19,9 @@ let package = Package(
         .systemLibrary(name: "CZlib"),
         .target(name: "BimeronCoreCLI", dependencies: ["CZlib"]),
         .testTarget(name: "BimeronCoreCLITests", dependencies: ["BimeronCoreCLI"]),
-        .executableTarget(name: "BimeronApp", dependencies: ["BimeronModel", "BimeronDaemon", "BimeronCoreCLI"], resources: [.process("Resources")]),
+        .executableTarget(name: "BimeronApp", dependencies: ["BimeronModel", "BimeronDaemon", "BimeronCoreCLI", "BimeronStatistics"], resources: [.process("Resources")]),
         .testTarget(name: "BimeronModelTests", dependencies: ["BimeronModel"], resources: [.copy("Fixtures")]),
         .executableTarget(name: "SelectionFreezeGate", path: "Tests/Support/SelectionFreezeGate"),
-        .testTarget(name: "BimeronAppTests", dependencies: ["BimeronApp", "SelectionFreezeGate"])
+        .testTarget(name: "BimeronAppTests", dependencies: ["BimeronApp", "SelectionFreezeGate", "BimeronStatistics"])
     ]
 )
