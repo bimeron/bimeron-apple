@@ -442,7 +442,15 @@ public struct ConfigDocument: Equatable, Sendable {
                 }
             } else { block.append("\(key) = \(Self.encode(value))" + newline) }
         }
-        if !rule.enabled { block = block.map { $0.isEmpty ? $0 : "# " + $0 } }
+        if !rule.enabled {
+            block = block.enumerated().map { offset, line in
+                if !wasEnabled, offset < range.count,
+                   line == Self.uncomment(lines[range.lowerBound + offset]) {
+                    return lines[range.lowerBound + offset]
+                }
+                return line.isEmpty ? line : "# " + line
+            }
+        }
         lines.replaceSubrange(range, with: block)
     }
 

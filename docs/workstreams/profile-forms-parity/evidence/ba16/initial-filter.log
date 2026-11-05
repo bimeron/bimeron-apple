@@ -1,0 +1,146 @@
+Building for debugging...
+[0/36] /Users/wrk/.t3/worktrees/bimeron-macos/fix-ba16-protocol-forms/.build-ba16/arm64-apple-macosx/debug/BimeronPackageTests.derived/runner.swift
+[1/36] Copying blue-64.png
+[1/36] Copying Localizable.strings
+[1/36] Copying menu-disconnected-44.png
+[1/36] Write SelectionFreezeGate-entitlement.plist
+[1/36] Copying Localizable.strings
+[1/36] Copying Info.plist
+[1/36] Copying bimeron.icns
+[1/36] Write sources
+[4/36] Copying Info.plist
+[8/36] Write sources
+[25/36] Write Bimeron-entitlement.plist
+[26/36] Copying Fixtures
+[27/36] Write swift-version--58304C5D6DBC2206.txt
+[29/68] Emitting module BimeronModel
+[30/69] Emitting module BimeronDaemon
+[31/69] Emitting module BimeronCoreCLI
+[32/70] Compiling BimeronGeoData LocalGeoData.swift
+[33/70] Compiling BimeronCoreCLI CoreCLIError.swift
+[34/70] Emitting module SelectionFreezeGate
+[35/70] Compiling SelectionFreezeGate SelectionFreezeGate.swift
+[35/70] Write Objects.LinkFileList
+[37/70] Compiling BimeronDaemon DaemonLifecycle.swift
+[38/70] Compiling BimeronModel RoutingRule.swift
+[39/70] Compiling BimeronModel StoredProfile.swift
+[40/70] Compiling BimeronModel ProfileInput.swift
+[41/70] Compiling BimeronModel EditorProtocol.swift
+[42/70] Compiling BimeronModel EditorSaveError.swift
+[43/70] Compiling BimeronModel ProfileError.swift
+[44/70] Emitting module BimeronSSHAuth
+[45/70] Compiling BimeronSSHAuth SSHFilePreflight.swift
+[46/70] Compiling BimeronModel ProtocolDrafts.swift
+[47/70] Compiling BimeronSSHAuth SSHAuth.swift
+[48/70] Compiling BimeronCoreCLI CLIBuildInfo.swift
+[49/70] Compiling BimeronDaemon DaemonSocketTransport.swift
+[50/70] Compiling BimeronCoreCLI CLIPlatformCapabilities.swift
+[51/70] Compiling BimeronCoreCLI CLIOutput.swift
+[52/70] Compiling BimeronDaemon DaemonProtocol.swift
+[53/70] Compiling BimeronDaemon DaemonClient.swift
+[54/70] Compiling BimeronModel ProfileLibrary.swift
+[55/70] Compiling BimeronCoreCLI CapturedStream.swift
+[56/70] Compiling BimeronCoreCLI CoreCLI.swift
+[57/72] Emitting module BimeronGeoData
+[58/72] Compiling BimeronGeoData GeoData.swift
+[59/72] Compiling BimeronCoreCLI AppleCoreStaging.swift
+[60/80] Compiling BimeronCoreCLI AppleArchiveGate.swift
+[61/80] Compiling BimeronCoreCLI AppleCoreRelease.swift
+[63/89] Linking SelectionFreezeGate
+[64/89] Applying SelectionFreezeGate
+[66/97] Compiling BimeronStatistics DaemonStatisticsAdapter.swift
+[67/97] Emitting module BimeronStatistics
+[68/97] Compiling BimeronStatistics ConnectionStatistics.swift
+[69/127] Emitting module BimeronGeoDataTests
+[70/127] Compiling BimeronGeoDataTests GeoDataTests.swift
+[71/127] Compiling BimeronGeoDataTests LocalGeoDataTests.swift
+[72/127] Compiling BimeronModelTests ProfileLibraryTests.swift
+[73/127] Compiling BimeronModelTests ProtocolDraftMatrixTests.swift
+[74/128] Compiling BimeronModelTests resource_bundle_accessor.swift
+[75/128] Emitting module BimeronApp
+[76/131] Emitting module BimeronDaemonTests
+[77/131] Compiling BimeronModelTests ProfileFailurePreservationTests.swift
+[78/131] Compiling BimeronModelTests CoreProfileCompatibilityTests.swift
+[79/131] Emitting module BimeronModelTests
+[80/131] Compiling BimeronModelTests ConfigPreservationTests.swift
+[81/131] Compiling BimeronModelTests EditorCreationTests.swift
+[82/131] Compiling BimeronModelTests CommittedSaveCancellationTests.swift
+[83/131] Compiling BimeronDaemonTests DaemonClientTests.swift
+[84/131] Emitting module BimeronSSHAuthTests
+[85/131] Compiling BimeronSSHAuthTests SSHAuthTests.swift
+[86/131] Compiling BimeronCoreCLITests AppleCoreReleaseTests.swift
+[87/131] Compiling BimeronStatisticsTests ConnectionStatisticsTests.swift
+[88/131] Compiling BimeronDaemonTests DaemonSocketTransportTests.swift
+[89/131] Compiling BimeronDaemonTests DaemonLifecycleTests.swift
+[90/131] Compiling BimeronDaemonTests DaemonProtocolTests.swift
+[91/131] Emitting module BimeronStatisticsTests
+[92/131] Compiling BimeronStatisticsTests DaemonStatisticsAdapterTests.swift
+[93/131] Compiling BimeronApp AppPalette.swift
+[94/131] Compiling BimeronApp BimeronApp.swift
+[95/131] Compiling BimeronApp ConfigTextEditor.swift
+[96/131] Compiling BimeronApp DiagnosticEvent.swift
+[97/131] Compiling BimeronApp SSHFileSelection.swift
+[98/131] Compiling BimeronApp SessionCoreSelection.swift
+[99/131] Compiling BimeronApp SettingsView.swift
+[100/131] Compiling BimeronApp StatisticsPresentation.swift
+[101/131] Compiling BimeronApp StatisticsView.swift
+[102/131] Compiling BimeronApp resource_bundle_accessor.swift
+[103/131] Compiling BimeronApp AboutView.swift
+[104/131] Compiling BimeronApp AddProfileView.swift
+[105/131] Compiling BimeronApp AppDelegate.swift
+[106/131] Compiling BimeronApp AppModel.swift
+[107/131] Compiling BimeronApp DiagnosticExportView.swift
+[108/131] Compiling BimeronApp DiagnosticHistory.swift
+[109/131] Compiling BimeronApp DiagnosticLifecycleAdapter.swift
+[110/131] Compiling BimeronApp DiagnosticSnapshot.swift
+[111/131] Compiling BimeronApp LogEntry.swift
+[112/131] Compiling BimeronApp LogView.swift
+[113/131] Compiling BimeronApp MainWindow.swift
+[114/131] Compiling BimeronApp MenuBarContent.swift
+[115/131] Compiling BimeronApp Page.swift
+[116/131] Compiling BimeronApp ProfilesView.swift
+[117/131] Compiling BimeronApp ProtocolField.swift
+[118/131] Compiling BimeronApp EditorTab.swift
+[119/131] Compiling BimeronApp EditorView.swift
+[120/131] Compiling BimeronApp Localization.swift
+[121/131] Compiling BimeronApp LogDocument.swift
+[121/131] Write Objects.LinkFileList
+[123/131] Compiling BimeronCoreCLITests CoreParserSamples.swift
+[124/131] Compiling BimeronCoreCLITests AppleArchiveGateTests.swift
+[125/131] Compiling BimeronCoreCLITests AppleCoreStagingTests.swift
+[126/131] Emitting module BimeronCoreCLITests
+[127/131] Compiling BimeronCoreCLITests CoreCLITests.swift
+[127/131] Linking Bimeron
+[128/131] Applying Bimeron
+[130/146] Compiling BimeronAppTests SSHFileSelectionTests.swift
+[131/146] Compiling BimeronAppTests SessionCoreSelectionTests.swift
+[132/147] Compiling BimeronAppTests DiagnosticTests.swift
+[133/147] Compiling BimeronAppTests EditorCreationTests.swift
+[134/147] Compiling BimeronAppTests AccessLinkTests.swift
+[135/147] Compiling BimeronAppTests ConfigTextEditorTests.swift
+[136/147] Emitting module BimeronAppTests
+[137/147] Compiling BimeronAppTests NativeSelectionGateTests.swift
+[138/147] Compiling BimeronAppTests OfflineCoreCreationTests.swift
+[139/147] Compiling BimeronAppTests IsolatedAppSettings.swift
+[140/147] Compiling BimeronAppTests LocalizationTests.swift
+[141/147] Compiling BimeronAppTests ProfileOperationDiagnosticTests.swift
+[142/147] Compiling BimeronAppTests RoutingRuleEditingTests.swift
+[143/147] Compiling BimeronAppTests EditorSaveEvidence.swift
+[144/147] Compiling BimeronAppTests EditorSaveTests.swift
+[145/147] Compiling BimeronAppTests StatisticsPresentationTests.swift
+[146/149] Compiling BimeronPackageTests runner.swift
+[147/149] Emitting module BimeronPackageTests
+[147/149] Write Objects.LinkFileList
+[148/149] Linking BimeronPackageTests
+Build complete! (42.15s)
+warning: No matching test cases were run
+Test Suite 'Selected tests' started at 2026-11-05 16:08:52.874.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-05 16:08:52.876.
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-05 16:08:52.876.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 16:08:52.876.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.002) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
