@@ -256,6 +256,20 @@
 "Allow executing the file you select for version, capabilities, and configuration validation?" = "Allow executing the file you select for version, capabilities, and configuration validation?";
 "Choose and allow execution…" = "Choose and allow execution…";
 
+// Connection statistics presentation.
+"Connection statistics" = "Connection statistics";
+"Unavailable" = "Unavailable";
+"Download total" = "Download total";
+"Upload total" = "Upload total";
+"Download rate" = "Download rate";
+"Upload rate" = "Upload rate";
+"Retained observations" = "Retained observations";
+"Bounded history; gaps are unavailable observations." = "Bounded history; gaps are unavailable observations.";
+"No retained observations" = "No retained observations";
+"Monotonic elapsed" = "Monotonic elapsed";
+"s" = "s";
+"B/s" = "B/s";
+
 "SSH file must use an absolute path." = "SSH file must use an absolute path.";
 "SSH file is missing or is not a regular file." = "SSH file is missing or is not a regular file.";
 "SSH file is not readable by this app." = "SSH file is not readable by this app.";

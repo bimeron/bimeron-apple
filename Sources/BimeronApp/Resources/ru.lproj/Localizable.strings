@@ -256,6 +256,20 @@
 "Allow executing the file you select for version, capabilities, and configuration validation?" = "Разрешить выполнение выбранного файла для получения версии, возможностей и проверки конфигурации?";
 "Choose and allow execution…" = "Выбрать и разрешить выполнение…";
 
+// Connection statistics presentation.
+"Connection statistics" = "Статистика соединения";
+"Unavailable" = "Недоступно";
+"Download total" = "Всего получено";
+"Upload total" = "Всего отправлено";
+"Download rate" = "Скорость получения";
+"Upload rate" = "Скорость отправки";
+"Retained observations" = "Сохранённые наблюдения";
+"Bounded history; gaps are unavailable observations." = "История ограничена; пропуски означают недоступные наблюдения.";
+"No retained observations" = "Нет сохранённых наблюдений";
+"Monotonic elapsed" = "Монотонное прошедшее время";
+"s" = "с";
+"B/s" = "Б/с";
+
 "SSH file must use an absolute path." = "Для SSH-файла требуется абсолютный путь.";
 "SSH file is missing or is not a regular file." = "SSH-файл отсутствует или не является обычным файлом.";
 "SSH file is not readable by this app." = "Это приложение не может прочитать SSH-файл.";
