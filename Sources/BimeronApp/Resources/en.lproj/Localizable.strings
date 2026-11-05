@@ -242,3 +242,16 @@
 "Include raw Core and user text" = "Include raw Core and user text";
 "Raw text may contain passwords, keys, links, paths, or other sensitive data. Review it before saving; no redaction is performed." = "Raw text may contain passwords, keys, links, paths, or other sensitive data. Review it before saving; no redaction is performed.";
 "Save reviewed snapshot…" = "Save reviewed snapshot…";
+
+// Session-only development Core selection.
+"Core: default resolver" = "Core: default resolver";
+"Core: checking selected file" = "Core: checking selected file";
+"Core: UNTRUSTED development compatibility" = "Core: UNTRUSTED development compatibility";
+"Core: selection failed; reselect or reset" = "Core: selection failed; reselect or reset";
+"Session Core executable" = "Session Core executable";
+"Session only. Metadata is untrusted and does not approve installation or service readiness." = "Session only. Metadata is untrusted and does not approve installation or service readiness.";
+"Select executable…" = "Select executable…";
+"Reset to default" = "Reset to default";
+"Cancel check" = "Cancel check";
+"Allow executing the file you select for version, capabilities, and configuration validation?" = "Allow executing the file you select for version, capabilities, and configuration validation?";
+"Choose and allow execution…" = "Choose and allow execution…";
