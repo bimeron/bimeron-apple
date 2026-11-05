@@ -13,6 +13,11 @@ enum SSHFileSelection {
             guard url.host == nil || url.host == "" || url.host == "localhost" else {
                 throw SSHFilePreflightError.absolutePathRequired(role)
             }
+            // Check URL bytes before Foundation's filesystem-path conversion can preserve or normalize an encoded NUL.
+            guard let decodedPath = url.path(percentEncoded: true).removingPercentEncoding,
+                  !decodedPath.utf8.contains(0) else {
+                throw SSHFilePreflightError.absolutePathRequired(role)
+            }
             resolved = url.path
         } else {
             resolved = (path as NSString).expandingTildeInPath

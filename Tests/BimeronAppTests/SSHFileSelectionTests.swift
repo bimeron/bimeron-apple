@@ -8,7 +8,7 @@ import Testing
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let file = directory.appending(path: "fake private key")
+        let file = directory.appending(path: "fake private key %00")
         let contents = Data("deliberately not an SSH key or known_hosts entry".utf8)
         try contents.write(to: file)
         for role in [SSHFileRole.knownHosts, .identity] {
@@ -27,9 +27,11 @@ import Testing
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
+        let existingFile = directory.appending(path: "fake-prefix")
+        try Data("fake".utf8).write(to: existingFile)
         for role in [SSHFileRole.knownHosts, .identity] {
-            for path in ["relative-secret", "./relative-secret", "/tmp/secret\u{0}suffix", "file:///tmp/secret%00suffix", "file://remote/private-secret"] {
-                #expect(throws: SSHFilePreflightError.absolutePathRequired(role)) {
+            for path in ["relative-secret", "./relative-secret", "/tmp/secret\u{0}suffix", "file:///tmp/secret%00suffix", "file://remote/private-secret", existingFile.absoluteString + "%00suffix"] {
+                #expect(throws: SSHFilePreflightError.absolutePathRequired(role), "Role: \(role); input: \(String(reflecting: path))") {
                     try SSHFileSelection.validatedURL(for: path, role: role)
                 }
             }
