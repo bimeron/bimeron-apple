@@ -30,12 +30,16 @@ and guarded merge belong to main.
   protocols receive exact-Core validation and synthetic coverage only. Release
   documentation must list the live-verified and not-live-verified protocols separately;
   advertising the latter is accepted residual risk, not a live pass.
-- **D2 — Quit while connected: confirmation dialog.** Quit/Cmd+Q while connected
-  offers "Disconnect and quit" and "Cancel". The app quits only after Stop and
-  observed cleanup succeed; on Stop failure it stays open and shows the error.
+- **D2 — Quit while connected: three-choice dialog.** Quit/Cmd+Q while connected
+  offers:
+  - "Disconnect and quit": the app quits only after Stop and observed cleanup
+    succeed; on Stop failure it stays open and shows the error.
+  - "Quit and keep VPN": the GUI process terminates (not hides) while the Core
+    session keeps running; the next launch adopts its authoritative state (M1
+    reopen reconciliation) without restarting or changing the session.
+  - "Cancel": nothing changes.
   The existing disabled Settings toggle "Disconnect VPN and stop the core service
   on quit" becomes functional: when enabled, Quit disconnects without asking.
-  "Quit and keep VPN" is not offered in the first slice.
 - **D3 — GeoData: follow the Windows Desktop scenario.** Reuse the
   `bimeron-desktop` behavior (`docs/geodata-routing.md`, `src/GeoDataDownload.cpp`
   at `296130e`): explicit user-initiated download of the latest Loyalsoldier
@@ -52,7 +56,9 @@ and guarded merge belong to main.
 - **D4b — Core source: user-specified.** The user will name the shipping Core
   source. For testing, on the user's command, the app is built either with Core
   from a specified commit or with a user-specified Core file; the manifest records
-  whichever was used. Neither is a shipping pin.
+  whichever was used. Neither is a shipping pin. A planned in-app developer mode
+  will also let the user select a Core manually; it must be clearly marked as
+  non-shipping and must not bypass payload validation or guarded installation.
 - **D4c — Approval:** the user alone approves Core pins and releases.
 
 ## Baseline and credited evidence
