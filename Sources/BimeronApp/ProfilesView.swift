@@ -27,7 +27,12 @@ struct ProfilesView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                StatisticsView(snapshot: nil, translate: model.t, locale: Locale(identifier: model.language))
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(model.t("TRAFFIC"))
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    Text("↓ 0 B   ↑ 0 B")
+                }
             }
             .padding(20)
             .frame(maxWidth: .infinity)
@@ -104,6 +109,7 @@ struct ProfilesView: View {
         .padding(.bottom, 18)
         .background(AppPalette.canvas(colorScheme))
         .focusable()
+        .focusEffectDisabled()
         .focused($keyboardFocused)
         .onAppear { keyboardFocused = true }
         .onKeyPress(keys: [.upArrow, .downArrow, .escape, .space]) { press in
