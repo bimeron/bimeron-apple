@@ -125,7 +125,6 @@
 "No entries yet" = "No entries yet";
 "Save log…" = "Save log…";
 "Clear" = "Clear";
-"Core: not connected" = "Core: not connected";
 "Open Bimeron" = "Open Bimeron";
 "Quit Bimeron" = "Quit Bimeron";
 "Close Bimeron" = "Close Bimeron";
@@ -319,3 +318,7 @@
 "The connection changed before the request completed. Check its current status and try again." = "The connection changed before the request completed. Check its current status and try again.";
 "Core is shutting down. Wait for it to stop, then try Start again." = "Core is shutting down. Wait for it to stop, then try Start again.";
 "Core could not complete the request. Check the connection status before trying again." = "Core could not complete the request. Check the connection status before trying again.";
+
+"Core running" = "Core running";
+"Core not running" = "Core not running";
+"Bundled Core information unavailable" = "Bundled Core information unavailable";

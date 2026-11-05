@@ -63,8 +63,11 @@ Core reachability is separate from session state and reconnect reasons. Journal
 polls the bounded events RPC with its sequence cursor; Traffic uses the existing
 session-bound statistics adapter. The Profiles card keeps one title, one subtitle,
 and a compact download/upload total line. Detailed statistics remain hidden until their placement is decided.
-Before the first session, an absent Core is shown as Not connected; a previously
-known session or launch failure retains explicit unavailable status. IPC loss
+An absent Core is shown as Not connected unless it disappeared during a known
+active/in-progress session. Cancellation and launch errors appear separately
+below the card. Confirmed stopped/inactive terminal status clears the session-loss
+warning. About displays the bundled manifest version/short revision and live
+daemon reachability. IPC loss
 makes live traffic unavailable.
 
 Offline tests use injected daemon exchanges, launch closures, synthetic bundles,

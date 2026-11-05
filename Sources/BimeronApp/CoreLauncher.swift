@@ -6,8 +6,7 @@ struct CoreLauncher: Sendable {
 
     static func launch() async throws {
         guard let resources = Bundle.main.resourceURL else { throw Failure.failed }
-        let manifest = try JSONDecoder().decode(BundledCoreManifest.self,
-            from: Data(contentsOf: resources.appending(path: "CoreInstall/manifest.json")))
+        let manifest = try BundledCoreManifest.load()
         guard manifest.permitsLaunch(revision: CoreConnection.revision) else { throw Failure.failed }
         let binaries = resources.deletingLastPathComponent().appending(path: "MacOS")
         try verifyPayloads(binaries: binaries, manifest: manifest)

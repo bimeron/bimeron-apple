@@ -125,7 +125,6 @@
 "No entries yet" = "Записей пока нет";
 "Save log…" = "Сохранить журнал…";
 "Clear" = "Очистить";
-"Core: not connected" = "Core: не подключено";
 "Open Bimeron" = "Открыть Bimeron";
 "Quit Bimeron" = "Выйти из Bimeron";
 "Close Bimeron" = "Закрыть Bimeron";
@@ -319,3 +318,7 @@
 "The connection changed before the request completed. Check its current status and try again." = "Подключение изменилось до завершения запроса. Проверьте его текущее состояние и повторите попытку.";
 "Core is shutting down. Wait for it to stop, then try Start again." = "Core завершает работу. Дождитесь остановки и снова нажмите «Запустить».";
 "Core could not complete the request. Check the connection status before trying again." = "Core не удалось выполнить запрос. Проверьте состояние подключения перед повторной попыткой.";
+
+"Core running" = "Core запущен";
+"Core not running" = "Core не запущен";
+"Bundled Core information unavailable" = "Информация о встроенном Core недоступна";

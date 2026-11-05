@@ -28,7 +28,7 @@ private func shell(_ script: String, _ arguments: [String]) throws -> (Int32, Da
 @Test func hostileBundlePathsRemainLiteralShellArguments() throws {
     let manifest = BundledCoreManifest(sha256: String(repeating: "a", count: 64),
         detach_sha256: String(repeating: "b", count: 64), revision: CoreConnection.revision,
-        production_shipping: false, provenance: "local-development-untrusted")
+        production_shipping: false, provenance: "local-development-untrusted", version: "0.1.0-ba22-dev")
     let path = "/Users/test/' '\u{301} \"\u{301} $HOME `id` \n\r Bimeron.app/Contents/MacOS"
     let args = CoreLauncher.arguments(binaries: URL(fileURLWithPath: path), manifest: manifest, uid: 501)
     #expect(args[1] == CoreLauncher.appleScript)

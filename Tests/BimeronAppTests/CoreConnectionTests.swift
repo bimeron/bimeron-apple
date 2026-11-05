@@ -129,17 +129,18 @@ private actor LaunchSpy {
 }
 
 @Test @MainActor func cancelledPromptAndHandshakeTimeoutNeverStart() async {
-    for failure in [CoreLauncher.Failure.cancelled, .timeout] {
+    for failure in [CoreLauncher.Failure.cancelled, .failed, .timeout] {
         let spy = LaunchSpy()
         let connection = CoreConnection(
             client: DaemonClient(exchange: { _ in throw DaemonError.unavailable }),
             launch: {
                 await spy.called()
-                if failure == .cancelled { throw failure }
+                if failure != .timeout { throw failure }
             }, waitAttempts: 2, pause: {})
         await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
         #expect(connection.launchError == failure)
-        #expect(connection.statusKey == "Core: unknown or unavailable")
+        #expect(connection.statusKey == "Not connected")
+        #expect(connection.isQuietIdle)
         #expect(connection.actionErrorKey != nil)
         #expect(!connection.active)
         #expect(await spy.count == 1)
@@ -165,7 +166,7 @@ private actor LaunchSpy {
     try Data("tampered".utf8).write(to: directory.appending(path: "bimeron-core"))
     let manifest = BundledCoreManifest(sha256: String(repeating: "0", count: 64),
         detach_sha256: String(repeating: "0", count: 64), revision: CoreConnection.revision,
-        production_shipping: false, provenance: "local-development-untrusted")
+        production_shipping: false, provenance: "local-development-untrusted", version: "0.1.0-ba22-dev")
     #expect(throws: CoreLauncher.Failure.failed) {
         try CoreLauncher.verifyPayloads(binaries: directory, manifest: manifest)
     }
@@ -398,4 +399,28 @@ private actor StopRaceFixture {
     await connection.refresh()
     #expect(connection.canStart)
     #expect(connection.actionErrorKey.map { Localization.text($0, language: "ru") } == "Core не удалось завершить остановку подключения. Проверьте причину ошибки и состояние подключения.")
+}
+
+@Test @MainActor func aboutRunningStatusTracksReachability() async {
+    let fixture = ConnectionFixture()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    #expect(connection.runningStatusKey == "Core not running")
+    await connection.refresh()
+    #expect(connection.runningStatusKey == "Core running")
+    await fixture.disappear()
+    await connection.refresh()
+    #expect(connection.runningStatusKey == "Core not running")
+    #expect(connection.statusKey == "Not connected")
+}
+
+@Test @MainActor func confirmedStopClearsActiveSessionLossWarning() async {
+    let fixture = ConnectionFixture()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    await connection.refresh()
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    await connection.stop()
+    await fixture.disappear()
+    await connection.refresh()
+    #expect(connection.statusKey == "Not connected")
+    #expect(connection.isQuietIdle)
 }
