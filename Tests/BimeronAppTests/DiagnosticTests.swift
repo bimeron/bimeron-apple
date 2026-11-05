@@ -5,6 +5,39 @@ import BimeronModel
 import BimeronCoreCLI
 @testable import BimeronApp
 
+@Test func diagnosticDocumentRejectsCorruptInput() throws {
+    let text = "Frozen diagnostics 🔐\n"
+    #expect(try LogDocument(file: FileWrapper(regularFileWithContents: Data(text.utf8))).text == text)
+    #expect(try LogDocument(file: FileWrapper(regularFileWithContents: Data())).text.isEmpty)
+    #expect(throws: CocoaError.self) {
+        try LogDocument(file: FileWrapper(regularFileWithContents: Data([0xFF])))
+    }
+    #expect(throws: CocoaError.self) {
+        try LogDocument(file: FileWrapper(directoryWithFileWrappers: [:]))
+    }
+}
+
+@Test @MainActor func diagnosticExportCancellationIsSilentAndFailuresAreSanitized() throws {
+    #expect(DiagnosticExportView.reportableExportFailure(CancellationError()) == nil)
+    #expect(DiagnosticExportView.reportableExportFailure(CocoaError(.userCancelled)) == nil)
+    #expect(DiagnosticExportView.reportableExportFailure(
+        NSError(domain: "Other", code: NSUserCancelledError)) != nil)
+
+    let settings = try IsolatedAppSettings()
+    let model = AppModel(coreCLI: nil, defaults: settings.defaults)
+    let snapshot = model.diagnosticSnapshot()
+    let reviewed = snapshot.text(includeFreeText: true)
+    // Profile errors have interpolated details in report(); exporter errors must bypass those details.
+    let failure = try #require(DiagnosticExportView.reportableExportFailure(
+        ProfileError.invalid("password=secret /private/export.txt")))
+    model.report(failure)
+    #expect(model.alertMessage != nil)
+    #expect(model.log.count == 1)
+    #expect(!model.diagnosticSnapshot().text(includeFreeText: true).contains("secret"))
+    #expect(!model.diagnosticSnapshot().text(includeFreeText: true).contains("/private"))
+    #expect(snapshot.text(includeFreeText: true) == reviewed)
+}
+
 @Test func diagnosticHistoryEnforcesBothLimitsAndClear() {
     var history = DiagnosticHistory()
     for _ in 0...DiagnosticHistory.entryLimit { history.append("x") }
