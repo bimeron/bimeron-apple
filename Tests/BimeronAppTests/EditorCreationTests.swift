@@ -1,8 +1,57 @@
 import Foundation
 import Testing
-import BimeronCoreCLI
+@testable import BimeronCoreCLI
 import BimeronModel
 @testable import BimeronApp
+
+@Test(arguments: [false, true]) @MainActor
+func editorCreationPreservesGeneratedRawBytesAndRejectsCLIRewrite(rewrite: Bool) async throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    let settings = try IsolatedAppSettings()
+    let directory = root.appending(path: "profiles")
+    let library = ProfileLibrary(directory: directory)
+    let generated = try EditorProtocol.anytls.document(name: "Draft", values: [
+        "Server": "example.com", "Port": "443", "Password": "synthetic-password"
+    ])
+    let text = "\u{FEFF}[Profile]\r\nVersion = 1\r\nName = Raw draft\r\n[AccessKey]\r\n; retained comment\r\nAnyTLS = \(generated.accessKey)\r\nFuture = opaque\r\n# retained EOF"
+    let draft = try ConfigDocument(text)
+    let expected = root.appending(path: "expected")
+    let captured = root.appending(path: "captured")
+    try Data(text.utf8).write(to: expected)
+    let script = root.appending(path: "fixture-core")
+    try Data("""
+    test "$#" = 2 && test "$1" = validate || exit 1
+    test "$(dirname "$2")" = '\(directory.path)' || exit 2
+    test "$(stat -f %Lp "$2")" = 600 || exit 3
+    cmp "$2" '\(expected.path)' || exit 4
+    cp "$2" '\(captured.path)' || exit 5
+    \(rewrite ? "printf rewritten > \"$2\"" : "exit 0")
+    """.utf8).write(to: script)
+    let model = AppModel(library: library,
+                         coreCLI: CoreCLI(testShellScript: script, timeout: .seconds(2)),
+                         defaults: settings.defaults)
+
+    #expect(await model.create(draft) == !rewrite)
+    #expect(!model.validationBusy)
+    #expect(draft.text == text)
+    #expect(try Data(contentsOf: captured) == Data(text.utf8))
+    let profiles = try await library.load().profiles
+    if rewrite {
+        #expect(profiles.isEmpty)
+        #expect(model.selectedID == nil)
+        #expect(model.alertMessage == model.t("Staged profile changed; try saving again"))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: directory.path).isEmpty)
+    } else {
+        let profile = try #require(profiles.first)
+        #expect(profiles.count == 1)
+        #expect(model.selectedID == profile.id)
+        #expect(profile.document.text == text)
+        #expect(try Data(contentsOf: directory.appending(path: profile.id.uuidString + ".conf")) == Data(text.utf8))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: directory.path).allSatisfy { !$0.hasSuffix(".tmp") })
+    }
+}
 
 @Test @MainActor func editorCreationRequiresActualCLIAndRetainsDraftOnFailure() async throws {
     let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
