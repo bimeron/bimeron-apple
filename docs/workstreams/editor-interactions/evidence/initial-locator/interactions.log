@@ -1,0 +1,144 @@
+PASS: editor mode uses main thread and scoped temporary root
+PASS: existing AX trust only; no permission request
+ISOLATION: editor-only; temporary library, MemoryDefaults, mock validator, sandbox; no AddProfileView
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXGroup) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXScrollArea) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXPopUpButton) | SS
+AX Optional(AXStaticText) | Each protocol keeps its own draft when you switch.
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXStaticText) | Shadowsocks
+AX Optional(AXStaticText) | Server
+AX Optional(AXTextField) | original.invalid
+AX Optional(AXStaticText) | Port
+AX Optional(AXTextField) | 443
+AX Optional(AXStaticText) | Encryption
+AX Optional(AXPopUpButton) | aes-256-gcm
+AX Optional(AXStaticText) | Password
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Prefix
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Plugin
+AX Optional(AXPopUpButton) | Default
+AX Optional(AXStaticText) | Plugin options
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation.
+AX Optional(AXStaticText) | SS2022 requires a base64 key of the cipher's exact length. Prefix and plugin options are preserved; plugins cannot wrap ShadowTLS.
+AX Optional(AXHeading) | ShadowTLS v3
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Enable ShadowTLS wrapper
+AX Optional(AXCheckBox) | 
+AX Optional(AXStaticText) | Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility.
+AX Optional(AXScrollBar) | 
+AX Optional(AXValueIndicator) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: SelectionTextField label=
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: AppKitSecureTextField placeholder= label= secure=true
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: AppKitSecureTextField placeholder= label= secure=true
+CONTROL: PlatformSwitch label=
+CONTROL: NSScroller label=
+CONTROL: SwiftUIAppKitButton label=
+CONTROL: SwiftUIAppKitButton label=
+AX Optional(AXApplication) | Bimeron
+AX Optional(AXWindow) | Isolated synthetic EditorView harness
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Isolated EditorView harness — synthetic data only
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXGroup) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Isolated synthetic EditorView harness
+AX Optional(AXSheet) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Profile settings
+AX Optional(AXButton) | General
+AX Optional(AXButton) | Protocol
+AX Optional(AXButton) | Network
+AX Optional(AXButton) | Routing
+AX Optional(AXButton) | Raw config
+AX Optional(AXScrollArea) | 
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXPopUpButton) | SS
+AX Optional(AXStaticText) | Each protocol keeps its own draft when you switch.
+AX Optional(AXStaticText) | Protocol
+AX Optional(AXStaticText) | Shadowsocks
+AX Optional(AXStaticText) | Server
+AX Optional(AXTextField) | original.invalid
+AX Optional(AXStaticText) | Port
+AX Optional(AXTextField) | 443
+AX Optional(AXStaticText) | Encryption
+AX Optional(AXPopUpButton) | aes-256-gcm
+AX Optional(AXStaticText) | Password
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Prefix
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Plugin
+AX Optional(AXPopUpButton) | Default
+AX Optional(AXStaticText) | Plugin options
+AX Optional(AXTextField) | 
+AX Optional(AXStaticText) | Shadowsocks plugins are TCP-only. SS2022 key lengths and plugin compatibility require Core validation.
+AX Optional(AXStaticText) | SS2022 requires a base64 key of the cipher's exact length. Prefix and plugin options are preserved; plugins cannot wrap ShadowTLS.
+AX Optional(AXHeading) | ShadowTLS v3
+AX Optional(AXGroup) | 
+AX Optional(AXStaticText) | Enable ShadowTLS wrapper
+AX Optional(AXCheckBox) | 
+AX Optional(AXStaticText) | Use the outer ShadowTLS listener host and port as the upstream endpoint. Wrapper password and SNI are independent of inner credentials. ShadowTLS does not replace inner encryption or certificate verification, provide native UDP, or change stream policy. ShadowTLS excludes SS plugins, aes-192-gcm, unencrypted VLESS and HTTP/3. Core checks URI details and compatibility.
+AX Optional(AXScrollBar) | 
+AX Optional(AXValueIndicator) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXButton) | 
+AX Optional(AXStaticText) | Core validates saved configurations. Live connections are not checked.
+AX Optional(AXButton) | Cancel
+AX Optional(AXButton) | Save
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: SelectionTextField label=
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: AppKitSecureTextField placeholder= label= secure=true
+CONTROL: AppKitTextField placeholder= label= secure=false
+CONTROL: SwiftUIPopupButton label=
+CONTROL: NSButtonTextField label=
+CONTROL: AppKitSecureTextField placeholder= label= secure=true
+CONTROL: PlatformSwitch label=
+CONTROL: NSScroller label=
+CONTROL: SwiftUIAppKitButton label=
+CONTROL: SwiftUIAppKitButton label=
+FAIL: Error Domain=Unsupported native field locator: Server, matches=0 Code=20 "(null)"

@@ -16,13 +16,14 @@ struct EditorView: View {
     @State private var revealKey = false
     @State private var selectedRule: Int?
     @State private var confirmCancel = false
-    @State private var drafts = ProtocolDrafts()
+    @State private var drafts: ProtocolDrafts
     private var creationProtocol: EditorProtocol { drafts.selected }
 
     init(model: AppModel, profile: StoredProfile, creating: Bool = false) {
         self.creating = creating
         self.model = model
         self.profile = profile
+        _drafts = State(initialValue: ProtocolDrafts(creationDocument: creating ? profile.document : nil))
         _document = State(initialValue: profile.document)
         _rawText = State(initialValue: profile.document.text)
         _tab = State(initialValue: profile.document.formEditingIssue == nil ? (creating ? .upstream : .general) : .raw)
@@ -129,7 +130,7 @@ struct EditorView: View {
                     } else if ProtocolField.generated(key).secret {
                         SecureField(model.t(ProtocolField.generated(key).title), text: generatedBinding(key))
                     } else {
-                        TextField(model.t(ProtocolField.generated(key).title), text: generatedBinding(key))
+                        TextField(model.t(ProtocolField.generated(key).title), text: generatedBinding(key), prompt: key == "Port" ? Text(creationProtocol.defaultPort) : nil)
                     }
                 }
             }
@@ -229,7 +230,16 @@ struct EditorView: View {
     }
 
     @ViewBuilder private func protocolField(_ item: ProtocolField) -> some View {
-        if item.file {
+        if creating && item.id == "Port" && document.value("AccessKey", "Type") == creationProtocol.type {
+            TextField(model.t(item.title), text: Binding(
+                get: { drafts.portValue(in: document) },
+                set: { value in
+                    document = drafts.setPort(value, in: document)
+                    rawText = document.text
+                    issue = nil
+                }
+            ), prompt: Text(creationProtocol.defaultPort))
+        } else if item.file {
             fileField(item.title, item.id)
         } else if let choices = item.choices {
             Picker(model.t(item.title), selection: fieldBinding("AccessKey", item.id)) {
@@ -434,6 +444,7 @@ struct EditorView: View {
                 let parsed = try ConfigDocument(rawText)
                 if creating { try drafts.checkParameterSource(parsed) }
                 if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
+                if creating { drafts.acceptRawPort(in: parsed, previous: document) }
                 document = parsed
                 selectedRule = nil
                 issue = nil

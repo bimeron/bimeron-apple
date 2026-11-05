@@ -26,7 +26,8 @@ out.write_text('\n'.join(rows)+'\n')
 PYHASH
 cp scripts/local-ui-harness/run.sh "$ROOT/evidence/runner.sh"
 cp scripts/local-ui-harness/Harness.swift "$ROOT/evidence/Harness.swift"
-cp scripts/local-ui-harness/Harness.swift "$ROOT/package/Sources/BimeronApp/"
+cp scripts/local-ui-harness/EditorInteractions.swift "$ROOT/evidence/"
+cp scripts/local-ui-harness/{Harness,EditorInteractions}.swift "$ROOT/package/Sources/BimeronApp/"
 # The temporary package has no test targets or dependency resolution.
 python3 - "$ROOT/package/Package.swift" <<'PY'
 import sys
@@ -74,7 +75,9 @@ if touch "$HARNESS_FORBIDDEN"; then exit 83; fi
   exit 1
 fi
 [[ ! -e "$FORBIDDEN" ]] || { rm "$FORBIDDEN"; exit 1; }
-printf '%s\n' "$ROOT" > docs/workstreams/integrated-ui-audit/latest-run.txt
+if [[ "${HARNESS_MODE:-integrated}" != editor ]]; then
+  printf '%s\n' "$ROOT" > docs/workstreams/integrated-ui-audit/latest-run.txt
+fi
 NSUnbufferedIO=YES HOME="$ROOT/home" TMPDIR="$ROOT/tmp/" HARNESS_ROOT="$ROOT" /usr/bin/sandbox-exec -f "$ROOT/isolation.sb" "$ROOT/build/debug/Bimeron" > "$ROOT/evidence/interactions.log" 2>&1
 grep -q "^COMPLETE:" "$ROOT/evidence/interactions.log"
 cat "$ROOT/evidence/interactions.log"

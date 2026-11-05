@@ -1,0 +1,3 @@
+touch: /private/tmp/bimeron-forbidden-07B4B8C0-A764-415E-BA15-497E8B4B8AD7: Operation not permitted
+python3: error: couldn't create cache file '/var/folders/yb/8qc2pj8d021g__3c2_fnhkmr0000gn/T/xcrun_db-xkpRNPLh' (errno=Operation not permitted)
+socket result 1
