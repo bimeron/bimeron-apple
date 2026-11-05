@@ -167,10 +167,14 @@ struct AddProfileView: View {
                     }
                 if path.wrappedValue.isEmpty, !defaultPath.isEmpty {
                     Button(model.t("Use default")) { path.wrappedValue = defaultPath }
+                        .accessibilityLabel(model.t("Use default") + ", " + model.t(title))
+                        .help(defaultPath)
                 }
                 Button(model.t("Choose file…")) { chooseSSHFile(path) }
+                    .accessibilityLabel(model.t("Choose file…") + ", " + model.t(title))
                 if !path.wrappedValue.isEmpty {
                     Button(model.t("Remove")) { path.wrappedValue = "" }
+                        .accessibilityLabel(model.t("Remove") + ", " + model.t(title))
                 }
             }
         }
