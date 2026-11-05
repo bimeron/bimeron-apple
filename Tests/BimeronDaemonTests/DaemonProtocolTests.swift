@@ -34,4 +34,25 @@ final class DaemonProtocolTests: XCTestCase {
         XCTAssertNil(object["session"])
     }
 
+    func testSessionBoundSnapshotUsesExistingStrictFraming() throws {
+        let request = DaemonRequest(command: "stats_snapshot")
+        let valid = """
+        {"version":1,"id":"\(request.id)","instance":"one","session_bound_stats":true,"status":{"State":"failed"},"stats_snapshot":{"status":{"State":"connected","Attempt":2,"Session":{"id":"epoch","active":true}},"counters":{"bytes_up":17,"bytes_down":29}}}
+        """ + "\n"
+        let response = try DaemonProtocol.decode(Data(valid.utf8), request: request)
+        XCTAssertEqual(response.session_bound_stats, true)
+        XCTAssertEqual(response.stats_snapshot?.status.Session?.id, "epoch")
+        XCTAssertEqual(response.stats_snapshot?.counters?.bytes_up, 17)
+        for value in [valid + valid, String(valid.dropLast()),
+                      valid.replacingOccurrences(of: "\"bytes_up\":17", with: "\"bytes_up\":17,\"Bytes_Up\":18"),
+                      valid.replacingOccurrences(of: "\"bytes_up\":17", with: "\"bytes_up\":9223372036854775808"),
+                      valid.replacingOccurrences(of: "\"bytes_down\":29", with: "\"bytes_down\":1.5")] {
+            XCTAssertThrowsError(try DaemonProtocol.decode(Data(value.utf8), request: request))
+        }
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: DaemonProtocol.encode(request)) as? [String: Any])
+        XCTAssertNil(fields["instance"])
+        XCTAssertNil(fields["session"])
+        XCTAssertNil(fields["config"])
+    }
+
 }

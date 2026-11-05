@@ -12,11 +12,24 @@ public struct DaemonStatus: Codable, Equatable, Sendable {
     public var cleanupConfirmed: Bool { State == "disconnected" && Session?.active != true }
 }
 
+/// Ownership is captured with status; individual byte fields are independently atomic.
+public struct DaemonStatisticsSnapshot: Decodable, Sendable {
+    public struct Counters: Decodable, Sendable {
+        public let bytes_up: Int64
+        public let bytes_down: Int64
+        public let unavailable: Bool?
+    }
+    public let status: DaemonStatus
+    public let counters: Counters?
+}
+
 public struct DaemonResponse: Decodable, Sendable {
     public let version: Int
     public let id: String
     public let instance: String
     public let status: DaemonStatus
+    public let session_bound_stats: Bool?
+    public let stats_snapshot: DaemonStatisticsSnapshot?
     public let daemon_session_guards: Bool?
     public let error: String?
 }
