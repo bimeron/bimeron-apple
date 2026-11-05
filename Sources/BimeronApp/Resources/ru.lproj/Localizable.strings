@@ -291,15 +291,11 @@
 
 "Core: connection failed" = "Core: ошибка подключения";
 
-"Untrusted development Core · administrator installation required" = "Недоверенная версия Core для разработки · требуется установка администратором";
 
-"Install Core…" = "Установить Core…";
 
 "Start" = "Запустить";
 
-"Complete macOS Installer, then wait for Core readiness. Start remains manual." = "Завершите установку macOS и дождитесь готовности Core. Запуск выполняется вручную.";
 
-"Installer unavailable or built for another user. Rebuild this development app for your account." = "Установщик недоступен или собран для другого пользователя. Пересоберите приложение для своей учётной записи.";
 
 "Active profile" = "Активный профиль";
 
@@ -308,3 +304,9 @@
 "IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
 
 "Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";
+"Administrator approval was cancelled. Core was not started." = "Запрос прав администратора отменён. Core не запущен.";
+"Core could not be installed or launched. Check administrator access and the app bundle." = "Не удалось установить или запустить Core. Проверьте права администратора и приложение.";
+"Core did not become ready in time. Try Start again." = "Core не ответил вовремя. Нажмите «Запустить» ещё раз.";
+"A different or incompatible Core is running. Stop it explicitly before trying again." = "Запущен другой или несовместимый Core. Остановите его перед повторной попыткой.";
+"Core reachable" = "Core доступен";
+"Core unavailable" = "Core недоступен";

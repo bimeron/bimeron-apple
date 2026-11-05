@@ -7,6 +7,7 @@ APP="$PWD/dist/Bimeron.app"
 CONTENTS="$APP/Contents"
 rm -rf "$APP"
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
+cp .build/release/CoreDetach "$CONTENTS/MacOS/bimeron-detach"
 cp .build/release/Bimeron "$CONTENTS/MacOS/Bimeron"
 cp -R .build/release/Bimeron_BimeronApp.bundle "$CONTENTS/Resources/"
 cp Sources/BimeronApp/Resources/Brand/bimeron.icns "$CONTENTS/Resources/bimeron.icns"
@@ -30,6 +31,14 @@ PLIST
 python3 scripts/build-bundled-core.py --source "$BIMERON_CORE_SOURCE" --output "$CONTENTS/Resources/CoreInstall" --go "${BIMERON_GO:-go}" --git "${BIMERON_GIT:-git}"
 cp "$CONTENTS/Resources/CoreInstall/bimeron-core" "$CONTENTS/MacOS/bimeron-core"
 rm "$CONTENTS/Resources/CoreInstall/bimeron-core"
+python3 - "$CONTENTS" <<'PYCODE'
+import hashlib, json, pathlib, sys
+contents = pathlib.Path(sys.argv[1])
+path = contents / 'Resources/CoreInstall/manifest.json'
+manifest = json.loads(path.read_text())
+manifest['detach_sha256'] = hashlib.sha256((contents / 'MacOS/bimeron-detach').read_bytes()).hexdigest()
+path.write_text(json.dumps(manifest, indent=2) + '\n')
+PYCODE
 touch "$APP"
 python3 scripts/check-app-bundle.py "$APP"
 echo "$APP"

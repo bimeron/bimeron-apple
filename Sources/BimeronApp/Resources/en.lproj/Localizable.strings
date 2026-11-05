@@ -291,15 +291,11 @@
 
 "Core: connection failed" = "Core: connection failed";
 
-"Untrusted development Core · administrator installation required" = "Untrusted development Core · administrator installation required";
 
-"Install Core…" = "Install Core…";
 
 "Start" = "Start";
 
-"Complete macOS Installer, then wait for Core readiness. Start remains manual." = "Complete macOS Installer, then wait for Core readiness. Start remains manual.";
 
-"Installer unavailable or built for another user. Rebuild this development app for your account." = "Installer unavailable or built for another user. Rebuild this development app for your account.";
 
 "Active profile" = "Active profile";
 
@@ -308,3 +304,9 @@
 "IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
 
 "Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";
+"Administrator approval was cancelled. Core was not started." = "Administrator approval was cancelled. Core was not started.";
+"Core could not be installed or launched. Check administrator access and the app bundle." = "Core could not be installed or launched. Check administrator access and the app bundle.";
+"Core did not become ready in time. Try Start again." = "Core did not become ready in time. Try Start again.";
+"A different or incompatible Core is running. Stop it explicitly before trying again." = "A different or incompatible Core is running. Stop it explicitly before trying again.";
+"Core reachable" = "Core reachable";
+"Core unavailable" = "Core unavailable";

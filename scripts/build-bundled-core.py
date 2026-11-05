@@ -54,12 +54,7 @@ def main():
     run(str(binary), 'capabilities')
     metadata.update(sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                     provenance='local-development-untrusted', production_shipping=False,
-                    metadata_authenticated=False, owner_uid=os.getuid())
-    subprocess.run(['python3', str(Path(__file__).parent / 'core-install/build.py'),
-                    '--binary', str(binary), '--sha256', metadata['sha256'], '--version', VERSION,
-                    '--revision', REVISION, '--architecture', platform.machine(),
-                    '--owner-uid', str(os.getuid()), '--output', str(output / 'Install Core.pkg')], check=True)
-    metadata['package_sha256'] = hashlib.sha256((output / 'Install Core.pkg').read_bytes()).hexdigest()
+                    metadata_authenticated=False)
     (output / 'manifest.json').write_text(json.dumps(metadata, indent=2) + '\n')
 
 

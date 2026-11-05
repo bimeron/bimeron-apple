@@ -12,6 +12,7 @@ public struct DaemonProfile: Equatable, Sendable {
 
 /// A deterministic reducer. The caller executes returned requests and feeds authoritative responses back.
 public struct DaemonLifecycle: Sendable {
+    public private(set) var reason: String?
     public private(set) var state: LifecycleState = .unknown
     public private(set) var instance: String?
     public private(set) var session: DaemonSession?
@@ -35,6 +36,7 @@ public struct DaemonLifecycle: Sendable {
         instance = response.instance
         if handshake { guardsSupported = response.daemon_session_guards == true }
         session = response.status.Session
+        reason = response.status.LastError
         if let error = response.error {
             if !handshake { actionError = error }
             replacement = nil

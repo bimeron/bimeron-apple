@@ -36,7 +36,7 @@ private actor ConnectionFixture {
     let fixture = ConnectionFixture()
     let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
     #expect(connection.state == .unknown)
-    #expect(!connection.canStart)
+    #expect(connection.canStart)
     await connection.refresh()
     #expect(connection.canStart)
     let file = URL(fileURLWithPath: "/tmp/isolated profile.conf")
@@ -72,7 +72,7 @@ private actor ConnectionFixture {
     let connection = CoreConnection(client: client)
     await connection.refresh()
     #expect(connection.state == .unknown)
-    #expect(!connection.canStart)
+    #expect(connection.canStart)
     #expect(await fixture.commands() == ["hello"])
 }
 
@@ -105,7 +105,7 @@ private actor ConnectionFixture {
     await connection.refresh()
     #expect(connection.state == .stopped)
     #expect(connection.canStart)
-    #expect(await fixture.commands() == ["hello"])
+    #expect(await fixture.commands() == ["hello", "events"])
 }
 
 @Test @MainActor func daemonIKEv2StartIsBlockedBeforeAnyExchange() async throws {
@@ -119,20 +119,70 @@ private actor ConnectionFixture {
     #expect(model.connection.state == .unknown)
 }
 
-@Test func installerManifestRejectsWrongIdentityAndPackage() throws {
-    let valid: [String: Any] = ["revision": "pinned", "owner_uid": 501, "production_shipping": false,
-                                "provenance": "local-development-untrusted", "package_sha256": "digest"]
-    func permits(_ object: [String: Any]) throws -> Bool {
-        let manifest = try JSONDecoder().decode(BundledCoreManifest.self,
-                                                from: JSONSerialization.data(withJSONObject: object))
-        return manifest.permitsOpening(revision: "pinned", ownerUID: 501, packageSHA256: "digest")
+
+private actor LaunchSpy {
+    var count = 0
+    func called() { count += 1 }
+}
+
+@Test @MainActor func cancelledPromptAndHandshakeTimeoutNeverStart() async {
+    for failure in [CoreLauncher.Failure.cancelled, .timeout] {
+        let spy = LaunchSpy()
+        let connection = CoreConnection(
+            client: DaemonClient(exchange: { _ in throw DaemonError.unavailable }),
+            launch: {
+                await spy.called()
+                if failure == .cancelled { throw failure }
+            }, waitAttempts: 2, pause: {})
+        await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+        #expect(connection.launchError == failure)
+        #expect(connection.actionErrorKey != nil)
+        #expect(!connection.active)
+        #expect(await spy.count == 1)
     }
-    #expect(try permits(valid))
-    for (key, value) in [("revision", "other" as Any), ("owner_uid", 502 as Any),
-                         ("production_shipping", true as Any), ("provenance", "trusted" as Any),
-                         ("package_sha256", "tampered" as Any)] {
-        var invalid = valid
-        invalid[key] = value
-        #expect(try !permits(invalid))
+}
+
+@Test @MainActor func incompatibleRevisionNeverPromptsOrStarts() async {
+    let fixture = ConnectionFixture()
+    let spy = LaunchSpy()
+    let connection = CoreConnection(
+        client: DaemonClient(exchange: { try await fixture.exchange($0) }, expectedRevision: CoreConnection.revision),
+        launch: { await spy.called() })
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(connection.launchError == .incompatible)
+    #expect(await spy.count == 0)
+    #expect(await fixture.commands() == ["hello"])
+}
+
+@Test @MainActor func tamperedLaunchPayloadIsRejectedBeforePrompt() throws {
+    let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try Data("tampered".utf8).write(to: directory.appending(path: "bimeron-core"))
+    let manifest = BundledCoreManifest(sha256: String(repeating: "0", count: 64),
+        detach_sha256: String(repeating: "0", count: 64), revision: CoreConnection.revision,
+        production_shipping: false, provenance: "local-development-untrusted")
+    #expect(throws: CoreLauncher.Failure.failed) {
+        try CoreLauncher.verifyPayloads(binaries: directory, manifest: manifest)
     }
+}
+
+@Test @MainActor func reconnectingStatusAndEventReasonArePreserved() async throws {
+    let client = DaemonClient(exchange: { request in
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true,
+            "status": ["State": "reconnecting", "LastError": "retry reason"],
+            "cursor": 1, "events": [["sequence": 1, "event": ["Time": "2026-11-05T00:00:00Z",
+                "State": "reconnecting", "Message": "Retry", "LastError": "retry reason"]]]]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    })
+    let connection = CoreConnection(client: client)
+    await connection.refresh()
+    #expect(connection.reachable)
+    #expect(connection.state == .reconnecting)
+    #expect(connection.statusKey == "Core: reconnecting")
+    #expect(connection.reason == "retry reason")
+    #expect(connection.journal.map(\.message) == ["[reconnecting] Retry Reason: retry reason"])
+    await connection.refresh()
+    #expect(connection.journal.count == 1)
 }

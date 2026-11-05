@@ -43,14 +43,15 @@ class BundleTests(unittest.TestCase):
         core.chmod(0o755)
         self.install = self.contents / 'Resources' / 'CoreInstall'
         self.install.mkdir()
-        (self.install / 'Install Core.pkg').write_bytes(b'synthetic installer')
+        (self.contents / 'MacOS/bimeron-detach').write_bytes(core.read_bytes())
+        (self.contents / 'MacOS/bimeron-detach').chmod(0o755)
         for name in ('LICENSE', 'THIRD_PARTY_NOTICES.txt'):
             (self.install / name).write_text('synthetic notice')
         self.manifest = dict(revision='6b0d97a4ac96a903153a57d544751401b98d6909', modified=False,
                              platform='darwin', go_version='go1.26.9', production_shipping=False,
                              metadata_authenticated=False, provenance='local-development-untrusted',
                              sha256=hashlib.sha256(core.read_bytes()).hexdigest(),
-                             package_sha256=hashlib.sha256(b'synthetic installer').hexdigest())
+                             detach_sha256=hashlib.sha256(core.read_bytes()).hexdigest())
         (self.install / 'manifest.json').write_text(json.dumps(self.manifest))
         for language in ('en', 'ru'):
             path = self.strings(language)
@@ -67,7 +68,7 @@ class BundleTests(unittest.TestCase):
         checker.check_bundle(self.app)
 
     def test_core_and_package_tampering_rejected(self):
-        for path in (self.contents / 'MacOS' / 'bimeron-core', self.install / 'Install Core.pkg'):
+        for path in (self.contents / 'MacOS' / 'bimeron-core', self.contents / 'MacOS/bimeron-detach'):
             original = path.read_bytes()
             path.write_bytes(original + b'tampered')
             with self.assertRaisesRegex(ValueError, 'digest mismatch'):

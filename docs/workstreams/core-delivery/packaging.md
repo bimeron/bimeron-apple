@@ -1,3 +1,6 @@
+> Historical ba-22 installer design. Superseded by #79; the package builder and
+> installer were removed. See [current development launch](../bundled-core-control/README.md).
+
 # Unsigned local development package preparation
 
 Issue: https://github.com/bimeron/bimeron-apple/issues/13.

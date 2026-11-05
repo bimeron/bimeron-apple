@@ -124,9 +124,11 @@ def check_bundle(app):
             and manifest.get('metadata_authenticated') is False
             and manifest.get('provenance') == 'local-development-untrusted', 'Invalid development Core manifest')
     require(hashlib.sha256(core.read_bytes()).hexdigest() == manifest.get('sha256'), 'Bundled Core digest mismatch')
-    package = install / 'Install Core.pkg'
-    nonempty(package)
-    require(hashlib.sha256(package.read_bytes()).hexdigest() == manifest.get('package_sha256'), 'Installer digest mismatch')
+    helper = contents / 'MacOS' / 'bimeron-detach'
+    nonempty(helper)
+    require(os.access(helper, os.X_OK), 'Detach helper is not executable')
+    check_macho(helper.read_bytes())
+    require(hashlib.sha256(helper.read_bytes()).hexdigest() == manifest.get('detach_sha256'), 'Detach helper digest mismatch')
     for name in ('LICENSE', 'THIRD_PARTY_NOTICES.txt'):
         nonempty(install / name)
     bundle = resources / 'Bimeron_BimeronApp.bundle'

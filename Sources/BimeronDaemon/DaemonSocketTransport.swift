@@ -16,7 +16,7 @@ public struct DaemonSocketTransport: Sendable {
     public func framedExchange(_ request: DaemonRequest, timeout: Duration = .seconds(5)) async throws -> Data {
         let deadline = DaemonSocketDeadline(timeout: timeout)
         try deadline.check()
-        guard ["hello", "status", "stats_snapshot", "start", "stop"].contains(request.command) else {
+        guard ["hello", "status", "stats_snapshot", "events", "start", "stop"].contains(request.command) else {
             throw DaemonError.invalidProtocol
         }
         if request.command == "start" || request.command == "stop" {
