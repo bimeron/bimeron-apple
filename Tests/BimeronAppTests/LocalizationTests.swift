@@ -58,3 +58,21 @@ import Testing
     #expect(Localization.text("Not connected", language: "ru") == "Не подключено")
     #expect(Localization.text("Select a profile and press Start.", language: "ru") == "Выберите профиль и нажмите «Запустить».")
 }
+
+@Test @MainActor func everyConnectionAndLauncherErrorHasRussianTranslation() throws {
+    let codes = ["invalid_configuration", "ikev2_requires_foreground_user_session", "session_stop_failed",
+                 "cleanup_failed", "session_start_failed", "session_already_running", "stale_instance",
+                 "stale_session", "daemon_shutting_down", "future_error"]
+    var keys = codes.compactMap { CoreConnection.errorKey(actionError: $0) }
+    for failure in [CoreLauncher.Failure.cancelled, .failed, .timeout, .incompatible] {
+        keys.append(try #require(CoreConnection.errorKey(launchError: failure)))
+    }
+    keys.append("Bimeron needs administrator approval to install and start its development Core.")
+    #expect(keys.count == codes.count + 5)
+    for key in keys {
+        let english = Localization.text(key, language: "en")
+        let russian = Localization.text(key, language: "ru")
+        #expect(english == key)
+        #expect(russian != english, "Missing Russian translation: \(key)")
+    }
+}

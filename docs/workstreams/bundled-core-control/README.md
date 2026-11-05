@@ -104,3 +104,10 @@ an explicit Start retry through the reachable daemon without administrator appro
 Disconnected is the other terminal state and already permits Start. Active failed
 sessions still require Stop; transitional/unknown states and unconfirmed cleanup
 are not treated as authoritative readiness. Failed does not imply confirmed cleanup.
+
+Stop refreshes the daemon handshake before mutating a session, avoiding a stale
+Stop after the session has already ended. If failure races with Stop, the app
+reports that stopping failed and preserves the daemon reason without claiming
+cleanup. Start/Stop failures and launcher errors have English and Russian copy;
+unrecognized protocol errors use a localized fallback. Runtime Core diagnostic
+reasons remain verbatim.

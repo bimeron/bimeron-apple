@@ -297,11 +297,8 @@
 
 "Active profile" = "Активный профиль";
 
-"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
 
-"IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
 
-"Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";
 "Administrator approval was cancelled. Core was not started." = "Запрос прав администратора отменён. Core не запущен.";
 "Core could not be installed or launched. Check administrator access and the app bundle." = "Не удалось установить или запустить Core. Проверьте права администратора и приложение.";
 "Core did not become ready in time. Try Start again." = "Core не ответил вовремя. Нажмите «Запустить» ещё раз.";
@@ -313,3 +310,12 @@
 
 "Not connected" = "Не подключено";
 "Select a profile and press Start." = "Выберите профиль и нажмите «Запустить».";
+
+"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core отклонил конфигурацию. Измените или проверьте выбранный профиль перед повторной попыткой.";
+"IKEv2 is unavailable through daemon Start. Select another protocol." = "Запуск IKEv2 через службу Core недоступен. Выберите другой протокол.";
+"Core could not finish stopping the connection. Check the failure reason and connection status." = "Core не удалось завершить остановку подключения. Проверьте причину ошибки и состояние подключения.";
+"Core could not start the connection. Check the failure reason before trying again." = "Core не удалось запустить подключение. Проверьте причину ошибки перед повторной попыткой.";
+"A connection is already running. Stop it before starting another." = "Подключение уже запущено. Остановите его перед запуском другого.";
+"The connection changed before the request completed. Check its current status and try again." = "Подключение изменилось до завершения запроса. Проверьте его текущее состояние и повторите попытку.";
+"Core is shutting down. Wait for it to stop, then try Start again." = "Core завершает работу. Дождитесь остановки и снова нажмите «Запустить».";
+"Core could not complete the request. Check the connection status before trying again." = "Core не удалось выполнить запрос. Проверьте состояние подключения перед повторной попыткой.";

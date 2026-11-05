@@ -351,3 +351,51 @@ private actor FailedSessionFixture {
     #expect(connection.state == .connecting)
     #expect(connection.reason == "")
 }
+
+private actor StopRaceFixture {
+    var completed = false
+    var failDuringStop = false
+    var stops = 0
+    func finishBeforeStop() { completed = true }
+    func failOnStop() { failDuringStop = true }
+    func exchange(_ request: DaemonRequest) throws -> DaemonResponse {
+        let stopping = request.command == "stop"
+        if stopping { stops += 1; completed = true }
+        var body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true,
+            "status": ["State": completed ? "failed" : "connecting",
+                "LastError": completed ? "networksetup command failed" : "",
+                "Session": ["id": "session", "active": !completed]]]
+        if stopping && failDuringStop { body["error"] = "session_stop_failed" }
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }
+}
+
+@Test @MainActor func stopDoesNotMutateAnAlreadyFinishedSession() async {
+    let fixture = StopRaceFixture()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    await connection.refresh()
+    #expect(connection.canStop)
+    await fixture.finishBeforeStop()
+    await connection.stop()
+    #expect(await fixture.stops == 0)
+    #expect(connection.state == .failed)
+    #expect(connection.canStart)
+    #expect(connection.reason == "networksetup command failed")
+    #expect(connection.actionErrorKey == nil)
+}
+
+@Test @MainActor func failureDuringStopExplainsTheActionInRussian() async {
+    let fixture = StopRaceFixture()
+    await fixture.failOnStop()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    await connection.refresh()
+    await connection.stop()
+    #expect(await fixture.stops == 1)
+    #expect(connection.actionError == "session_stop_failed")
+    #expect(connection.actionErrorKey == "Core could not finish stopping the connection. Check the failure reason and connection status.")
+    #expect(connection.reason == "networksetup command failed")
+    await connection.refresh()
+    #expect(connection.canStart)
+    #expect(connection.actionErrorKey.map { Localization.text($0, language: "ru") } == "Core не удалось завершить остановку подключения. Проверьте причину ошибки и состояние подключения.")
+}

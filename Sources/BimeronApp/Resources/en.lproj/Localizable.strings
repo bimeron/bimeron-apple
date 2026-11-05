@@ -297,11 +297,8 @@
 
 "Active profile" = "Active profile";
 
-"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
 
-"IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
 
-"Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";
 "Administrator approval was cancelled. Core was not started." = "Administrator approval was cancelled. Core was not started.";
 "Core could not be installed or launched. Check administrator access and the app bundle." = "Core could not be installed or launched. Check administrator access and the app bundle.";
 "Core did not become ready in time. Try Start again." = "Core did not become ready in time. Try Start again.";
@@ -313,3 +310,12 @@
 
 "Not connected" = "Not connected";
 "Select a profile and press Start." = "Select a profile and press Start.";
+
+"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
+"IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
+"Core could not finish stopping the connection. Check the failure reason and connection status." = "Core could not finish stopping the connection. Check the failure reason and connection status.";
+"Core could not start the connection. Check the failure reason before trying again." = "Core could not start the connection. Check the failure reason before trying again.";
+"A connection is already running. Stop it before starting another." = "A connection is already running. Stop it before starting another.";
+"The connection changed before the request completed. Check its current status and try again." = "The connection changed before the request completed. Check its current status and try again.";
+"Core is shutting down. Wait for it to stop, then try Start again." = "Core is shutting down. Wait for it to stop, then try Start again.";
+"Core could not complete the request. Check the connection status before trying again." = "Core could not complete the request. Check the connection status before trying again.";

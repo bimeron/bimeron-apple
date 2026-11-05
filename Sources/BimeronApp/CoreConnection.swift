@@ -53,7 +53,9 @@ import Observation
         !hasKnownSession && launchError == nil && actionError == nil && [.unknown, .stopped].contains(state)
     }
 
-    var actionErrorKey: String? {
+    var actionErrorKey: String? { Self.errorKey(actionError: actionError, launchError: launchError) }
+
+    static func errorKey(actionError: String? = nil, launchError: CoreLauncher.Failure? = nil) -> String? {
         if let launchError {
             switch launchError {
             case .cancelled: return "Administrator approval was cancelled. Core was not started."
@@ -66,7 +68,12 @@ import Observation
         switch actionError {
         case "invalid_configuration": return "Core rejected the configuration. Edit or validate the selected profile before trying again."
         case "ikev2_requires_foreground_user_session": return "IKEv2 is unavailable through daemon Start. Select another protocol."
-        default: return "Core rejected the action. Check the profile and Core status before trying again."
+        case "session_stop_failed", "cleanup_failed": return "Core could not finish stopping the connection. Check the failure reason and connection status."
+        case "session_start_failed": return "Core could not start the connection. Check the failure reason before trying again."
+        case "session_already_running": return "A connection is already running. Stop it before starting another."
+        case "stale_instance", "stale_session": return "The connection changed before the request completed. Check its current status and try again."
+        case "daemon_shutting_down": return "Core is shutting down. Wait for it to stop, then try Start again."
+        default: return "Core could not complete the request. Check the connection status before trying again."
         }
     }
 
@@ -141,6 +148,10 @@ import Observation
         guard canStop else { return }
         busy = true
         defer { busy = false }
+        await client.reconcile()
+        await update()
+        // A session may have finished since the last status poll.
+        guard reachable, active, ![.unknown, .starting, .stopping].contains(state) else { return }
         await client.disconnect()
         await update()
     }
