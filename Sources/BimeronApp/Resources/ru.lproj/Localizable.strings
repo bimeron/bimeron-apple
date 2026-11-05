@@ -310,3 +310,5 @@
 "A different or incompatible Core is running. Stop it explicitly before trying again." = "Запущен другой или несовместимый Core. Остановите его перед повторной попыткой.";
 "Core reachable" = "Core доступен";
 "Core unavailable" = "Core недоступен";
+
+"Bimeron needs administrator approval to install and start its development Core." = "Bimeron требуется разрешение администратора для установки и запуска Core для разработки.";

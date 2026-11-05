@@ -50,6 +50,7 @@ public actor DaemonClient {
 
     public func reconcile() async {
         guard operation == nil else { return }
+        incompatible = false
         await perform(DaemonRequest(command: "hello"), handshake: true)
     }
 

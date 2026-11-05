@@ -10,11 +10,14 @@ private actor ConnectionFixture {
     var failStop = false
     var startError: String?
     var pinnedMetadata = false
+    var unavailable = false
+    func disappear() { unavailable = true }
     func setStartError(_ error: String?) { startError = error }
     func enablePinnedMetadata() { pinnedMetadata = true }
     func setFailStop() { failStop = true }
     func exchange(_ request: DaemonRequest) throws -> DaemonResponse {
         requests.append(request)
+        if unavailable { throw DaemonError.unavailable }
         if request.command == "start", startError == nil { connected = true }
         if request.command == "stop", !failStop { connected = false }
         let session: [String: Any] = ["id": "session-1", "active": connected, "profile_id": "owned-profile"]
@@ -185,4 +188,86 @@ private actor LaunchSpy {
     #expect(connection.journal.map(\.message) == ["[reconnecting] Retry Reason: retry reason"])
     await connection.refresh()
     #expect(connection.journal.count == 1)
+}
+
+@Test @MainActor func vanishedIncompatibleDaemonAllowsLaunch() async {
+    let fixture = ConnectionFixture()
+    let spy = LaunchSpy()
+    let connection = CoreConnection(
+        client: DaemonClient(exchange: { try await fixture.exchange($0) }, expectedRevision: CoreConnection.revision),
+        launch: { await spy.called(); throw CoreLauncher.Failure.cancelled }, pause: {})
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(connection.launchError == .incompatible)
+    await fixture.disappear()
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(await spy.count == 1)
+    #expect(connection.launchError == .cancelled)
+}
+
+@Test @MainActor func crashedActiveDaemonDoesNotLeaveStartDisabled() async {
+    let fixture = ConnectionFixture()
+    let spy = LaunchSpy()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+        launch: { await spy.called(); throw CoreLauncher.Failure.cancelled }, pause: {})
+    await connection.refresh()
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(connection.active)
+    await fixture.disappear()
+    await connection.refresh()
+    #expect(connection.state == .unknown)
+    #expect(!connection.active)
+    #expect(connection.profileName == nil)
+    #expect(connection.reason == nil)
+    #expect(connection.canStart)
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(await spy.count == 1)
+}
+
+private actor RetryHelloFixture {
+    var hellos = 0
+    func exchange(_ request: DaemonRequest) throws -> DaemonResponse {
+        if request.command == "hello" {
+            hellos += 1
+            if hellos == 1 { throw DaemonError.unavailable }
+        }
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true, "status": ["State": "disconnected"]]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }
+}
+
+@Test @MainActor func singleMissedHandshakeDoesNotPrompt() async {
+    let fixture = RetryHelloFixture()
+    let spy = LaunchSpy()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+        launch: { await spy.called() }, pause: {})
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(await spy.count == 0)
+    #expect(await fixture.hellos == 2)
+    #expect(connection.reachable)
+}
+
+@Test @MainActor func reachableDaemonClearsEarlierLaunchError() async {
+    let fixture = ConnectionFixture()
+    let connection = CoreConnection(
+        client: DaemonClient(exchange: { try await fixture.exchange($0) }, expectedRevision: CoreConnection.revision))
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(connection.launchError == .incompatible)
+    await fixture.enablePinnedMetadata()
+    await connection.refresh()
+    #expect(connection.reachable)
+    #expect(connection.launchError == nil)
+}
+
+@Test @MainActor func invalidDroppedBatchDoesNotRepeatGapLines() async {
+    let connection = CoreConnection(client: DaemonClient(exchange: { request in
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true, "status": ["State": "disconnected"],
+            "dropped": true, "cursor": 1,
+            "events": [["sequence": 2, "event": ["Time": "now", "State": "connected", "Message": "bad sequence"]]]]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }))
+    await connection.refresh()
+    await connection.refresh()
+    #expect(connection.journal.isEmpty)
 }

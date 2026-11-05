@@ -65,7 +65,7 @@ import Observation
         }
     }
 
-    var canStart: Bool { !busy && [.unknown, .stopped].contains(state) && !active }
+    var canStart: Bool { !busy && (state == .unknown || (state == .stopped && !active)) }
     var canStop: Bool { !busy && active && ![.unknown, .starting, .stopping].contains(state) }
 
     func monitor() async {
@@ -96,6 +96,15 @@ import Observation
             launchError = .incompatible
             await update()
             return
+        }
+        if await client.state == .unknown {
+            try? await pause()
+            await client.reconcile()
+            if await client.incompatible {
+                launchError = .incompatible
+                await update()
+                return
+            }
         }
         if await client.state == .unknown {
             do {
@@ -137,6 +146,7 @@ import Observation
         let observed = await client.state
         state = supported ? observed : .unknown
         reachable = supported
+        if reachable { launchError = nil }
         reason = await client.reason
         let session = await client.session
         active = session?.active == true
@@ -153,11 +163,11 @@ import Observation
         do {
             let response = try await client.read(DaemonRequest(command: "events", after: cursor))
             guard response.instance == instance, response.error == nil else { return }
-            if response.dropped == true { journal.append(LogEntry(message: "Core event history gap")) }
             if let next = response.cursor, next >= cursor {
                 let events = response.events ?? []
                 guard events.allSatisfy({ $0.sequence > cursor && $0.sequence <= next }),
                       zip(events, events.dropFirst()).allSatisfy({ $0.sequence < $1.sequence }) else { return }
+                if response.dropped == true { journal.append(LogEntry(message: "Core event history gap")) }
                 journal.append(contentsOf: events.map { LogEntry(message: $0.event.line) })
                 journal = Array(journal.suffix(500))
                 cursor = next

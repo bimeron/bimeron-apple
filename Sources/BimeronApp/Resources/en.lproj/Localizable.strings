@@ -310,3 +310,5 @@
 "A different or incompatible Core is running. Stop it explicitly before trying again." = "A different or incompatible Core is running. Stop it explicitly before trying again.";
 "Core reachable" = "Core reachable";
 "Core unavailable" = "Core unavailable";
+
+"Bimeron needs administrator approval to install and start its development Core." = "Bimeron needs administrator approval to install and start its development Core.";

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
+#include <sys/stat.h>
 
 /* Runs only the protected Core copy; no shell, inherited environment, or CLT. */
 int main(int argc, char **argv) {
@@ -35,6 +37,14 @@ int main(int argc, char **argv) {
     if (null < 0) goto failed;
     for (int i = 0; i < 3; i++) if (dup2(null, i) < 0) goto failed;
     if (null > 2) close(null);
+    for (int fd = 3; fd < getdtablesize(); fd++) if (fd != channel[1]) close(fd);
+    umask(022);
+    sigset_t empty;
+    sigemptyset(&empty);
+    if (sigprocmask(SIG_SETMASK, &empty, NULL) < 0) goto failed;
+    int signals[] = {SIGHUP, SIGINT, SIGTERM, SIGPIPE};
+    for (unsigned int i = 0; i < sizeof(signals) / sizeof(signals[0]); i++)
+        if (signal(signals[i], SIG_DFL) == SIG_ERR) goto failed;
     char control[64];
     snprintf(control, sizeof(control), "BIMERON_CONTROL_UID=%lu", uid);
     char *environment[] = {control, "PATH=/usr/bin:/bin:/usr/sbin:/sbin", NULL};

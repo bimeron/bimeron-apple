@@ -25,6 +25,8 @@ public struct DaemonLifecycle: Sendable {
 
     public mutating func loseIPC() {
         state = .unknown
+        session = nil
+        reason = nil
         replacement = nil
         pending = false
         guardsSupported = false

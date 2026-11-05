@@ -27,7 +27,10 @@ in English or Russian. An incompatible revision is refused and never replaced
 silently. There is no separate Core launch action, launchd service, or autostart.
 
 The administrator script refuses symlinks, non-root ownership, writable ancestry,
-and directory ACLs. It stages **both** bundled executables under
+and directory ACLs. Root-owned ancestors may use the admin group; the two
+Bimeron directories require root:wheel 0755. Before prompting, the GUI refuses
+a bundle or ancestor owned by another user or writable by group/other. Paths and
+hashes pass as osascript argv and AppleScript quotes each shell argument. It stages **both** bundled executables under
 `/Library/Application Support/Bimeron/DevCore`, verifies their SHA256 values from
 the development manifest, then installs root:wheel 0755 copies. Only those copies
 execute as root. The native helper double-forks, calls setsid, redirects standard
@@ -77,3 +80,10 @@ Manual acceptance (user only):
 Do not stop an unrelated testing daemon to exercise these steps. Coordinate its
 shutdown explicitly first. A wrong-revision daemon must show incompatibility
 without a prompt or replacement.
+
+Accepted residual risk (development-only): the hashes come from the user-writable
+bundle. A same-user attacker who can modify it can obtain root execution after
+the user approves. Hashes detect corruption and close the pre-check/copy race:
+root re-hashes staged copies in a 0700 mktemp directory before atomic moves.
+Protected copies remain after shutdown. Any process of the control user can
+control the daemon. Signing and SMAppService are the real production fix.
