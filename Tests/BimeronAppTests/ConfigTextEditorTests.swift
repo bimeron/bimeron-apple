@@ -3,6 +3,55 @@ import SwiftUI
 import Testing
 @testable import BimeronApp
 
+@Test @MainActor func rawEditorTabCommandsMoveFocusWithoutEditingConfiguration() throws {
+    let original = "[Profile]\nName = Draft\n"
+    var text = original
+    let coordinator = ConfigTextEditor(text: Binding(get: { text }, set: { text = $0 })).makeCoordinator()
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 200),
+                          styleMask: [.titled], backing: .buffered, defer: false)
+    defer { window.orderOut(nil) }
+    let content = try #require(window.contentView)
+    let previous = NSTextView(frame: NSRect(x: 0, y: 0, width: 100, height: 40))
+    let editor = NSTextView(frame: NSRect(x: 0, y: 50, width: 100, height: 40))
+    let next = NSTextView(frame: NSRect(x: 0, y: 100, width: 100, height: 40))
+    for view in [previous, editor, next] { content.addSubview(view) }
+    previous.nextKeyView = editor
+    editor.nextKeyView = next
+    next.nextKeyView = previous
+    editor.delegate = coordinator
+    editor.string = original
+    let selection = NSRange(location: 2, length: 5)
+    editor.setSelectedRange(selection)
+
+    #expect(window.makeFirstResponder(editor))
+    editor.doCommand(by: #selector(NSResponder.insertTab(_:)))
+    #expect(window.firstResponder === next)
+    #expect(window.makeFirstResponder(editor))
+    editor.doCommand(by: #selector(NSResponder.insertBacktab(_:)))
+    #expect(window.firstResponder === previous)
+    #expect(editor.string == original)
+    #expect(editor.selectedRange() == selection)
+    #expect(text == original)
+
+    #expect(window.makeFirstResponder(editor))
+    editor.setSelectedRange(NSRange(location: 0, length: 0))
+    editor.doCommand(by: #selector(NSResponder.insertTabIgnoringFieldEditor(_:)))
+    #expect(window.firstResponder === editor)
+    #expect(editor.string == "\t" + original)
+    #expect(text == editor.string)
+
+    editor.doCommand(by: #selector(NSResponder.insertNewline(_:)))
+    #expect(editor.string == "\t\n" + original)
+    #expect(text == editor.string)
+
+    editor.setSelectedRange(NSRange(location: 2, length: 9))
+    editor.doCommand(by: #selector(NSResponder.insertTabIgnoringFieldEditor(_:)))
+    #expect(window.firstResponder === editor)
+    #expect(editor.string == "\t\n\t\nName = Draft\n")
+    #expect(editor.selectedRange() == NSRange(location: 3, length: 0))
+    #expect(text == editor.string)
+}
+
 @Test @MainActor func rawEditorTracksDisabledEnvironmentWithoutChangingTextOrSelection() async throws {
     let text = "[Profile]\nName = Draft\n"
     let host = NSHostingView(rootView: ConfigTextEditor(text: .constant(text)).disabled(true))
