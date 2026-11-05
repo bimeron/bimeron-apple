@@ -45,9 +45,13 @@ jobs:
           swift --version
       - name: Check acceptance fixtures
         run: python3 fixtures/acceptance/check.py
+      - name: Test bundle checker
+        run: python3 scripts/test-check-app-bundle.py
       - name: Test
         run: swift test
       - name: Build app
         run: sh scripts/build-app.sh
       - name: Check bundle
-        run: test -x dist/Bimeron.app/Contents/MacOS/Bimeron
+        run: |
+          test -x dist/Bimeron.app/Contents/MacOS/Bimeron
+          python3 scripts/check-app-bundle.py dist/Bimeron.app
