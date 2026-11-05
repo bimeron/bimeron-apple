@@ -54,12 +54,13 @@ struct ConfigTextEditor: NSViewRepresentable {
         init(_ parent: ConfigTextEditor) { self.parent = parent }
 
         func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
-            // Option-Tab keeps AppKit's insertTabIgnoringFieldEditor command for literal tabs.
             switch commandSelector {
             case #selector(NSResponder.insertTab(_:)):
                 textView.window?.selectNextKeyView(textView)
             case #selector(NSResponder.insertBacktab(_:)):
                 textView.window?.selectPreviousKeyView(textView)
+            case #selector(NSResponder.insertTabIgnoringFieldEditor(_:)):
+                textView.insertText("\t", replacementRange: textView.selectedRange())
             default:
                 return false
             }

@@ -43,6 +43,13 @@ import Testing
     editor.doCommand(by: #selector(NSResponder.insertNewline(_:)))
     #expect(editor.string == "\t\n" + original)
     #expect(text == editor.string)
+
+    editor.setSelectedRange(NSRange(location: 2, length: 9))
+    editor.doCommand(by: #selector(NSResponder.insertTabIgnoringFieldEditor(_:)))
+    #expect(window.firstResponder === editor)
+    #expect(editor.string == "\t\n\t\nName = Draft\n")
+    #expect(editor.selectedRange() == NSRange(location: 3, length: 0))
+    #expect(text == editor.string)
 }
 
 @Test @MainActor func rawEditorTracksDisabledEnvironmentWithoutChangingTextOrSelection() async throws {
