@@ -1,0 +1,110 @@
+Authenticated verifier to staging audit — 2026-11-05
+
+Status: historical audit followed by explicit user approval of option A on
+2026-11-05. Production bounded unprivileged staging is now authorized; trust,
+release, installation and live acceptance remain separately closed. Checkout HEAD and origin/main f48d9c8b2e9158e82a728d17def3570a2b65197c.
+Local main is older (859f15b); it was not used as the API baseline or changed.
+
+Actual seam
+- AppleCoreRelease.verifyManifest retains only tag/revision/version/architecture
+  and archive name/size/hash. Signed bytes, signature, key ID, compatibility and
+  app/channel/approval/policy context are discarded.
+- verifyArchive hashes caller Data, invokes AppleArchiveGate.check (Void), then
+  retains caller Data. Its let property does not guarantee owned storage.
+- The gate validates each decoded contents and discards it; success follows the
+  final required-name check. No successful decoded-content handoff exists.
+- Production Sources have no callers of these functions outside their defining
+  file; archive corpus and manifest tests are the current consumers.
+
+Decision brief sent to main
+Recommended: verifier constructs a private complete result containing the three
+already-validated owned contents and bounded original authenticated evidence.
+The coordinator controls lifetime and stages fixed roles only. Snapshot bounded
+external buffers BEFORE authentication, never copy the original again afterward.
+Release archive storage after the last verifier use; avoid a second payload copy.
+Alternative: privately retain a canonical plan and owned archive, reuse exactly
+T's decoder; streaming requires more work and a separate memory/CPU tradeoff.
+Envelope alternative: private coordinator wrapper, but its authenticated context
+must be produced indivisibly by the verifier, not assembled from unrelated calls.
+
+Require explicit choice of retained output versus repeat decode, envelope owner
+and bounds, 0600 leaves/0700 directories, disposable atomic visibility and the
+same-UID threat boundary. Current recommendation accepts all proposed policies;
+this audit does not approve them. Existing one-shot inflation cancellation is
+not bounded by staging's 64 KiB write checkpoints.
+
+Memory arithmetic, not measured peak RSS
+Archive 256 MiB + decoded 264 MiB = 520 MiB. An overlapping original archive
+source adds 256 MiB (776 MiB total); a redundant payload copy adds 264 MiB
+(784 MiB archive plus double payload; 1040 MiB with both archive copies).
+Archive release leaves 264 MiB payload. Parser slices, Mach-O copies, evidence,
+allocator/runtime and process overhead are additional. W measured only small
+synthetic fixtures under its 96 MiB cap; no maximum-size acceptance follows.
+
+Proposed evidence precision, not new trust policy
+Retain bounded original manifest (current limit 65536) and canonical signature
+(89 bytes), key identifier, exact archive digest/size, exact Core source SHA,
+explicit version, architecture, policy/context and independent approval identity.
+Bind actual Apple app source/build identity separately from Core source identity.
+Readiness evidence must identify both CPU artifacts and retained-record/static
+consumer results. A selected source revision alone proves none of these.
+Core c04f20d575e4aed979b1024a32b421e7e5de1afe is proposed source selection ONLY.
+Historical e8de435 fixture evidence is not evidence for a c04 artifact. Unverified
+Core root HEAD cfe0cc5 is not a baseline. No approved candidate/key is supplied.
+Cross-process consumers reverify signed evidence and actual protected copies
+under their own trust/approval configuration; unprivileged output is never S's
+Prepared state. Synthetic trust classification must survive every handoff.
+
+Readiness requirements relayed by main (owner 7efbd3dd)
+Source packet: docs/workstreams/apple-core-release-readiness/decision-packet.md
+in readiness owner's checkout; not present in this checkout and not independently
+read here. The following records the explicit relay, not a new verification.
+Apple f48d9c8 scripts/build-app.sh values 0.1.0/build 1 are SOURCE ONLY. Actual
+selected bundle identifier/version/build, architecture, digest, build recipe,
+clean status and full Apple source SHA remain missing.
+Core release version is UNDECIDED. Choosing the next unused beta requires an
+authoritative public metadata check; synthetic 0.1.0-beta.1 is not a candidate.
+Each CPU evidence record must identify final ZIP size/SHA256, binary SHA256,
+retained version, CPU/Go OS/architecture, exact Core revision, clean/git/trimpath
+build evidence, all role counts/hashes, and Apple static consumer result with
+exact verifier SHA, tools and log identity. Preserve an explicit status for each
+item: available, missing, not-run or failed; absence is never a passing result.
+These are proposed evidence requirements, not additional signed-manifest fields
+or a new trust policy. Evidence outside signed bytes must retain its provenance
+and cannot become authenticated merely by being placed next to those bytes.
+Retain original signed bytes/signature and independent approval, app/channel and
+pin-provenance context without inventing any approval or pin. Public metadata
+checks and release selection have not been performed by this staging audit.
+User subsequently approved A with verifier-owned envelope, fixed permissions
+and disposable staging. Earlier pending-choice statements record audit history.
+
+Acceptance preparation after architecture agreement
+1. Preserve all existing signature/hash/retained-version/Go/ZIP acceptance and
+   rejection results, including exact 348-vector Swift/Core parity. Do not
+   introduce local-header equality or full DEFLATE-input-consumption checks.
+2. Verify external no-copy/mutable source alias detachment before authentication;
+   validate archive and manifest ownership separately. Ordinary Data mutation
+   alone is not an external-alias test.
+3. Reject a valid binary followed by invalid/missing/duplicate notices without
+   returning any payload; test both CPU identities and exact per-role bytes.
+4. Keep construction inaccessible to callers; fixed roles only cross the seam,
+   never entry names, offsets, permissions or archive paths. Count and hash all
+   three contents, checked sums and nonempty exact quotas.
+5. Filesystem adapter checks: inherited ACL refusal, no-follow/exclusive leaves,
+   short writes/EINTR/ENOSPC/close errors, rename collision and EXDEV preservation,
+   cancellation before/after publication, post-publication uncertain outcome,
+   cleanup mismatch/unexpected child and residual operation identification.
+6. Hold descriptors through candidate lifetime and define deterministic disposal;
+   W prototype closes handles before return and is not a production adapter.
+   No recursive cleanup, metadata restoration, or executable staging mode.
+7. Keep one active operation; disposable leftovers never imply acceptance.
+   Same-UID mutation still requires protected-copy revalidation later.
+
+Recorded validation
+swift test --filter 'Apple(CoreRelease|ArchiveGate)Tests' passed: 12 tests,
+1 skipped, 0 failures. The skipped test is testLocalProducerInterop because
+BIMERON_APPLE_VECTORS was unset. Log: /private/tmp/bimeron-staging-verifier-audit.log.
+Historical 348-vector evidence is attributed to T, not rerun by this audit;
+this checkout had no .build corpus initially. git diff --check passed.
+No maximum allocation, actual Core execution, privileged action, release build,
+key access, trust approval, new CI or allowlist change is authorized here.
