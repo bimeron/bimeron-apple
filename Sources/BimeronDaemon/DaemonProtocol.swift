@@ -11,6 +11,7 @@ public struct DaemonStatus: Codable, Equatable, Sendable {
     public let LastError: String?
     public let State: String
     public let Session: DaemonSession?
+    public var startPermitted: Bool { ["disconnected", "failed"].contains(State) && Session?.active != true }
     public var cleanupConfirmed: Bool { State == "disconnected" && Session?.active != true }
 }
 
@@ -87,7 +88,7 @@ public enum DaemonProtocol {
               request.instance == hello.instance,
               request.command != "stop" || (request.session != nil && request.session == hello.status.Session?.id
                   && hello.status.Session?.active == true),
-              request.command != "start" || hello.status.cleanupConfirmed else {
+              request.command != "start" || hello.status.startPermitted else {
             throw DaemonError.invalidProtocol
         }
     }

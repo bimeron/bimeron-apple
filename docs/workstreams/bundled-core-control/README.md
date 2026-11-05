@@ -98,3 +98,9 @@ A partially created Bimeron/ or DevCore/ directory with ownership other than
 root:wheel makes Start fail. An administrator must manually remove that directory
 before retrying Start; the app does not repair its ownership. The stderr read is
 bounded to 64 KiB; the temporary stderr file itself has no size bound.
+
+An inactive terminal failed session keeps its failure reason visible and permits
+an explicit Start retry through the reachable daemon without administrator approval.
+Disconnected is the other terminal state and already permits Start. Active failed
+sessions still require Stop; transitional/unknown states and unconfirmed cleanup
+are not treated as authoritative readiness. Failed does not imply confirmed cleanup.

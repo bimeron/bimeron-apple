@@ -70,7 +70,7 @@ import Observation
         }
     }
 
-    var canStart: Bool { !busy && (state == .unknown || (state == .stopped && !active)) }
+    var canStart: Bool { !busy && (state == .unknown || ([.stopped, .failed].contains(state) && !active)) }
     var canStop: Bool { !busy && active && ![.unknown, .starting, .stopping].contains(state) }
 
     func monitor() async {
@@ -127,7 +127,7 @@ import Observation
                 return
             }
         }
-        guard await client.state == .stopped, await client.guardsSupported else {
+        guard [.stopped, .failed].contains(await client.state), await client.guardsSupported else {
             await update()
             return
         }

@@ -78,7 +78,7 @@ public struct DaemonLifecycle: Sendable {
             replacement = profile
             return request
         }
-        guard state == .stopped, profile.configPath.hasPrefix("/") else { return nil }
+        guard [.stopped, .failed].contains(state), session?.active != true, profile.configPath.hasPrefix("/") else { return nil }
         actionError = nil
         pending = true
         state = .starting

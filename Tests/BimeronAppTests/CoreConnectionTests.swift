@@ -316,3 +316,38 @@ private actor RetryHelloFixture {
     #expect(connection.isQuietIdle)
     #expect(connection.canStart)
 }
+
+private actor FailedSessionFixture {
+    var started = false
+    var commands: [String] = []
+    func exchange(_ request: DaemonRequest) throws -> DaemonResponse {
+        commands.append(request.command)
+        if request.command == "start" { started = true }
+        let status: [String: Any] = ["State": started ? "connecting" : "failed",
+            "LastError": started ? "" : "macos_network_setup_failed: cannot set network service DNS",
+            "Session": ["id": "session", "active": started]]
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true, "status": status]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }
+}
+
+@Test @MainActor func inactiveFailedSessionCanRetryWithoutLaunchingCore() async {
+    let fixture = FailedSessionFixture()
+    let spy = LaunchSpy()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+        launch: { await spy.called() })
+    await connection.refresh()
+    #expect(connection.state == .failed)
+    #expect(!connection.active)
+    #expect(connection.canStart)
+    #expect(!connection.canStop)
+    #expect(connection.reason == "macos_network_setup_failed: cannot set network service DNS")
+    await connection.refresh()
+    #expect(connection.reason == "macos_network_setup_failed: cannot set network service DNS")
+    await connection.start(file: URL(fileURLWithPath: "/tmp/retry.conf"))
+    #expect(await fixture.commands.filter { $0 == "start" }.count == 1)
+    #expect(await spy.count == 0)
+    #expect(connection.state == .connecting)
+    #expect(connection.reason == "")
+}
