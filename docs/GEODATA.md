@@ -29,6 +29,17 @@ rejects final-component symlinks, and returns its caller-stated kind, size, and
 SHA256 under the same size bound. It does not validate semantics or snapshot a
 concurrently modified manual file. Manual files are never copied over or altered.
 
+`importLocalFile(_:source:kind:)` copies an explicitly supplied local file through
+the same `download` pipeline, including the mandatory validator and no-clobber
+publication. The caller must supply kind, source/checksum provenance and expected
+SHA256; a local path does not establish trust. `LocalGeoDataTransport` opens a
+regular file read-only, rejects final-component symlinks and nonregular files,
+and reads at most 64 KiB per call and 64 MiB overall, including growth after open.
+The opened descriptor survives path replacement but does not snapshot concurrent
+in-place writes. It closes on EOF, error, cancellation, explicit `close()`, or
+deinitialization; the import helper also closes it when download finishes early.
+Direct transport consumers that stop before EOF should call `close()`.
+
 Downloads use `<cache>/<sha256>/<kind>.dat`. Random exclusive staging files live
 beside the destination and are removed on success, error, or cancellation. An
 atomic hard link publishes the completed, synced file without replacement.
@@ -78,7 +89,14 @@ failure, injected publication failure, symlink rejection, staging cleanup, immut
 versions, and unchanged manual files. They do not claim real format validation,
 provider compatibility, network behavior, or a real Core integration test.
 
-All six targeted tests passed locally with the Core executable override unset.
+The local-import verification command is
+`swift test --filter 'LocalGeoDataTests|BimeronGeoDataTests'`.
+All 13 targeted tests passed locally (seven local-import and six foundation tests).
+The first attempt failed during test compilation and executed zero tests; moving
+a throwing fixture read before its equality assertion fixed that compiler error.
+Local-import tests use private temporary synthetic files and cover path replacement,
+unsafe inputs, initial size and growth bounds, validator/checksum failures,
+no-clobber publication, cancellation, staging cleanup and unchanged input bytes.
 An independent source review found no issues within this bounded scope. The
 publication fault test throws immediately before the filesystem commit; it does
 not simulate a disk or kernel failure. Shared CI configuration and PR admission
