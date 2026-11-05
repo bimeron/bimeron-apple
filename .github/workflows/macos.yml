@@ -58,7 +58,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.9'
-          cache-dependency-path: .core-source/go.sum
+          cache: false
       - name: Cache pinned Core dependencies
         working-directory: .core-source
         run: go mod download
