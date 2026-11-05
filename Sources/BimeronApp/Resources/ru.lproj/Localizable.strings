@@ -5,7 +5,6 @@
 "About" = "О программе";
 "Disconnected" = "Отключено";
 "VPN is not connected to the app" = "VPN не подключён к приложению";
-"VPN connection will be added in the next stage" = "Подключение VPN появится в следующем этапе";
 "TRAFFIC" = "ТРАФИК";
 "Available profiles" = "Доступные профили";
 "No profiles yet" = "Профилей пока нет";
@@ -140,7 +139,6 @@
 "Service: not connected" = "Служба: не подключена";
 "Stop" = "Остановить";
 "Check for Core updates" = "Проверить обновление Core";
-"Service controls will be available after Core integration." = "Управление службой станет доступно после интеграции с Core.";
 "Enable beta Core updates" = "Включить бета-обновления Core";
 "Save diagnostics report…" = "Сохранить отчёт диагностики…";
 "Russian" = "Русский";
@@ -312,3 +310,6 @@
 "Core unavailable" = "Core недоступен";
 
 "Bimeron needs administrator approval to install and start its development Core." = "Bimeron требуется разрешение администратора для установки и запуска Core для разработки.";
+
+"Not connected" = "Не подключено";
+"Select a profile and press Start." = "Выберите профиль и нажмите «Запустить».";

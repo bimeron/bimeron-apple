@@ -5,7 +5,6 @@
 "About" = "About";
 "Disconnected" = "Disconnected";
 "VPN is not connected to the app" = "VPN is not connected to the app";
-"VPN connection will be added in the next stage" = "VPN connection will be added in the next stage";
 "TRAFFIC" = "TRAFFIC";
 "Available profiles" = "Available profiles";
 "No profiles yet" = "No profiles yet";
@@ -140,7 +139,6 @@
 "Service: not connected" = "Service: not connected";
 "Stop" = "Stop";
 "Check for Core updates" = "Check for Core updates";
-"Service controls will be available after Core integration." = "Service controls will be available after Core integration.";
 "Enable beta Core updates" = "Enable beta Core updates";
 "Save diagnostics report…" = "Save diagnostics report…";
 "Russian" = "Russian";
@@ -312,3 +310,6 @@
 "Core unavailable" = "Core unavailable";
 
 "Bimeron needs administrator approval to install and start its development Core." = "Bimeron needs administrator approval to install and start its development Core.";
+
+"Not connected" = "Not connected";
+"Select a profile and press Start." = "Select a profile and press Start.";

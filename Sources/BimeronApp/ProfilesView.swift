@@ -23,20 +23,21 @@ struct ProfilesView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.t(model.connection.statusKey))
                         .font(.headline)
-                    if let reason = model.connection.reason, !reason.isEmpty { Text(reason).font(.caption) }
-                    if model.connection.active, let name = model.connection.profileName {
-                        Text(model.t("Active profile") + ": " + name).lineLimit(1)
-                    }
-                    Text(model.t(model.connection.reachable ? "Core reachable" : "Core unavailable"))
+                        .lineLimit(1)
+                    Text(statusSubtitle)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(model.t("TRAFFIC"))
                         .font(.caption.bold())
                         .foregroundStyle(.secondary)
-                    StatisticsView(snapshot: model.connection.statistics, translate: model.t,
-                                   locale: Locale(identifier: model.language))
+                    Text(StatisticsPresentation(snapshot: model.connection.statistics)
+                        .compactTraffic(connected: model.connection.state == .connected,
+                                        locale: Locale(identifier: model.language)))
+                        .monospacedDigit()
+                        .lineLimit(1)
                 }
             }
             .padding(20)
@@ -131,6 +132,15 @@ struct ProfilesView: View {
             }
             return .handled
         }
+    }
+
+    private var statusSubtitle: String {
+        if let reason = model.connection.reason, !reason.isEmpty { return reason }
+        if model.connection.active, let name = model.connection.profileName {
+            return model.t("Active profile") + ": " + name
+        }
+        if model.connection.isQuietIdle { return model.t("Select a profile and press Start.") }
+        return model.t(model.connection.reachable ? "Core reachable" : "Core unavailable")
     }
 
     private func handleArrow(_ direction: Int, shift: Bool) {

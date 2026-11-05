@@ -61,7 +61,11 @@ reconciles and adopts a running session without starting or stopping it.
 
 Core reachability is separate from session state and reconnect reasons. Journal
 polls the bounded events RPC with its sequence cursor; Traffic uses the existing
-session-bound statistics adapter. IPC loss makes traffic unavailable.
+session-bound statistics adapter. The Profiles card keeps one title, one subtitle,
+and a compact download/upload total line. Detailed statistics remain hidden until their placement is decided.
+Before the first session, an absent Core is shown as Not connected; a previously
+known session or launch failure retains explicit unavailable status. IPC loss
+makes live traffic unavailable.
 
 Offline tests use injected daemon exchanges, launch closures, synthetic bundles,
 and isolated settings. Actual administrator approval, protected installation,

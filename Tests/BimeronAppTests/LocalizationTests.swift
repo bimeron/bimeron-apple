@@ -52,3 +52,9 @@ import Testing
     first = nil
     #expect(defaults.persistentDomain(forName: suite) == nil)
 }
+
+@Test func compactStatusHasEnglishAndRussianCopy() {
+    #expect(Localization.text("Not connected", language: "en") == "Not connected")
+    #expect(Localization.text("Not connected", language: "ru") == "Не подключено")
+    #expect(Localization.text("Select a profile and press Start.", language: "ru") == "Выберите профиль и нажмите «Запустить».")
+}

@@ -80,6 +80,23 @@ struct StatisticsPresentationTests {
         #expect(StatisticsPresentation.elapsed(.milliseconds(1250), locale: russian) == "1,25")
     }
 
+    @Test func compactTrafficShowsLiveTotalsWithoutInventingMissingSamples() {
+        let locale = Locale(identifier: "en")
+        #expect(StatisticsPresentation(snapshot: nil).compactTraffic(connected: false, locale: locale) == "↓ 0 B   ↑ 0 B")
+        #expect(StatisticsPresentation(snapshot: nil).compactTraffic(connected: true, locale: locale) == "↓ —   ↑ —")
+        var statistics = makeStatistics()
+        let token = statistics.confirm(.init(instance: "synthetic", session: "session"))
+        statistics.observe(token: token, sequence: 1, at: .zero, status: .connected,
+                           counters: .init(bytesUp: 0, bytesDown: 0))
+        #expect(StatisticsPresentation(snapshot: statistics).compactTraffic(connected: true, locale: locale) == "↓ 0 B   ↑ 0 B")
+        statistics.observe(token: token, sequence: 2, at: .seconds(1), status: .connected,
+                           counters: .init(bytesUp: 1000, bytesDown: 2000))
+        let line = StatisticsPresentation(snapshot: statistics).compactTraffic(connected: true, locale: locale)
+        #expect(line == "↓ " + StatisticsPresentation.bytes(2000, locale: locale) + "   ↑ " + StatisticsPresentation.bytes(1000, locale: locale))
+        statistics.loseIPC()
+        #expect(StatisticsPresentation(snapshot: statistics).compactTraffic(connected: true, locale: locale) == "↓ —   ↑ —")
+    }
+
     private func makeStatistics() -> ConnectionStatistics {
         ConnectionStatistics(staleAfter: .seconds(10), historyLimit: 3, eventLimit: 0)
     }

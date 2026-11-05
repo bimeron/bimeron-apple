@@ -44,8 +44,6 @@ struct SettingsView: View {
                         .disabled(true)
                     Toggle(model.t("Show system notifications"), isOn: .constant(true))
                         .disabled(true)
-                    Toggle(model.t("Show detailed connection statistics"), isOn: .constant(false))
-                        .disabled(true)
                     HStack {
                         Toggle(model.t("Connect automatically on launch"), isOn: .constant(false))
                             .disabled(true)
@@ -67,6 +65,9 @@ struct SettingsView: View {
                 .background(AppPalette.surface(colorScheme), in: RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(AppPalette.border(colorScheme)))
 
+                // Detailed statistics panel intentionally hidden until its placement is decided (user, 2026-11-05).
+                // StatisticsView(snapshot: model.connection.statistics, translate: model.t, locale: Locale(identifier: model.language))
+
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         Text(model.t("Bimeron service")).font(.headline)
@@ -80,8 +81,6 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(true)
-                    Text(model.t("Service controls will be available after Core integration."))
-                        .foregroundStyle(.secondary)
                     Toggle(model.t("Enable beta Core updates"), isOn: .constant(false))
                         .disabled(true)
                 }

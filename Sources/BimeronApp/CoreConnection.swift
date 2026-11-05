@@ -17,6 +17,7 @@ import Observation
     private let pause: @Sendable () async throws -> Void
     private let waitAttempts: Int
     private(set) var launchError: CoreLauncher.Failure?
+    private var hasKnownSession = false
     private(set) var reachable = false
     private(set) var reason: String?
     private(set) var journal: [LogEntry] = []
@@ -37,8 +38,8 @@ import Observation
 
     var statusKey: String {
         switch state {
-        case .unknown: "Core: unknown or unavailable"
-        case .stopped: "Core: disconnected"
+        case .unknown: isQuietIdle ? "Not connected" : "Core: unknown or unavailable"
+        case .stopped: "Not connected"
         case .connected: "Core: connected"
         case .connecting, .starting: "Core: connecting"
         case .reconnecting: "Core: reconnecting"
@@ -46,6 +47,10 @@ import Observation
         case .cleanupUnconfirmed: "Core: error; cleanup unconfirmed"
         case .failed: "Core: connection failed"
         }
+    }
+
+    var isQuietIdle: Bool {
+        !hasKnownSession && launchError == nil && actionError == nil && [.unknown, .stopped].contains(state)
     }
 
     var actionErrorKey: String? {
@@ -150,6 +155,7 @@ import Observation
         if reachable || (launchError == .incompatible && !incompatible) { launchError = nil }
         reason = await client.reason
         let session = await client.session
+        if session != nil { hasKnownSession = true }
         active = session?.active == true
         profileName = session?.profile_name
     }

@@ -139,6 +139,7 @@ private actor LaunchSpy {
             }, waitAttempts: 2, pause: {})
         await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
         #expect(connection.launchError == failure)
+        #expect(connection.statusKey == "Core: unknown or unavailable")
         #expect(connection.actionErrorKey != nil)
         #expect(!connection.active)
         #expect(await spy.count == 1)
@@ -218,6 +219,8 @@ private actor LaunchSpy {
     await connection.refresh()
     #expect(connection.state == .unknown)
     #expect(!connection.active)
+    #expect(connection.statusKey == "Core: unknown or unavailable")
+    #expect(!connection.isQuietIdle)
     #expect(connection.profileName == nil)
     #expect(connection.reason == nil)
     #expect(connection.canStart)
@@ -302,4 +305,14 @@ private actor RetryHelloFixture {
     #expect(!connection.reachable)
     #expect(connection.launchError == .incompatible)
     #expect(await spy.count == 0)
+}
+
+@Test @MainActor func firstStartIdleStatusIsCalmWhenCoreIsAbsent() async {
+    let connection = CoreConnection(client: DaemonClient(exchange: { _ in throw DaemonError.unavailable }))
+    #expect(connection.statusKey == "Not connected")
+    #expect(connection.isQuietIdle)
+    await connection.refresh()
+    #expect(connection.statusKey == "Not connected")
+    #expect(connection.isQuietIdle)
+    #expect(connection.canStart)
 }
