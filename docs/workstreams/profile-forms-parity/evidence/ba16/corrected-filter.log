@@ -1,0 +1,37 @@
+[0/1] Planning build
+Building for debugging...
+[0/6] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.29s)
+Test Suite 'Selected tests' started at 2026-11-05 16:10:49.163.
+Test Suite 'BimeronPackageTests.xctest' started at 2026-11-05 16:10:49.164.
+Test Suite 'BimeronPackageTests.xctest' passed at 2026-11-05 16:10:49.164.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 16:10:49.164.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.002) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:) started.
+◇ Test protocolDraftSwitchingPreservesEveryVariantBytes(_:) started.
+◇ Passing 1 argument variant → .socks5 to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .hysteria2 to everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:)
+◇ Passing 1 argument variant → .ss to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .naiveQUIC to everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:)
+◇ Passing 1 argument variant → .vmess to everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:)
+◇ Passing 1 argument variant → .anytls to everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:)
+◇ Passing 1 argument variant → .tuic to everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:)
+◇ Passing 1 argument variant → .vless to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .ssh to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .trojan to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .http to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .https to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .naiveH2 to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .masque to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .hysteria2 to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .vmess to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .tuic to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .anytls to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+◇ Passing 1 argument variant → .naiveQUIC to protocolDraftSwitchingPreservesEveryVariantBytes(_:)
+✔ Test everyGeneratedDraftKeepsChangedRawLinkAuthoritative(_:) passed after 0.045 seconds.
+✔ Test protocolDraftSwitchingPreservesEveryVariantBytes(_:) passed after 0.080 seconds.
+✔ Test run with 2 tests passed after 0.080 seconds.

@@ -27,4 +27,5 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
 </dict></plist>
 PLIST
 touch "$APP"
+python3 scripts/check-app-bundle.py "$APP"
 echo "$APP"
