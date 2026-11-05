@@ -37,7 +37,20 @@ struct DiagnosticExportView: View {
         .frame(width: 660, height: 520)
         .fileExporter(isPresented: $showExporter, document: document,
                       contentType: .plainText, defaultFilename: "Bimeron-diagnostics") { result in
-            if case .failure(let error) = result { model.report(error) }
+            if case .failure(let error) = result,
+               let failure = Self.reportableExportFailure(error) {
+                model.report(failure)
+            }
         }
+    }
+
+    static func reportableExportFailure(_ error: Error) -> CocoaError? {
+        let failure = error as NSError
+        guard !(error is CancellationError),
+              !(failure.domain == NSCocoaErrorDomain && failure.code == NSUserCancelledError) else {
+            return nil
+        }
+        // Export errors must not send destination paths or arbitrary error details into history.
+        return CocoaError(.fileWriteUnknown)
     }
 }
