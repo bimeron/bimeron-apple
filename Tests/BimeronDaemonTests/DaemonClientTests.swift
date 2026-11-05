@@ -86,4 +86,24 @@ final class DaemonClientTests: XCTestCase {
         let state = await client.state
         XCTAssertEqual(state, .unknown)
     }
+    func testInjectedFramedExchangeRejectsUncorrelatedResponse() async {
+        let client = DaemonClient(framedExchange: { _ in
+            Data(#"{"version":1,"id":"foreign","instance":"one","daemon_session_guards":true,"status":{"State":"disconnected"}}"#.utf8) + Data([10])
+        })
+        await client.reconcile()
+        let state = await client.state
+        XCTAssertEqual(state, .unknown)
+    }
+
+    func testInjectedFramedExchangeAcceptsCorrelatedHello() async {
+        let client = DaemonClient(framedExchange: { request in
+            Data("""
+            {"version":1,"id":"\(request.id)","instance":"one","daemon_session_guards":true,"status":{"State":"disconnected"}}
+            """.utf8) + Data([10])
+        })
+        await client.reconcile()
+        let state = await client.state
+        XCTAssertEqual(state, .stopped)
+    }
+
 }

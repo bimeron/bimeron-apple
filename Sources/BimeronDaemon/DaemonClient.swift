@@ -2,6 +2,8 @@ import Foundation
 
 /// Serializes user intent and discards responses from invalidated exchanges.
 public actor DaemonClient {
+    /// Must enforce an I/O deadline and responseLimit while receiving, before buffering untrusted input.
+    public typealias FramedExchange = @Sendable (DaemonRequest) async throws -> Data
     public typealias Exchange = @Sendable (DaemonRequest) async throws -> DaemonResponse
     private let exchange: Exchange
     private var lifecycle = DaemonLifecycle()
@@ -14,6 +16,13 @@ public actor DaemonClient {
 
     /// Injection is for deterministic local adapters; it does not authenticate a daemon.
     public init(exchange: @escaping Exchange) { self.exchange = exchange }
+
+    /// Reuses strict framing, duplicate-key rejection, size limits and request correlation.
+    public init(framedExchange: @escaping FramedExchange) {
+        exchange = { request in
+            try DaemonProtocol.decode(await framedExchange(request), request: request)
+        }
+    }
 
     public var state: LifecycleState { lifecycle.state }
 
