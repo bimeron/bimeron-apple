@@ -18,6 +18,8 @@ import Observation
     private let waitAttempts: Int
     private(set) var launchError: CoreLauncher.Failure?
     private var lastKnownSessionActive = false
+    private var observedState: LifecycleState?
+    private var sessionObservedThisRun = false
     private(set) var reachable = false
     private(set) var reason: String?
     private(set) var journal: [LogEntry] = []
@@ -45,12 +47,16 @@ import Observation
         case .reconnecting: "Core: reconnecting"
         case .stopping: "Core: stopping; cleanup pending"
         case .cleanupUnconfirmed: "Core: error; cleanup unconfirmed"
-        case .failed: "Core: connection failed"
+        case .failed: isHistoricalTerminal ? "Not connected" : "Core: connection failed"
         }
     }
 
     var isQuietIdle: Bool {
-        !lastKnownSessionActive && [.unknown, .stopped].contains(state)
+        !lastKnownSessionActive && ([.unknown, .stopped].contains(state) || isHistoricalTerminal)
+    }
+
+    private var isHistoricalTerminal: Bool {
+        !active && [.stopped, .failed].contains(state) && !sessionObservedThisRun
     }
 
     var runningStatusKey: String { reachable ? "Core running" : "Core not running" }
@@ -88,6 +94,7 @@ import Observation
             do { try await Task.sleep(for: .seconds(1)) } catch { break }
         }
         await client.invalidate()
+        if !sessionObservedThisRun { observedState = nil }
         state = .unknown
     }
 
@@ -142,6 +149,7 @@ import Observation
         }
         let path = file.standardizedFileURL.path
         let id = SHA256.hash(data: Data(path.utf8)).map { String(format: "%02x", $0) }.joined()
+        sessionObservedThisRun = true
         await client.connect(DaemonProfile(id: id, configPath: path))
         await update()
     }
@@ -171,11 +179,20 @@ import Observation
         active = session?.active == true
         if reachable {
             if active || [.starting, .connecting, .connected, .reconnecting, .stopping].contains(state) {
+                sessionObservedThisRun = true
                 lastKnownSessionActive = true
             } else if [.stopped, .failed].contains(state) {
                 lastKnownSessionActive = false
             }
+            // An initial inactive terminal snapshot is daemon history, not a new failure.
+            if state == .failed, let observedState, observedState != .failed {
+                sessionObservedThisRun = true
+            }
+            observedState = state
+        } else if !sessionObservedThisRun {
+            observedState = nil
         }
+        if isHistoricalTerminal { reason = nil }
         profileName = session?.profile_name
     }
 

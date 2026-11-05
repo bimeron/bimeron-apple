@@ -7,6 +7,8 @@ import Testing
 private actor ConnectionFixture {
     var requests: [DaemonRequest] = []
     var connected = false
+    var failedInactive = false
+    func failInactive() { connected = false; failedInactive = true }
     var failStop = false
     var startError: String?
     var pinnedMetadata = false
@@ -23,7 +25,8 @@ private actor ConnectionFixture {
         let session: [String: Any] = ["id": "session-1", "active": connected, "profile_id": "owned-profile"]
         var response: [String: Any] = ["version": 1, "id": request.id, "instance": "daemon-1",
                                       "daemon_session_guards": true,
-                                      "status": ["State": connected ? "connected" : "disconnected", "Session": session]]
+                                      "status": ["State": failedInactive ? "failed" : (connected ? "connected" : "disconnected"), "Session": session]]
+        if failedInactive { response["status"] = ["State": "failed", "Session": session, "LastError": "old failure"] }
         if pinnedMetadata {
             response["core"] = ["revision": "6b0d97a4ac96a903153a57d544751401b98d6909", "modified": false, "platform": "darwin"]
         }
@@ -320,13 +323,15 @@ private actor RetryHelloFixture {
 
 private actor FailedSessionFixture {
     var started = false
+    var failStart = false
+    func failOnStart() { failStart = true }
     var commands: [String] = []
     func exchange(_ request: DaemonRequest) throws -> DaemonResponse {
         commands.append(request.command)
         if request.command == "start" { started = true }
-        let status: [String: Any] = ["State": started ? "connecting" : "failed",
-            "LastError": started ? "" : "macos_network_setup_failed: cannot set network service DNS",
-            "Session": ["id": "session", "active": started]]
+        let status: [String: Any] = ["State": started && !failStart ? "connecting" : "failed",
+            "LastError": started && !failStart ? "" : "macos_network_setup_failed: cannot set network service DNS",
+            "Session": ["id": "session", "active": started && !failStart]]
         let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
             "daemon_session_guards": true, "status": status]
         return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
@@ -343,9 +348,12 @@ private actor FailedSessionFixture {
     #expect(!connection.active)
     #expect(connection.canStart)
     #expect(!connection.canStop)
-    #expect(connection.reason == "macos_network_setup_failed: cannot set network service DNS")
+    #expect(connection.statusKey == "Not connected")
+    #expect(connection.isQuietIdle)
+    #expect(connection.reason == nil)
     await connection.refresh()
-    #expect(connection.reason == "macos_network_setup_failed: cannot set network service DNS")
+    #expect(connection.statusKey == "Not connected")
+    #expect(connection.reason == nil)
     await connection.start(file: URL(fileURLWithPath: "/tmp/retry.conf"))
     #expect(await fixture.commands.filter { $0 == "start" }.count == 1)
     #expect(await spy.count == 0)
@@ -423,4 +431,59 @@ private actor StopRaceFixture {
     await connection.refresh()
     #expect(connection.statusKey == "Not connected")
     #expect(connection.isQuietIdle)
+}
+
+@Test @MainActor func failureObservedWhileRunningShowsReason() async {
+    let fixture = StopRaceFixture()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    await connection.refresh()
+    #expect(connection.state == .connecting)
+    await fixture.finishBeforeStop()
+    await connection.refresh()
+    #expect(connection.statusKey == "Core: connection failed")
+    #expect(connection.reason == "networksetup command failed")
+    await connection.refresh()
+    #expect(connection.reason == "networksetup command failed")
+}
+
+@Test @MainActor func failureAfterOwnStartIsShownEvenWithoutObservedActiveState() async {
+    let fixture = FailedSessionFixture()
+    await fixture.failOnStart()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    await connection.refresh()
+    #expect(connection.statusKey == "Not connected")
+    await connection.start(file: URL(fileURLWithPath: "/tmp/retry.conf"))
+    #expect(connection.statusKey == "Core: connection failed")
+    #expect(connection.reason == "macos_network_setup_failed: cannot set network service DNS")
+}
+
+@Test @MainActor func initialActiveSessionsAreAdoptedInEveryConnectionPhase() async {
+    for phase in ["connecting", "connected", "reconnecting"] {
+        let connection = CoreConnection(client: DaemonClient(exchange: { request in
+            let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+                "daemon_session_guards": true,
+                "status": ["State": phase, "Session": ["id": "active", "active": true, "profile_name": "Adopted"]]]
+            return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+        }))
+        await connection.refresh()
+        #expect(connection.active)
+        #expect(connection.profileName == "Adopted")
+        #expect(connection.statusKey == "Core: " + phase)
+        #expect(connection.canStop)
+        #expect(!connection.canStart)
+    }
+}
+
+@Test @MainActor func reopeningWithoutObservedSessionKeepsHistoricalFailureQuiet() async {
+    let fixture = ConnectionFixture()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+    let monitor = Task { await connection.monitor() }
+    while !connection.reachable { await Task.yield() }
+    monitor.cancel()
+    await monitor.value
+    await fixture.failInactive()
+    await connection.refresh()
+    #expect(connection.statusKey == "Not connected")
+    #expect(connection.reason == nil)
+    #expect(connection.canStart)
 }

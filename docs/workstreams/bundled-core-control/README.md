@@ -114,3 +114,9 @@ reports that stopping failed and preserves the daemon reason without claiming
 cleanup. Start/Stop failures and launcher errors have English and Russian copy;
 unrecognized protocol errors use a localized fallback. Runtime Core diagnostic
 reasons remain verbatim.
+
+An initial failed/disconnected inactive snapshot is the daemon's previous session,
+so the card shows Not connected and hides that historical reason across repeated
+polls. Active sessions are adopted normally. A failure transition observed during
+this app run, or a failure after its own explicit Start, remains visible with its
+reason. This presentation rule does not change daemon state or retry admission.
