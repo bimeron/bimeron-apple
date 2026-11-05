@@ -1,6 +1,7 @@
 import SwiftUI
 
 @main struct BimeronApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel()
 
     private static let menuIcon: NSImage = {

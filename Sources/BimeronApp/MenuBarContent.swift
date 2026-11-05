@@ -12,7 +12,10 @@ struct MenuBarContent: View {
         }
         if model.profiles.isEmpty { Text(model.t("No profiles yet")) }
         Divider()
-        Button(model.t("Open Bimeron")) { openWindow(id: "main") }
+        Button(model.t("Open Bimeron")) {
+            openWindow(id: "main")
+            NSApp.activate()
+        }
         Button(model.t("Quit Bimeron")) { NSApp.terminate(nil) }
     }
 }

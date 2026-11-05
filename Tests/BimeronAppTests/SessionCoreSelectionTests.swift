@@ -268,9 +268,11 @@ private extension SessionCoreSelection {
     let fixture = try SelectionFixture()
     defer { fixture.remove() }
     let settings = try IsolatedAppSettings()
-    let gate = try fixture.executable(gateValidation: true)
+    let nativeFixture = try await NativeSelectionGateFixture()
+    defer { nativeFixture.verifyArtifactUnchanged(); nativeFixture.remove() }
+    let gate = nativeFixture.executableURL
     let rejecting = try fixture.executable(validation: 1)
-    let model = AppModel(library: ProfileLibrary(directory: fixture.root.appending(path: "profiles")),
+    let model = AppModel(library: ProfileLibrary(directory: nativeFixture.root),
                          coreCLI: CoreCLI(executableURL: rejecting), defaults: settings.defaults)
     model.selectCoreExecutable(gate, timeout: .seconds(2))
     await model.waitForCoreProbe()
@@ -285,21 +287,27 @@ private extension SessionCoreSelection {
             if saving, let original { return await model.save(original, original: original) }
             return await model.create(draft)
         }
-        let started = URL(fileURLWithPath: gate.path + ".started")
-        let readiness = try await waitForSelectionGate(operation: operation, phase: saving ? .save : .create) {
-            (model.coreSelection.selectionGateStatus,
-             FileManager.default.fileExists(atPath: started.path), model.validationBusy)
+        do {
+            let started = nativeFixture.sidecar("started")
+            let readiness = try await waitForSelectionGate(operation: operation, phase: saving ? .save : .create) {
+                (model.coreSelection.selectionGateStatus,
+                 FileManager.default.fileExists(atPath: started.path), model.validationBusy)
+            }
+            try #require(readiness.ready, Comment(rawValue: readiness.diagnostic))
+            try #require(readiness.busy, Comment(rawValue: readiness.diagnostic))
+            model.resetCoreExecutable()
+            model.selectCoreExecutable(rejecting)
+            model.cancelCoreProbe()
+            #expect(model.coreSelection.statusKey.contains("UNTRUSTED"))
+            try nativeFixture.publish("release")
+            #expect(await operation.value)
+            #expect(!model.validationBusy)
+            try FileManager.default.removeItem(at: started)
+            try FileManager.default.removeItem(at: nativeFixture.sidecar("release"))
+        } catch {
+            operation.cancel()
+            _ = await operation.result
+            throw error
         }
-        try #require(readiness.ready, Comment(rawValue: readiness.diagnostic))
-        try #require(readiness.busy, Comment(rawValue: readiness.diagnostic))
-        model.resetCoreExecutable()
-        model.selectCoreExecutable(rejecting)
-        model.cancelCoreProbe()
-        #expect(model.coreSelection.statusKey.contains("UNTRUSTED"))
-        try Data().write(to: URL(fileURLWithPath: gate.path + ".release"))
-        #expect(await operation.value)
-        #expect(!model.validationBusy)
-        try FileManager.default.removeItem(at: started)
-        try FileManager.default.removeItem(atPath: gate.path + ".release")
     }
 }

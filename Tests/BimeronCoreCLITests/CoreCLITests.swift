@@ -23,7 +23,7 @@ private struct Fixture {
     func cleanup() { try? FileManager.default.removeItem(at: directory) }
     func unchanged() throws { #expect(try Data(contentsOf: input) == original) }
     func client(timeout: Duration = .seconds(3), limit: Int = 1_048_576) -> CoreCLI {
-        CoreCLI(executableURL: executable, timeout: timeout, outputLimit: limit)
+        CoreCLI(testShellScript: executable, timeout: timeout, outputLimit: limit)
     }
 }
 
@@ -247,23 +247,46 @@ struct CoreCLITests {
     }
 }
 
+@Test func publicExecutablePreservesLiteralArgumentsAndBoundsCapture() async throws {
+    let input = URL(fileURLWithPath: "/tmp/literal ; $(touch injected) ' profile.bim")
+    let expected = Data("validate \(input.path)\n".utf8)
+    let cli = CoreCLI(executableURL: URL(fileURLWithPath: "/bin/echo"), timeout: .seconds(3))
+    let output = try await cli.validate(fileURL: input)
+    #expect(output.stdout == expected && output.stderr.isEmpty)
+    #expect(!output.stdoutTruncated && !output.stderrTruncated)
+    let bounded = CoreCLI(executableURL: URL(fileURLWithPath: "/bin/echo"), timeout: .seconds(3), outputLimit: 8)
+    let captured = try await bounded.validate(fileURL: input)
+    #expect(captured.stdout == Data(expected.prefix(8)))
+    #expect(captured.stdoutTruncated && !captured.stderrTruncated && captured.stderr.isEmpty)
+}
+
+@Test func publicExecutablePreservesTypedExit() async throws {
+    let cli = CoreCLI(executableURL: URL(fileURLWithPath: "/usr/bin/false"), timeout: .seconds(3))
+    do {
+        _ = try await cli.validate(fileURL: URL(fileURLWithPath: "/tmp/unused"))
+        Issue.record("Expected exit failure")
+    } catch CoreCLIError.exit(let status, let output) {
+        #expect(status == 1)
+        #expect(output.stdout.isEmpty && output.stderr.isEmpty)
+        #expect(!output.stdoutTruncated && !output.stderrTruncated)
+    }
+}
+
 @Test func observationDoesNotChangeDefaultSuccessOrLateTimeout() async throws {
-    let success = try Fixture("printf password-secret")
-    defer { success.cleanup() }
-    let plain = success.client()
+    let executable = URL(fileURLWithPath: "/bin/echo")
+    let input = URL(fileURLWithPath: "/tmp/password-secret")
+    let plain = CoreCLI(executableURL: executable, timeout: .seconds(3))
     #expect(plain.observer == nil)
-    let observed = CoreCLI(executableURL: success.executable, timeout: .seconds(3), observer: { _ in })
-    let plainOutput = try await plain.validate(fileURL: success.input)
-    let observedOutput = try await observed.validate(fileURL: success.input)
+    let observed = CoreCLI(executableURL: executable, timeout: .seconds(3), observer: { _ in })
+    let plainOutput = try await plain.validate(fileURL: input)
+    let observedOutput = try await observed.validate(fileURL: input)
     #expect(plainOutput.stdout == observedOutput.stdout)
     #expect(plainOutput.stderr == observedOutput.stderr)
-    let late = try Fixture("exit 0")
-    defer { late.cleanup() }
     for observe in [false, true] {
-        var client = late.client(timeout: .nanoseconds(1))
+        var client = CoreCLI(executableURL: executable, timeout: .nanoseconds(1))
         if observe { client.observer = { _ in } }
         do {
-            _ = try await client.validate(fileURL: late.input)
+            _ = try await client.validate(fileURL: input)
             Issue.record("Late completion accepted")
         } catch CoreCLIError.timedOut { }
     }
@@ -273,7 +296,7 @@ struct CoreCLITests {
     let fixture = try Fixture("echo launched > \"$2\"")
     defer { fixture.cleanup() }
     for observe in [false, true] {
-        var client = fixture.client()
+        var client = CoreCLI(executableURL: fixture.executable, timeout: .seconds(3))
         if observe { client.observer = { _ in } }
         let selected = client
         let task = Task {

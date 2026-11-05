@@ -276,3 +276,97 @@ private actor OrderWarnings {
     let different = try ConfigDocument(source.replacingOccurrences(of: "AnyTLS  =", with: "Key  ="))
     #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.restoringGeneratedSource(in: different) }
 }
+
+@Test func creationPortDefaultsRemainSeparateFromExplicitDrafts() throws {
+    var ss = try EditorProtocol.ss.document(name: "Ports", values: [:])
+    var drafts = ProtocolDrafts(creationDocument: ss)
+    #expect(drafts.portValue(in: ss).isEmpty)
+    #expect(ss.value("AccessKey", "Port") == "8388")
+    ss = drafts.setPort("9443", in: ss)
+    var ssh = try drafts.select(.ssh, current: ss)
+    #expect(drafts.portValue(in: ssh).isEmpty)
+    #expect(ssh.value("AccessKey", "Port") == "22")
+    ssh = drafts.setPort("2222", in: ssh)
+    ss = try drafts.select(.ss, current: ssh)
+    #expect(drafts.portValue(in: ss) == "9443")
+    ss = drafts.setPort("", in: ss)
+    #expect(drafts.portValue(in: ss).isEmpty)
+    #expect(ss.value("AccessKey", "Port") == "8388")
+    ssh = try drafts.select(.ssh, current: ss)
+    #expect(drafts.portValue(in: ssh) == "2222")
+    ss = try drafts.select(.ss, current: ssh)
+    #expect(drafts.portValue(in: ss).isEmpty)
+    let beforeRaw = ss
+    ss.set("AccessKey", "Port", "1234")
+    drafts.acceptRawPort(in: ss, previous: beforeRaw)
+    #expect(drafts.portValue(in: ss) == "1234")
+    let raw = ss.text
+    ssh = try drafts.select(.ssh, current: ss)
+    #expect(try drafts.select(.ss, current: ssh).text == raw)
+    #expect(drafts.portValue(in: ss) == "1234")
+}
+
+@Test func protocolDefaultPortsSerializeValidEndpoints() throws {
+    for variant in EditorProtocol.allCases {
+        let expected: String
+        switch variant {
+        case .ss: expected = "8388"
+        case .socks5: expected = "1080"
+        case .ssh: expected = "22"
+        case .http: expected = "8080"
+        default: expected = "443"
+        }
+        #expect(variant.defaultPort == expected)
+        let values = ["Server": "example.com", "Password": "secret", "Username": "user", "ID": "123e4567-e89b-12d3-a456-426614174000", "Method": "aes-256-gcm"]
+        let document = try variant.document(name: "Default", values: values)
+        try document.validateLocally()
+        if variant == .vmess {
+            let data = try #require(Data(base64Encoded: String(document.accessKey.dropFirst(8))))
+            let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: String])
+            #expect(object["port"] == expected)
+        } else if variant.generated {
+            #expect(URLComponents(string: document.accessKey)?.port == Int(expected))
+        } else {
+            #expect(document.value("AccessKey", "Port") == expected)
+        }
+    }
+}
+
+@Test func importedPortsAndRawAuthorityRemainExplicit() throws {
+    let imported = try EditorProtocol.ss.document(name: "Imported", values: ["Server": "example.com", "Port": "8388"])
+    var drafts = ProtocolDrafts(creationDocument: imported)
+    #expect(drafts.portValue(in: imported) == "8388")
+    let ssh = try drafts.select(.ssh, current: imported)
+    #expect(try drafts.select(.ss, current: ssh).text == imported.text)
+    #expect(drafts.portValue(in: imported) == "8388")
+    _ = try drafts.select(.anytls, current: imported)
+    var generated = try drafts.set("Server", value: "example.com", name: "Imported")
+    #expect(drafts.value("Port").isEmpty)
+    generated = try drafts.set("Port", value: "9443", name: "Imported")
+    #expect(URLComponents(string: generated.accessKey)?.port == 9443)
+    let other = try drafts.select(.tuic, current: generated)
+    #expect(drafts.value("Port").isEmpty)
+    generated = try drafts.select(.anytls, current: other)
+    #expect(drafts.value("Port") == "9443")
+    #expect(URLComponents(string: generated.accessKey)?.port == 9443)
+    generated = try drafts.set("Port", value: "", name: "Imported")
+    #expect(drafts.value("Port").isEmpty)
+    #expect(URLComponents(string: generated.accessKey)?.port == 443)
+    generated.set("AccessKey", "AnyTLS", "anytls://secret@raw.example:1234")
+    #expect(throws: ProfileError.invalid("GeneratedAccessKey")) { try drafts.checkSave(generated, raw: false) }
+    try drafts.checkSave(generated, raw: true)
+}
+
+@Test func rawPortRevertDoesNotRecoverStalePlaceholderState() throws {
+    let blank = try EditorProtocol.ss.document(name: "Raw", values: [:])
+    var drafts = ProtocolDrafts(creationDocument: blank)
+    var raw = blank
+    raw.remove("AccessKey", "Port")
+    drafts.acceptRawPort(in: raw, previous: blank)
+    #expect(drafts.portValue(in: raw).isEmpty)
+    let previous = raw
+    raw.set("AccessKey", "Port", "8388")
+    drafts.acceptRawPort(in: raw, previous: previous)
+    #expect(drafts.portValue(in: raw) == "8388")
+    #expect(raw.value("AccessKey", "Port") == "8388")
+}

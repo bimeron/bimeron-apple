@@ -19,6 +19,7 @@ let package = Package(
         .testTarget(name: "BimeronCoreCLITests", dependencies: ["BimeronCoreCLI"]),
         .executableTarget(name: "BimeronApp", dependencies: ["BimeronModel", "BimeronDaemon", "BimeronCoreCLI"], resources: [.process("Resources")]),
         .testTarget(name: "BimeronModelTests", dependencies: ["BimeronModel"], resources: [.copy("Fixtures")]),
-        .testTarget(name: "BimeronAppTests", dependencies: ["BimeronApp"])
+        .executableTarget(name: "SelectionFreezeGate", path: "Tests/Support/SelectionFreezeGate"),
+        .testTarget(name: "BimeronAppTests", dependencies: ["BimeronApp", "SelectionFreezeGate"])
     ]
 )
