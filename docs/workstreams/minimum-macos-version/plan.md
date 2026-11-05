@@ -58,8 +58,15 @@ and guarded merge belong to main.
   from a specified commit or with a user-specified Core file; the manifest records
   whichever was used. Neither is a shipping pin. A planned in-app developer mode
   will also let the user select a Core manually; it must be clearly marked as
-  non-shipping and must not bypass payload validation or guarded installation.
+  non-shipping and must not bypass payload validation or the guarded launch path.
 - **D4c — Approval:** the user alone approves Core pins and releases.
+- **D5 — Development Core launch without an installer.** The Install Core.pkg /
+  launchd installer is dropped for now. Until Apple Developer signing exists,
+  the app launches its bundled Core as root through an `osascript` administrator
+  prompt on the first Start. Accepted drawbacks: a password prompt whenever Core
+  is not running, no autostart, development-only use. A launchd/SMAppService
+  service returns after signing. Implementation: issue #79 (ba-24, separate
+  owner).
 
 ## Baseline and credited evidence
 
@@ -120,8 +127,10 @@ must remain separate. Main assigns owners beyond ba22 before execution.
 - Pin compatible exact Core source, build, version, architecture and provenance;
   validate CLI and guarded IPC capabilities. Package the verified payload in the
   app bundle. Missing/incompatible/tampered payloads must fail understandably.
-- Complete protected first installation and launchd integration, explicit owner
-  binding and permission checks. Reuse the
+- Per D5, launch the bundled Core as root via an administrator prompt on Start
+  when Core is not running, with explicit owner binding and permission checks
+  (issue #79, ba-24). Protected installation with launchd/SMAppService is
+  deferred until signing exists. Reuse the
   [delivery boundaries](../core-delivery/README.md); older release references are
   not a compatible shipping pin. Installation approval does not authorize running
   privileged or live acceptance here.
@@ -136,6 +145,11 @@ Acceptance: reviewed ba22 code and ordinary CI evidence first; later, separately
 authorized installation/readiness and actual selected-profile GUI Start/Stop.
 App reopen adopts authoritative state without changing the session. M1 does not
 alone prove traffic or cleanup. No auto-connect in this first slice.
+
+Evidence so far: ba22 merged as PR #78 (`850bdefb`). A user-run live test
+(reported by main, 2026-11-05) started and stopped a real SSConf tunnel from the
+GUI, and routes/DNS were restored. Exact app/Core hashes for that run are not
+recorded here yet. It is the first M2 data point, not full M2 acceptance.
 
 ### M2 — Real VPN and cleanup (after M1 code readiness and separate authorization)
 
