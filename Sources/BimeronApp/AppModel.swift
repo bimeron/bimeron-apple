@@ -105,6 +105,10 @@ import Observation
     }
 
     func add(name: String, key: String, sshIdentityFile: URL? = nil, sshKnownHostsFile: URL? = nil) async -> Bool {
+        let attemptID = UUID()
+        record(DiagnosticEvent(source: .gui, kind: .profileAdd, outcome: .started, attemptID: attemptID))
+        var outcome: DiagnosticEvent.Outcome = .failed
+        defer { record(DiagnosticEvent(source: .gui, kind: .profileAdd, outcome: outcome, attemptID: attemptID)) }
         do {
             var document = try ConfigDocument.new(name: name, key: key)
             if document.accessProtocol == .ssh, let sshIdentityFile {
@@ -117,15 +121,28 @@ import Observation
             await load()
             selectedID = profile.id
             record(t("Profile added"))
+            outcome = .success
             return true
-        } catch { report(error); return false }
+        } catch {
+            switch error {
+            case is CancellationError: outcome = .cancelled
+            case is ProfileError: outcome = .rejected
+            default: outcome = .failed
+            }
+            report(error); return false
+        }
     }
 
     func create(_ document: ConfigDocument) async -> Bool {
         guard !validationBusy else { return false }
         validationBusy = true
         defer { validationBusy = false }
+        let attemptID = UUID()
+        record(DiagnosticEvent(source: .gui, kind: .profileCreate, outcome: .started, attemptID: attemptID))
+        var outcome: DiagnosticEvent.Outcome = .failed
+        defer { record(DiagnosticEvent(source: .gui, kind: .profileCreate, outcome: outcome, attemptID: attemptID)) }
         guard let coreCLI = validationCLI else {
+            outcome = .unavailable
             alertMessage = t("Core validation is unavailable")
             return false
         }
@@ -133,13 +150,27 @@ import Observation
             let profile = try await library.add(document, orderWarning: { message in
                 await MainActor.run { self.alertMessage = self.t(message) }
             }) { url in
+                await MainActor.run {
+                    self.record(DiagnosticEvent(source: .coreCLI, kind: .validation, outcome: .started, attemptID: attemptID))
+                }
                 _ = try await coreCLI.validate(fileURL: url)
+                await MainActor.run {
+                    self.record(DiagnosticEvent(source: .coreCLI, kind: .validation, outcome: .success, attemptID: attemptID))
+                }
             }
             await load()
             selectedID = profile.id
             record(t("Profile added"))
+            outcome = .success
             return true
         } catch {
+            switch error {
+            case is CancellationError, CoreCLIError.cancelled: outcome = .cancelled
+            case CoreCLIError.launch: outcome = .unavailable
+            case CoreCLIError.timedOut: outcome = .timedOut
+            case is CoreCLIError, is EditorSaveError, is ProfileError: outcome = .rejected
+            default: outcome = .failed
+            }
             let key: String
             switch error {
             case is CancellationError, CoreCLIError.cancelled: key = "Core validation cancelled"
@@ -156,6 +187,10 @@ import Observation
 
     func addInput(name: String, input: String, sshIdentityFile: URL? = nil, sshKnownHostsFile: URL? = nil) async -> Bool {
         if let url = ProfileInput.fileURL(input) {
+            let attemptID = UUID()
+            record(DiagnosticEvent(source: .gui, kind: .profileImport, outcome: .started, attemptID: attemptID))
+            var outcome: DiagnosticEvent.Outcome = .failed
+            defer { record(DiagnosticEvent(source: .gui, kind: .profileImport, outcome: outcome, attemptID: attemptID)) }
             let scoped = url.startAccessingSecurityScopedResource()
             defer { if scoped { url.stopAccessingSecurityScopedResource() } }
             do {
@@ -163,14 +198,26 @@ import Observation
                 await load()
                 selectedID = profile.id
                 record(t("Profile imported"))
+                outcome = .success
                 return true
-            } catch { report(error); return false }
+            } catch {
+                switch error {
+                case is CancellationError: outcome = .cancelled
+                case is ProfileError: outcome = .rejected
+                default: outcome = .failed
+                }
+                report(error); return false
+            }
         }
         return await add(name: name, key: ProfileInput.normalized(input), sshIdentityFile: sshIdentityFile,
                          sshKnownHostsFile: sshKnownHostsFile)
     }
 
     func importFile(_ url: URL) async {
+        let attemptID = UUID()
+        record(DiagnosticEvent(source: .gui, kind: .profileImport, outcome: .started, attemptID: attemptID))
+        var outcome: DiagnosticEvent.Outcome = .failed
+        defer { record(DiagnosticEvent(source: .gui, kind: .profileImport, outcome: outcome, attemptID: attemptID)) }
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         do {
@@ -178,7 +225,15 @@ import Observation
             await load()
             selectedID = profile.id
             record(t("Profile imported"))
-        } catch { report(error) }
+            outcome = .success
+        } catch {
+            switch error {
+            case is CancellationError: outcome = .cancelled
+            case is ProfileError: outcome = .rejected
+            default: outcome = .failed
+            }
+            report(error)
+        }
     }
 
     static func defaultCoreCLI() -> CoreCLI? {
