@@ -8,12 +8,9 @@ plan, not a minimum macOS OS-version decision or the full desktop parity backlog
 Desktop parity remains the broader goal.
 
 Main coordinator: `e2dd3cf1-d30e-47aa-a0b3-3d32fc658e6d`.
-Active implementation owner **ba-22**:
-`mcp:c181aa1b-d247-4cbd-bb9a-396c4435b9a5`, branch
-`feat/ba22-bundled-core-control`, Apple base
-`8a0c37ecd532c5d99c613387ca2713aa6eaaee71`.
-That owner retains bundled Core, minimal first installation and actual GUI
-Start/Stop. This document assigns no second writer, implementation or system work.
+Ba-22 (bundled Core and GUI Start/Stop) is merged as PR #78 (`850bdef`).
+Active implementation owner **ba-24** handles the development Core launch (D5,
+issue #79). This document assigns no second writer, implementation or system work.
 Future code needs a separate bounded assignment: LOW sole writer, MEDIUM review.
 Planning uses Sol MEDIUM. Root main remains untouched; ready-source publication
 and guarded merge belong to main.
@@ -22,13 +19,10 @@ and guarded merge belong to main.
 
 - **D1 — First-release profile set: all access protocols.** Every protocol in
   `AccessProtocol` (SS, SSConf, SOCKS5, HTTP, MASQUE, VLESS, VMess, Trojan, Naive,
-  Hysteria2, AnyTLS, SSH, TUIC), plus routing and GeoData, are in scope. Live M2
-  evidence is feasible for SSConf, VLESS, possibly Hysteria2 (user's manual
-  checks), and SSH (user-provided test server with root access and a key; address
-  and credentials are kept outside this public repository). The remaining
-  protocols receive exact-Core validation and synthetic coverage only. Release
-  documentation must list the live-verified and not-live-verified protocols separately;
-  advertising the latter is accepted residual risk, not a live pass.
+  Hysteria2, AnyTLS, SSH, TUIC), plus routing and GeoData, are in scope. The user
+  runs manual live checks and reports protocol failures; SSH uses a user-provided
+  test server whose address and credentials stay outside this public repository.
+  Reported failures are fixed as actual findings.
 - **D2 — Quit while connected: three-choice dialog.** Quit/Cmd+Q while connected
   offers:
   - "Disconnect and quit": the app quits only after Stop and observed cleanup
@@ -70,7 +64,7 @@ and guarded merge belong to main.
 
 ## Baseline and credited evidence
 
-Apple baseline is `8a0c37e`; ba15–20 are merged. Ba21 at that revision accepts
+Apple baseline is `850bdef`; ba15–20 and ba22 (#78) are merged. Ba21 at that revision accepts
 **policy only**: explicit manual root resume for an interrupted committed
 installation. A clean, already released installation's reboot behavior is a
 separate case. Neither policy grants mechanism, trust or system authority, and
@@ -102,12 +96,9 @@ neither permits automatic VPN restoration. See the
   Diagnostics, SSH file preflight, local GeoData and window lifecycle foundations
   are likewise credited below, not restarted.
 
-Read-only source inspection at this baseline confirms the Connect action in
-`Sources/BimeronApp/ProfilesView.swift` is disabled. The last reported root GUI
-build was `73f6325`; it is not evidence of a current binary. Core latest known
-remote revision is `6b0d97a` (coordinator report); local master is stale. No fetch
-or remote verification was performed for this plan. Ba22 must establish the exact
-compatible source/build rather than infer it from either reference.
+Ba22 wired the GUI Start/Stop to a pinned bundled development Core; the exact
+pin is recorded in its [workstream notes](../bundled-core-control/README.md).
+That pin is not a shipping pin (D4b).
 
 Shipping remains false/no-key. There is no release candidate, public trust pin or
 `apple_reviewed` approval. Historical document claims retain their original scope
@@ -122,7 +113,7 @@ expected/observed result, retained evidence, reviewer and unresolved findings.
 Use PASS, FAIL or BLOCKED only for the named scenario; synthetic and live results
 must remain separate. Main assigns owners beyond ba22 before execution.
 
-### M1 — Bundled Core and explicit Start/Stop (ba22 owns implementation)
+### M1 — Bundled Core and explicit Start/Stop (ba22 merged; D5 launch in ba-24)
 
 - Pin compatible exact Core source, build, version, architecture and provenance;
   validate CLI and guarded IPC capabilities. Package the verified payload in the
@@ -194,10 +185,8 @@ and no unresolved blocking usability or safety findings for declared profiles.
 
 ### M4 — Routing, GeoData and SSH: conditional release coverage
 
-D1 declares all protocols in scope; D3 selects the GeoData source. Each
-protocol is labeled live-verified or not-live-verified per D1.
-Basic Start/Stop must not wait for every desktop feature; a profile must not be
-advertised as supported until its required capabilities pass.
+D1 declares all protocols in scope; D3 selects the GeoData source.
+Basic Start/Stop must not wait for every desktop feature.
 
 - **Routing:** source-safe editing is completed groundwork. Actual Core application
   of configured proxy/direct/block rules and associated traffic behavior is
@@ -237,7 +226,8 @@ it on fixture integrity, bundle checks or synthetic tests alone.
 
 ## Sequence and boundaries
 
-1. Let ba22 finish its owned slice and report exact source/artifact readiness.
+1. Done: ba22 merged (#78); a first live SSConf Start/Stop passed. Next: ba-24
+   (issue #79) development Core launch per D5.
 2. Main arranges review/self-hosted CI and requests separately scoped
    system/live authority only when code is ready; then accept real Start/Stop and
    cleanup. No heavy slot is reserved or used by this plan.
