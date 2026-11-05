@@ -48,7 +48,12 @@ struct AuditHost: View {
             exit(124)
         }
         Task { @MainActor in
-            do { try await Driver().run(); exit(0) }
+            do {
+                let driver = Driver()
+                if ProcessInfo.processInfo.environment["HARNESS_MODE"] == "editor" { try await driver.runEditor() }
+                else { try await driver.run() }
+                exit(0)
+            }
             catch { print("FAIL: \(error)"); exit(1) }
         }
         app.run()

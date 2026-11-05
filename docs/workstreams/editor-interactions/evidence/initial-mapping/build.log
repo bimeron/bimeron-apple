@@ -1,0 +1,139 @@
+Building for debugging...
+[0/16] Write sources
+[1/16] Copying blue-64.png
+[1/16] Copying bimeron.icns
+[1/16] Write sources
+[1/16] Copying Localizable.strings
+[7/16] Write sources
+[8/16] Copying menu-disconnected-44.png
+[8/16] Write sources
+[10/16] Write Bimeron-entitlement.plist
+[10/16] Copying Info.plist
+[12/16] Write swift-version--58304C5D6DBC2206.txt
+[14/42] Compiling BimeronModel RoutingRule.swift
+[15/42] Compiling BimeronModel ProtocolDrafts.swift
+[16/43] Compiling BimeronCoreCLI CapturedStream.swift
+[17/44] Compiling BimeronSSHAuth SSHFilePreflight.swift
+[18/44] Compiling BimeronModel ProfileError.swift
+[19/44] Compiling BimeronModel EditorProtocol.swift
+[20/44] Compiling BimeronModel EditorSaveError.swift
+[21/44] Compiling BimeronCoreCLI CLIOutput.swift
+[22/44] Compiling BimeronCoreCLI CLIBuildInfo.swift
+[23/44] Compiling BimeronSSHAuth SSHAuth.swift
+[24/44] Emitting module BimeronSSHAuth
+[25/44] Emitting module BimeronCoreCLI
+[26/44] Compiling BimeronCoreCLI AppleArchiveGate.swift
+[27/44] Compiling BimeronModel AccessProtocol.swift
+[28/44] Compiling BimeronModel ConfigDocument.swift
+[29/44] Emitting module BimeronModel
+[30/44] Compiling BimeronCoreCLI CLIPlatformCapabilities.swift
+[31/44] Compiling BimeronCoreCLI CoreCLI.swift
+[32/44] Compiling BimeronDaemon DaemonClient.swift
+[33/44] Emitting module BimeronDaemon
+[34/44] Compiling BimeronDaemon DaemonLifecycle.swift
+[35/44] Compiling BimeronDaemon DaemonProtocol.swift
+[36/44] Compiling BimeronDaemon DaemonSocketTransport.swift
+[37/44] Compiling BimeronModel ProfileInput.swift
+[38/44] Compiling BimeronModel ProfileLibrary.swift
+[39/44] Compiling BimeronCoreCLI CoreCLIError.swift
+[40/44] Compiling BimeronModel StoredProfile.swift
+[41/44] Compiling BimeronCoreCLI AppleCoreRelease.swift
+[42/67] Compiling BimeronApp DiagnosticHistory.swift
+[43/67] Compiling BimeronApp DiagnosticLifecycleAdapter.swift
+[44/67] Compiling BimeronApp DiagnosticSnapshot.swift
+[45/70] Compiling BimeronApp LogEntry.swift
+[46/70] Compiling BimeronApp LogView.swift
+[47/70] Compiling BimeronApp MainWindow.swift
+[48/70] Compiling BimeronApp ProtocolField.swift
+[49/70] Compiling BimeronApp SettingsView.swift
+[50/70] Compiling BimeronApp resource_bundle_accessor.swift
+[51/70] Compiling BimeronApp AboutView.swift
+[52/70] Compiling BimeronApp AddProfileView.swift
+[53/70] Compiling BimeronApp AppModel.swift
+[54/70] Compiling BimeronApp AppPalette.swift
+[55/70] Compiling BimeronApp MenuBarContent.swift
+[56/70] Compiling BimeronApp Page.swift
+[57/70] Compiling BimeronApp ProfilesView.swift
+[58/70] Compiling BimeronApp EditorInteractions.swift
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:38:24: warning: 'unsafeBitCast' from 'AnyObject' to 'AXUIElement' can be replaced with 'unsafeDowncast'
+ 36 |             guard (attribute(node, kAXRoleAttribute) as? String) == kAXTextFieldRole else { return false }
+ 37 |             if let title = attribute(node, kAXTitleUIElementAttribute), CFGetTypeID(title) == AXUIElementGetTypeID(),
+ 38 |                isTitle(unsafeBitCast(title, to: AXUIElement.self)) { return true }
+    |                        `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXUIElement' can be replaced with 'unsafeDowncast'
+ 39 |             // SwiftUI exposes some form labels as the immediately preceding AX sibling.
+ 40 |             guard index > 0, isTitle(tree[index - 1]),
+
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:55:31: warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 53 |         var point = CGPoint.zero
+ 54 |         var dimensions = CGSize.zero
+ 55 |         guard AXValueGetValue(unsafeBitCast(position, to: AXValue.self), .cgPoint, &point),
+    |                               `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 56 |               AXValueGetValue(unsafeBitCast(size, to: AXValue.self), .cgSize, &dimensions) else {
+ 57 |             throw NSError(domain: "Missing own-sheet field geometry: \(title)", code: 20)
+
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:56:31: warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 54 |         var dimensions = CGSize.zero
+ 55 |         guard AXValueGetValue(unsafeBitCast(position, to: AXValue.self), .cgPoint, &point),
+ 56 |               AXValueGetValue(unsafeBitCast(size, to: AXValue.self), .cgSize, &dimensions) else {
+    |                               `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 57 |             throw NSError(domain: "Missing own-sheet field geometry: \(title)", code: 20)
+ 58 |         }
+[59/70] Compiling BimeronApp EditorTab.swift
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:38:24: warning: 'unsafeBitCast' from 'AnyObject' to 'AXUIElement' can be replaced with 'unsafeDowncast'
+ 36 |             guard (attribute(node, kAXRoleAttribute) as? String) == kAXTextFieldRole else { return false }
+ 37 |             if let title = attribute(node, kAXTitleUIElementAttribute), CFGetTypeID(title) == AXUIElementGetTypeID(),
+ 38 |                isTitle(unsafeBitCast(title, to: AXUIElement.self)) { return true }
+    |                        `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXUIElement' can be replaced with 'unsafeDowncast'
+ 39 |             // SwiftUI exposes some form labels as the immediately preceding AX sibling.
+ 40 |             guard index > 0, isTitle(tree[index - 1]),
+
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:55:31: warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 53 |         var point = CGPoint.zero
+ 54 |         var dimensions = CGSize.zero
+ 55 |         guard AXValueGetValue(unsafeBitCast(position, to: AXValue.self), .cgPoint, &point),
+    |                               `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 56 |               AXValueGetValue(unsafeBitCast(size, to: AXValue.self), .cgSize, &dimensions) else {
+ 57 |             throw NSError(domain: "Missing own-sheet field geometry: \(title)", code: 20)
+
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:56:31: warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 54 |         var dimensions = CGSize.zero
+ 55 |         guard AXValueGetValue(unsafeBitCast(position, to: AXValue.self), .cgPoint, &point),
+ 56 |               AXValueGetValue(unsafeBitCast(size, to: AXValue.self), .cgSize, &dimensions) else {
+    |                               `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 57 |             throw NSError(domain: "Missing own-sheet field geometry: \(title)", code: 20)
+ 58 |         }
+[60/70] Compiling BimeronApp EditorView.swift
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:38:24: warning: 'unsafeBitCast' from 'AnyObject' to 'AXUIElement' can be replaced with 'unsafeDowncast'
+ 36 |             guard (attribute(node, kAXRoleAttribute) as? String) == kAXTextFieldRole else { return false }
+ 37 |             if let title = attribute(node, kAXTitleUIElementAttribute), CFGetTypeID(title) == AXUIElementGetTypeID(),
+ 38 |                isTitle(unsafeBitCast(title, to: AXUIElement.self)) { return true }
+    |                        `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXUIElement' can be replaced with 'unsafeDowncast'
+ 39 |             // SwiftUI exposes some form labels as the immediately preceding AX sibling.
+ 40 |             guard index > 0, isTitle(tree[index - 1]),
+
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:55:31: warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 53 |         var point = CGPoint.zero
+ 54 |         var dimensions = CGSize.zero
+ 55 |         guard AXValueGetValue(unsafeBitCast(position, to: AXValue.self), .cgPoint, &point),
+    |                               `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 56 |               AXValueGetValue(unsafeBitCast(size, to: AXValue.self), .cgSize, &dimensions) else {
+ 57 |             throw NSError(domain: "Missing own-sheet field geometry: \(title)", code: 20)
+
+/private/tmp/bimeron-isolated-ui.Ep2hqT/package/Sources/BimeronApp/EditorInteractions.swift:56:31: warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 54 |         var dimensions = CGSize.zero
+ 55 |         guard AXValueGetValue(unsafeBitCast(position, to: AXValue.self), .cgPoint, &point),
+ 56 |               AXValueGetValue(unsafeBitCast(size, to: AXValue.self), .cgSize, &dimensions) else {
+    |                               `- warning: 'unsafeBitCast' from 'AnyObject' to 'AXValue' can be replaced with 'unsafeDowncast'
+ 57 |             throw NSError(domain: "Missing own-sheet field geometry: \(title)", code: 20)
+ 58 |         }
+[61/70] Emitting module BimeronApp
+[62/70] Compiling BimeronApp ConfigTextEditor.swift
+[63/70] Compiling BimeronApp DiagnosticEvent.swift
+[64/70] Compiling BimeronApp DiagnosticExportView.swift
+[65/70] Compiling BimeronApp Harness.swift
+[66/70] Compiling BimeronApp Localization.swift
+[67/70] Compiling BimeronApp LogDocument.swift
+[67/70] Write Objects.LinkFileList
+[68/70] Linking Bimeron
+[69/70] Applying Bimeron
+Build complete! (17.31s)
