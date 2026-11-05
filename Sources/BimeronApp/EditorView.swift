@@ -14,7 +14,7 @@ struct EditorView: View {
     @State private var busy = false
     @State private var saveTask: Task<Void, Never>?
     @State private var revealKey = false
-    @State private var selectedRule: Int?
+    @State private var routingEditing = RoutingRuleEditingState()
     @State private var confirmCancel = false
     @State private var drafts: ProtocolDrafts
     private var creationProtocol: EditorProtocol { drafts.selected }
@@ -307,34 +307,35 @@ struct EditorView: View {
                 }.frame(width: 280)
                 Spacer()
             }
-            Table(document.rules, selection: $selectedRule) {
+            Table(document.rules, selection: $routingEditing.selection) {
                 TableColumn(model.t("On")) { rule in
-                    Toggle(ruleLabel("On", rule.id), isOn: ruleBinding(rule.id, \.enabled)).labelsHidden()
+                    Toggle(ruleLabel("On", rule.id), isOn: ruleBinding(rule, \.enabled)).labelsHidden()
                 }.width(50)
                 TableColumn(model.t("Type")) { rule in
-                    Picker(ruleLabel("Type", rule.id), selection: ruleBinding(rule.id, \.type)) {
+                    Picker(ruleLabel("Type", rule.id), selection: ruleBinding(rule, \.type)) {
                         Text("CIDR").tag("CIDR")
                         Text(model.t("Domain")).tag("Domain")
                     }.labelsHidden()
                 }.width(105)
                 TableColumn(model.t("Destination")) { rule in
-                    TextField(ruleLabel("Destination", rule.id), text: ruleBinding(rule.id, \.destination))
+                    TextField(ruleLabel("Destination", rule.id), text: ruleBinding(rule, \.destination))
                 }
                 TableColumn(model.t("Action")) { rule in
-                    Picker(ruleLabel("Action", rule.id), selection: ruleBinding(rule.id, \.action)) {
+                    Picker(ruleLabel("Action", rule.id), selection: ruleBinding(rule, \.action)) {
                         Text(model.t("Via VPN")).tag("proxy")
                         Text(model.t("Direct")).tag("direct")
                         Text(model.t("Block")).tag("block")
                     }.labelsHidden()
                 }.width(120)
             }
+            .id(routingEditing.generation)
             HStack {
-                Button(model.t("Add")) { document.addRule(); rawText = document.text }
+                Button(model.t("Add")) { routingEditing.add(to: &document); rawText = document.text }
                 Button(model.t("Remove")) {
-                    if let selectedRule { document.removeRule(selectedRule); self.selectedRule = nil; rawText = document.text }
-                }.disabled(selectedRule == nil)
-                Button(model.t("Move up")) { moveRule(-1) }.disabled(selectedRule == nil || selectedRule == 0)
-                Button(model.t("Move down")) { moveRule(1) }.disabled(selectedRule == nil || selectedRule == document.rules.count - 1)
+                    routingEditing.remove(from: &document); rawText = document.text
+                }.disabled(routingEditing.selection == nil)
+                Button(model.t("Move up")) { moveRule(-1) }.disabled(routingEditing.selection == nil || routingEditing.selection == 0)
+                Button(model.t("Move down")) { moveRule(1) }.disabled(routingEditing.selection == nil || routingEditing.selection == document.rules.count - 1)
             }
             Text(model.t("Rules are applied from top to bottom: first match wins."))
                 .font(.caption).foregroundStyle(.secondary)
@@ -351,7 +352,7 @@ struct EditorView: View {
                 Button(model.t("Restore generated access key")) {
                     do {
                         let parsed = try drafts.restoringGeneratedSource(in: ConfigDocument(rawText))
-                        document = parsed
+                        routingEditing.acceptRaw(parsed, replacing: &document)
                         rawText = parsed.text
                         issue = parsed.accessKey.isEmpty ? model.t("Enter a server and a valid port") : nil
                     } catch ProfileError.invalid("GeneratedAccessKey") {
@@ -372,7 +373,8 @@ struct EditorView: View {
         do {
             let parsed = try ConfigDocument(rawText)
             if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
-            document = try drafts.select(target, current: parsed)
+            let next = try drafts.select(target, current: parsed)
+            routingEditing.acceptRaw(next, replacing: &document)
             rawText = document.text
             issue = nil
         } catch ProfileError.invalid("GeneratedAccessKey") {
@@ -428,12 +430,12 @@ struct EditorView: View {
         })
     }
 
-    private func ruleBinding<T>(_ id: Int, _ keyPath: WritableKeyPath<RoutingRule, T>) -> Binding<T> {
-        Binding(get: { document.rules[id][keyPath: keyPath] }, set: { value in
-            guard document.rules.indices.contains(id) else { return }
-            var rule = document.rules[id]
-            rule[keyPath: keyPath] = value
-            document.updateRule(rule)
+    private func ruleBinding<T>(_ rule: RoutingRule, _ keyPath: WritableKeyPath<RoutingRule, T>) -> Binding<T> {
+        let snapshot = routingEditing.snapshot(rule)
+        return Binding(get: {
+            snapshot.read(from: document, state: routingEditing)[keyPath: keyPath]
+        }, set: { value in
+            snapshot.write(value, at: keyPath, to: &document, state: routingEditing)
             rawText = document.text
         })
     }
@@ -445,8 +447,7 @@ struct EditorView: View {
                 if creating { try drafts.checkParameterSource(parsed) }
                 if let reason = parsed.formEditingIssue { issue = model.t(reason); return }
                 if creating { drafts.acceptRawPort(in: parsed, previous: document) }
-                document = parsed
-                selectedRule = nil
+                routingEditing.acceptRaw(parsed, replacing: &document)
                 issue = nil
             }
             catch ProfileError.invalid("GeneratedAccessKey") {
@@ -459,9 +460,7 @@ struct EditorView: View {
     }
 
     private func moveRule(_ offset: Int) {
-        guard let selectedRule else { return }
-        document.moveRule(selectedRule, by: offset)
-        self.selectedRule = selectedRule + offset
+        routingEditing.move(in: &document, by: offset)
         rawText = document.text
     }
 
@@ -492,5 +491,66 @@ struct EditorView: View {
             issue = model.alertMessage
             model.alertMessage = nil
         }
+    }
+}
+
+// Position-based rule IDs are valid only within one structural generation.
+struct RoutingRuleEditingState {
+    private(set) var generation = UUID()
+    var selection: Int?
+
+    func snapshot(_ rule: RoutingRule) -> RoutingRuleEditingSnapshot {
+        RoutingRuleEditingSnapshot(rule: rule, generation: generation)
+    }
+
+    mutating func add(to document: inout ConfigDocument) {
+        guard document.formEditingIssue == nil else { return }
+        document.addRule()
+        generation = UUID()
+        selection = document.rules.count - 1
+    }
+
+    mutating func remove(from document: inout ConfigDocument) {
+        guard document.formEditingIssue == nil, let selection,
+              document.rules.indices.contains(selection) else { return }
+        document.removeRule(selection)
+        generation = UUID()
+        self.selection = nil
+    }
+
+    mutating func move(in document: inout ConfigDocument, by offset: Int) {
+        guard document.formEditingIssue == nil, let selection,
+              offset == -1 || offset == 1, document.rules.indices.contains(selection) else { return }
+        let other = selection.addingReportingOverflow(offset)
+        guard !other.overflow, document.rules.indices.contains(other.partialValue) else { return }
+        document.moveRule(selection, by: offset)
+        generation = UUID()
+        self.selection = other.partialValue
+    }
+
+    mutating func acceptRaw(_ parsed: ConfigDocument, replacing document: inout ConfigDocument) {
+        if parsed.text != document.text {
+            generation = UUID()
+            selection = nil
+        }
+        document = parsed
+    }
+}
+
+struct RoutingRuleEditingSnapshot {
+    let rule: RoutingRule
+    let generation: UUID
+
+    func read(from document: ConfigDocument, state: RoutingRuleEditingState) -> RoutingRule {
+        guard generation == state.generation else { return rule }
+        return document.rules.first { $0.id == rule.id } ?? rule
+    }
+
+    func write<T>(_ value: T, at keyPath: WritableKeyPath<RoutingRule, T>,
+                  to document: inout ConfigDocument, state: RoutingRuleEditingState) {
+        guard generation == state.generation, document.formEditingIssue == nil,
+              var current = document.rules.first(where: { $0.id == rule.id }) else { return }
+        current[keyPath: keyPath] = value
+        document.updateRule(current)
     }
 }

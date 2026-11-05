@@ -457,8 +457,10 @@ public struct ConfigDocument: Equatable, Sendable {
 
     public mutating func moveRule(_ index: Int, by offset: Int) {
         let ranges = ruleRanges
-        let other = index + offset
-        guard ranges.indices.contains(index), ranges.indices.contains(other), abs(offset) == 1 else { return }
+        guard offset == -1 || offset == 1, ranges.indices.contains(index) else { return }
+        let destination = index.addingReportingOverflow(offset)
+        guard !destination.overflow, ranges.indices.contains(destination.partialValue) else { return }
+        let other = destination.partialValue
         let low = min(index, other), high = max(index, other)
         let lowBlock = Array(lines[ranges[low]]), highBlock = Array(lines[ranges[high]])
         lines.replaceSubrange(ranges[high], with: lowBlock)
