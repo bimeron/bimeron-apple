@@ -274,3 +274,37 @@
 "SSH file is missing or is not a regular file." = "SSH file is missing or is not a regular file.";
 "SSH file is not readable by this app." = "SSH file is not readable by this app.";
 "SSH file checks verify this app’s current read access only, not daemon access or host trust." = "SSH file checks verify this app’s current read access only, not daemon access or host trust.";
+
+"Core: unknown or unavailable" = "Core: unknown or unavailable";
+
+"Core: disconnected" = "Core: disconnected";
+
+"Core: connected" = "Core: connected";
+
+"Core: connecting" = "Core: connecting";
+
+"Core: reconnecting" = "Core: reconnecting";
+
+"Core: stopping; cleanup pending" = "Core: stopping; cleanup pending";
+
+"Core: error; cleanup unconfirmed" = "Core: error; cleanup unconfirmed";
+
+"Core: connection failed" = "Core: connection failed";
+
+"Untrusted development Core · administrator installation required" = "Untrusted development Core · administrator installation required";
+
+"Install Core…" = "Install Core…";
+
+"Start" = "Start";
+
+"Complete macOS Installer, then wait for Core readiness. Start remains manual." = "Complete macOS Installer, then wait for Core readiness. Start remains manual.";
+
+"Installer unavailable or built for another user. Rebuild this development app for your account." = "Installer unavailable or built for another user. Rebuild this development app for your account.";
+
+"Active profile" = "Active profile";
+
+"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
+
+"IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
+
+"Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";

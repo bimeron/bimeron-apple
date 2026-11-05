@@ -237,4 +237,28 @@ final class DaemonClientInterleavingTests: XCTestCase {
             await assertCommands(["hello", "hello", "start"], from: daemon)
         }
     }
+    func testCancelledDelayedStartCannotBecomeConnectedAndRequiresReconciliation() async throws {
+        let daemon = makeDaemon()
+        let client = DaemonClient(exchange: { try await daemon.exchange($0) })
+        try await reconcile(client, daemon: daemon, at: 0)
+        let start = Task { [a] in await client.connect(a) }
+        let request = try await daemon.request(at: 1)
+        XCTAssertEqual(request.command, "start")
+        start.cancel()
+        await client.reconcile()
+        await client.connect(b)
+        await client.disconnect()
+        await assertCommands(["hello", "start"], from: daemon)
+        // The exchange deliberately ignores cancellation and returns a late success.
+        try await daemon.succeed(1, state: "connected", active: true)
+        await start.value
+        await assertState(.unknown, of: client)
+        await client.connect(b)
+        await client.disconnect()
+        await assertCommands(["hello", "start"], from: daemon)
+        try await reconcile(client, daemon: daemon, at: 2, state: "connected", active: true)
+        await assertState(.connected, of: client)
+        await assertCommands(["hello", "start", "hello"], from: daemon)
+    }
+
 }

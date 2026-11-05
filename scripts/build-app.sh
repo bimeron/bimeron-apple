@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
+: "${BIMERON_CORE_SOURCE:?Set BIMERON_CORE_SOURCE to the read-only Core Git repository}"
 swift build -c release
 APP="$PWD/dist/Bimeron.app"
 CONTENTS="$APP/Contents"
@@ -26,6 +27,9 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
   <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
+python3 scripts/build-bundled-core.py --source "$BIMERON_CORE_SOURCE" --output "$CONTENTS/Resources/CoreInstall" --go "${BIMERON_GO:-go}" --git "${BIMERON_GIT:-git}"
+cp "$CONTENTS/Resources/CoreInstall/bimeron-core" "$CONTENTS/MacOS/bimeron-core"
+rm "$CONTENTS/Resources/CoreInstall/bimeron-core"
 touch "$APP"
 python3 scripts/check-app-bundle.py "$APP"
 echo "$APP"

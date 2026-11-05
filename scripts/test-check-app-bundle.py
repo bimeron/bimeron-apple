@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Synthetic packaging checks; never build or launch an app."""
 import importlib.util
+import hashlib
+import json
 from pathlib import Path
 import plistlib
 import struct
@@ -36,6 +38,20 @@ class BundleTests(unittest.TestCase):
             path = self.contents / 'Resources' / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b'synthetic resource')
+        core = self.contents / 'MacOS' / 'bimeron-core'
+        core.write_bytes(self.executable.read_bytes())
+        core.chmod(0o755)
+        self.install = self.contents / 'Resources' / 'CoreInstall'
+        self.install.mkdir()
+        (self.install / 'Install Core.pkg').write_bytes(b'synthetic installer')
+        for name in ('LICENSE', 'THIRD_PARTY_NOTICES.txt'):
+            (self.install / name).write_text('synthetic notice')
+        self.manifest = dict(revision='6b0d97a4ac96a903153a57d544751401b98d6909', modified=False,
+                             platform='darwin', go_version='go1.26.9', production_shipping=False,
+                             metadata_authenticated=False, provenance='local-development-untrusted',
+                             sha256=hashlib.sha256(core.read_bytes()).hexdigest(),
+                             package_sha256=hashlib.sha256(b'synthetic installer').hexdigest())
+        (self.install / 'manifest.json').write_text(json.dumps(self.manifest))
         for language in ('en', 'ru'):
             path = self.strings(language)
             path.parent.mkdir()
@@ -49,6 +65,20 @@ class BundleTests(unittest.TestCase):
 
     def check(self):
         checker.check_bundle(self.app)
+
+    def test_core_and_package_tampering_rejected(self):
+        for path in (self.contents / 'MacOS' / 'bimeron-core', self.install / 'Install Core.pkg'):
+            original = path.read_bytes()
+            path.write_bytes(original + b'tampered')
+            with self.assertRaisesRegex(ValueError, 'digest mismatch'):
+                self.check()
+            path.write_bytes(original)
+
+    def test_production_claim_rejected(self):
+        self.manifest['production_shipping'] = True
+        (self.install / 'manifest.json').write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, 'manifest'):
+            self.check()
 
     def test_valid_spaced_path(self):
         self.check()

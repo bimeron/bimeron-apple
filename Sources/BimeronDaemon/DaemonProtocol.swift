@@ -4,6 +4,7 @@ public struct DaemonSession: Codable, Equatable, Sendable {
     public let id: String
     public let active: Bool
     public let profile_id: String?
+    public let profile_name: String?
 }
 
 public struct DaemonStatus: Codable, Equatable, Sendable {
@@ -24,6 +25,7 @@ public struct DaemonStatisticsSnapshot: Decodable, Sendable {
 }
 
 public struct DaemonResponse: Decodable, Sendable {
+    public let core: DaemonBuildIdentity?
     public let version: Int
     public let id: String
     public let instance: String
@@ -116,4 +118,11 @@ public enum DaemonProtocol {
         }
     }
 
+}
+
+/// Self-reported compatibility metadata, never a signature or trust assertion.
+public struct DaemonBuildIdentity: Decodable, Sendable {
+    public let revision: String?
+    public let modified: Bool
+    public let platform: String
 }

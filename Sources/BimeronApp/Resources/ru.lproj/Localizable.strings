@@ -274,3 +274,37 @@
 "SSH file is missing or is not a regular file." = "SSH-файл отсутствует или не является обычным файлом.";
 "SSH file is not readable by this app." = "Это приложение не может прочитать SSH-файл.";
 "SSH file checks verify this app’s current read access only, not daemon access or host trust." = "Проверка SSH-файлов подтверждает только текущий доступ этого приложения для чтения, а не доступ демона или доверие к серверу.";
+
+"Core: unknown or unavailable" = "Core: состояние неизвестно или недоступен";
+
+"Core: disconnected" = "Core: отключён";
+
+"Core: connected" = "Core: подключён";
+
+"Core: connecting" = "Core: подключение";
+
+"Core: reconnecting" = "Core: переподключение";
+
+"Core: stopping; cleanup pending" = "Core: остановка; ожидается очистка";
+
+"Core: error; cleanup unconfirmed" = "Core: ошибка; очистка не подтверждена";
+
+"Core: connection failed" = "Core: ошибка подключения";
+
+"Untrusted development Core · administrator installation required" = "Недоверенная версия Core для разработки · требуется установка администратором";
+
+"Install Core…" = "Установить Core…";
+
+"Start" = "Запустить";
+
+"Complete macOS Installer, then wait for Core readiness. Start remains manual." = "Завершите установку macOS и дождитесь готовности Core. Запуск выполняется вручную.";
+
+"Installer unavailable or built for another user. Rebuild this development app for your account." = "Установщик недоступен или собран для другого пользователя. Пересоберите приложение для своей учётной записи.";
+
+"Active profile" = "Активный профиль";
+
+"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
+
+"IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
+
+"Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";

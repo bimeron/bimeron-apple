@@ -4,6 +4,7 @@ import Foundation
 import Observation
 
 @MainActor @Observable final class AppModel {
+    let connection = CoreConnection()
     var page: Page = .profiles
     var profiles: [StoredProfile] = []
     var selectedID: UUID?
@@ -91,6 +92,21 @@ import Observation
             language = systemLanguage == "ru" ? "ru" : "en"
         }
         theme = defaults.string(forKey: "theme") ?? "system"
+    }
+
+    var selectedProfileStartErrorKey: String? {
+        selected?.document.hasSection("IKEv2") == true
+            ? "IKEv2 is unavailable through daemon Start. Select another protocol." : nil
+    }
+
+    func startSelectedProfile() async {
+        guard let selected else { return }
+        if let reason = selectedProfileStartErrorKey {
+            alertMessage = t(reason)
+            return
+        }
+        let file = await library.file(for: selected.id)
+        await connection.start(file: file)
     }
 
     func t(_ key: String) -> String { Localization.text(key, language: language) }

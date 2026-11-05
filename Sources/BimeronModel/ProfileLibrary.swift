@@ -170,7 +170,7 @@ public actor ProfileLibrary {
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
     }
 
-    private func file(for id: UUID) -> URL { directory.appending(path: id.uuidString + ".conf") }
+    public func file(for id: UUID) -> URL { directory.appending(path: id.uuidString + ".conf") }
 
     private func save(_ profile: StoredProfile, replacing: Bool, created: Date? = nil) throws {
         try prepareDirectory()

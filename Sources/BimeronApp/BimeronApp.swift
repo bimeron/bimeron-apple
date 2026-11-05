@@ -16,6 +16,7 @@ import SwiftUI
             MainWindow(model: model, quit: { NSApp.terminate(nil) })
                 .frame(minWidth: 720, minHeight: 600)
                 .task { await model.load() }
+                .task { await model.connection.monitor() }
                 .onChange(of: model.theme, initial: true) { _, theme in
                     NSApp.appearance = switch theme {
                     case "light": NSAppearance(named: .aqua)
@@ -47,7 +48,7 @@ import SwiftUI
             MenuBarContent(model: model)
         } label: {
             Image(nsImage: Self.menuIcon)
-                .accessibilityLabel(model.t("VPN is not connected to the app"))
+                .accessibilityLabel(model.t(model.connection.statusKey))
         }
     }
 }
