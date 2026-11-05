@@ -1,10 +1,10 @@
 # Core-to-GUI production Connect boundary
 
-Status: ba-21 design proposal, 2026-11-05. Acceptance is pending. Apple baseline: `73f6325be47ee3828237788355b587c4673d7ad6`. This document changes no runtime behavior. Shipping remains **false / no-key**.
+Status: ba-21 policy accepted, 2026-11-05. The user explicitly accepted V86 option 3 (explicit user acceptance) after the manual-recovery recommendation. Apple baseline: `73f6325be47ee3828237788355b587c4673d7ad6`. This document changes no runtime behavior. Shipping remains **false / no-key**.
 
-## Decision to make
+## Accepted decision
 
-Select V86 pending option 3: explicit root resume for an interrupted committed servicing operation that needs current-producer reconciliation. Approve the policy below, without approving its production mechanism. This resolves the committed-operation/new-producer availability choice rather than deferring it to another design deliverable.
+Accepted V86 option 3: explicit root resume for an interrupted committed servicing operation that needs current-producer reconciliation. Acceptance covers the policy below, without approving its production mechanism. This resolves the committed-operation/new-producer availability choice rather than deferring it to another design deliverable.
 
 ## Evidence and current boundaries
 
@@ -14,15 +14,15 @@ Select V86 pending option 3: explicit root resume for an interrupted committed s
 - ADR0034 attaches a package-private coordinator that starts sealed, has **no OPEN/RELEASE**, and uses a fake-store boundary. Successful Stop produces `recovery_required`, never verified cleanup success. Unattached Engines retain their behavior. Public v1 failed shutdown remains usable, without a protocol version change; its failure must not acquire the internal maintenance seal by implication.
 - [Servicing model results](../daemon-servicing-recovery/model-results.md) report 27 synthetic model tests. They do not prove filesystem durability, executable/process association, launchd exclusion, or DNS/routes/utun recovery. ADR0034's recorded local toolchain failure is not a passing test result; hosted CI evidence must be reported separately.
 
-## Options and recommendation
+## Options and decision
 
 1. **Reuse cached release/readiness.** Lowest downtime, but old boot/instance evidence cannot authorize a current producer or prove recovery. Reject.
 2. **Automatically release a fresh instance after new checks.** Better unattended availability, but expands post-crash authorization and risks accepting incomplete current-producer/resource proof. Defer; it is outside the accepted manual-recovery scope.
-3. **Explicit root resume with current recovery/readiness — recommended (V86 option 3).** Retain committed artifacts and authorization identity; reconcile before release. Material drawback: interrupted servicing can require administrator action and reboot, extending downtime even when committed bytes are intact.
+3. **Explicit root resume with current recovery/readiness — accepted (V86 option 3).** Retain committed artifacts and authorization identity; reconcile before release. Material drawback: interrupted servicing can require administrator action and reboot, extending downtime even when committed bytes are intact.
 
 Preserve four boundaries: approved trusted input; verified protected installation; current daemon readiness while admission is closed; release permitting a new explicit Connect. None implies the next. Ordinary hello, root-peer identity and disconnected status cannot substitute for this production contract or open ADR0034.
 
-## Proposed policy
+## Accepted policy
 
 For a committed operation interrupted before release completion, or with an unresolved release outcome requiring a new producer:
 
@@ -36,7 +36,7 @@ This interrupted-operation rule does **not** require root resume on every ordina
 
 ## Approval and staged boundary
 
-Acceptance selects **policy only**. Namespace, persistence format/durability, wire protocol, cleanup ledger/postconditions and release handshake remain **UNAPPROVED**. Candidate/version selection, public pin and trust/release roles also remain **UNAPPROVED**. ADR0034 remains sealed with no opening transition. Production Connect stays blocked until a separately approved owner/Core readiness-and-release contract is implemented and proven.
+Acceptance selects **policy only**; production privileged actions remain **UNAPPROVED**. Namespace, persistence format/durability, wire protocol, cleanup ledger/postconditions and release handshake remain **UNAPPROVED**. Candidate/version selection, public pin and trust/release roles also remain **UNAPPROVED**. ADR0034 remains sealed with no opening transition. Production Connect stays blocked until a separately approved owner/Core readiness-and-release contract is implemented and proven.
 
 Subsequent mechanism review must show interrupted commit/release, reply loss, changed producer and ordinary clean reboot separately. Implementation approval, contract/fault tests, platform adapters and separately authorized native-Mac/live acceptance are later gates. Replacement still requires scoped successful cleanup **and** exact exit with restart exclusion; readiness replaces neither. No implementation, new maintenance fake API, installation, keys or execution is authorized here.
 
@@ -44,8 +44,8 @@ Reuse the accepted [hosting constraints](../daemon-servicing-recovery/hosting-pr
 
 ba-18 may cover only existing client contracts: unknown after IPC loss with explicit hello reconciliation; stale success/error cannot mutate a newer generation or clear its pending operation; repeated commands are suppressed while pending. Those fake cases grant no installation/release readiness. Preserve ba-14 card/focus behavior. Issue #13 remains open and Core #79's native-VM hold remains in force (owner-reported status, not independently refreshed here).
 
-## Exact minimal acceptance question
+## Exact accepted decision
 
-> Approve V86 option 3 as policy only: explicit root resume for interrupted committed-operation reconciliation, preserving committed artifacts and original operation/generation, requiring recovery plus fresh current-producer readiness, with no cached readiness, identity-only republishing, same-boot adoption after observer loss or automatic VPN; ordinary clean already-released reboot does not itself require root resume, and mechanism/implementation approvals remain separate?
+> Accepted on 2026-11-05 (explicit user acceptance): V86 option 3 as policy only: explicit root resume for interrupted committed-operation reconciliation, preserving committed artifacts and original operation/generation, requiring recovery plus fresh current-producer readiness, with no cached readiness, identity-only republishing, same-boot adoption after observer loss or automatic VPN; ordinary clean already-released reboot does not itself require root resume, and detailed namespace/wire/persistence/ledger/handshake/trust/candidate/version/pin/roles, mechanism/implementation and production privileged actions remain UNAPPROVED.
 
 Inspection here was read-only source/document/test review; no tests, builds, GUI, native or live acceptance ran. Existing synthetic results are historical evidence, not new validation or release acceptance.
