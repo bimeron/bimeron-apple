@@ -7,7 +7,8 @@ then prove real operation and safe cleanup. This is a minimum working product
 plan, not a minimum macOS OS-version decision or the full desktop parity backlog.
 Desktop parity remains the broader goal.
 
-Main coordinator: `mcp:beafc30d-18e2-4108-a06d-f148d371a337`.
+Main coordinator: `b9e3eb8c-abd0-4eed-af22-a85d67ba4d12` (migrated from
+`mcp:beafc30d-18e2-4108-a06d-f148d371a337`).
 Active implementation owner **ba-22**:
 `mcp:c181aa1b-d247-4cbd-bb9a-396c4435b9a5`, branch
 `feat/ba22-bundled-core-control`, Apple base
@@ -17,6 +18,42 @@ Start/Stop. This document assigns no second writer, implementation or system wor
 Future code needs a separate bounded assignment: LOW sole writer, MEDIUM review.
 Planning uses Sol MEDIUM. Root main remains untouched; ready-source publication
 and guarded merge belong to main.
+
+## User decisions (2026-11-05)
+
+- **D1 — First-release profile set: all access protocols.** Every protocol in
+  `AccessProtocol` (SS, SSConf, SOCKS5, HTTP, MASQUE, VLESS, VMess, Trojan, Naive,
+  Hysteria2, AnyTLS, SSH, TUIC), plus routing and GeoData, are in scope. Live M2
+  evidence is feasible for SSConf, VLESS, possibly Hysteria2 (user's manual
+  checks), and SSH (user-provided test server with root access and a key; address
+  and credentials are kept outside this public repository). The remaining
+  protocols receive exact-Core validation and synthetic coverage only. Release
+  documentation must list the live-verified and not-live-verified protocols separately;
+  advertising the latter is accepted residual risk, not a live pass.
+- **D2 — Quit while connected: confirmation dialog.** Quit/Cmd+Q while connected
+  offers "Disconnect and quit" and "Cancel". The app quits only after Stop and
+  observed cleanup succeed; on Stop failure it stays open and shows the error.
+  The existing disabled Settings toggle "Disconnect VPN and stop the core service
+  on quit" becomes functional: when enabled, Quit disconnects without asking.
+  "Quit and keep VPN" is not offered in the first slice.
+- **D3 — GeoData: follow the Windows Desktop scenario.** Reuse the
+  `bimeron-desktop` behavior (`docs/geodata-routing.md`, `src/GeoDataDownload.cpp`
+  at `296130e`): explicit user-initiated download of the latest Loyalsoldier
+  `v2ray-rules-dat` release, pinning that release's exact `.dat` and
+  `.dat.sha256sum` assets; no download on launch, Save or Start; one shared choice
+  per kind; offline Choose file for local files; immutable content-addressed
+  cache. SHA-256 checks release consistency, not publisher authenticity. Files
+  are fetched by the user, not bundled; upstream license terms are recorded before
+  release.
+- **D4a — App signing: unsigned first, Developer ID later.** Internal builds are
+  unsigned until Apple Developer Program approval; then Developer ID signing and
+  notarization are added before public distribution. Clean-Mac acceptance of
+  unsigned builds documents the manual Gatekeeper step.
+- **D4b — Core source: user-specified.** The user will name the shipping Core
+  source. For testing, on the user's command, the app is built either with Core
+  from a specified commit or with a user-specified Core file; the manifest records
+  whichever was used. Neither is a shipping pin.
+- **D4c — Approval:** the user alone approves Core pins and releases.
 
 ## Baseline and credited evidence
 
@@ -127,7 +164,7 @@ before adding preparatory infrastructure or expanding the release profile set.
 - Close issue #75 gaps with production-flow keyboard, focus restoration, scrolling
   and VoiceOver evidence. Reuse bounded ba15/editor evidence without claiming it
   covers these gaps. See [editor evidence](../editor-interactions/README.md).
-- Decide and accept explicit Quit/Cmd+Q while connected: user-visible outcome,
+- Implement and accept Quit/Cmd+Q while connected per D2: user-visible outcome,
   session ownership and cleanup must be clear. Verify close/reopen separately;
   existing [window lifecycle work](../window-lifecycle/README.md) is not connected
   Quit proof. Do not silently infer that app termination stops Core.
@@ -137,8 +174,8 @@ and no unresolved blocking usability or safety findings for declared profiles.
 
 ### M4 — Routing, GeoData and SSH: conditional release coverage
 
-Main and the user must declare the first-release supported profile set before
-release acceptance. This plan does not select protocols or trust providers.
+D1 declares all protocols in scope; D3 selects the GeoData source. Each
+protocol is labeled live-verified or not-live-verified per D1.
 Basic Start/Stop must not wait for every desktop feature; a profile must not be
 advertised as supported until its required capabilities pass.
 
@@ -149,25 +186,25 @@ advertised as supported until its required capabilities pass.
   using GeoIP/GeoSite require real Core validation, configuration linkage, daemon
   file readability and applied group/rule evidence. Exercise missing, malformed,
   inaccessible and replaced files without corrupting the previous selection.
-  External source, license and checksum trust remain undecided; no provider trust
-  is inferred. External downloads are later scope unless explicitly included in
-  the declared release; usable local files do not authorize a provider choice.
+  External download follows D3 (Loyalsoldier releases, explicit download,
+  release checksum); that is consistency checking, not publisher authentication.
 - **SSH:** [file preflight/auth preparation](../../SSH_AUTH.md) exists but is not
   remote host verification or real authentication. SSH profiles require real
   authentication, host verification, connect, cancellation and Stop evidence,
   daemon file access, and reviewed compatible guarded auth IPC where interactive
   challenges are needed. Existing runtime auth gate must not be bypassed.
-  SSH can remain outside the first declared set; that is deferred parity work,
-  not a prerequisite to basic non-SSH Start/Stop or a completed SSH feature.
+  SSH is in the first declared set (D1), with live evidence against the
+  user-provided test server. It is still not a prerequisite to basic non-SSH
+  Start/Stop.
 
 Acceptance: explicit supported/deferred capability list plus passing evidence for
 every capability required by each supported profile. Exclusions stay visible.
 
 ### M5 — Distribution and issue #13 actual acceptance
 
-Before public distribution, record the exact Core compatibility/provenance chain,
-trusted signing/pin decisions and review approval, app signing/notarization, and
-clean Mac installation evidence. Development hashes/unsigned local bundles are
+Before public distribution, record the exact Core compatibility/provenance chain
+(D4b), user approval (D4c), Developer ID signing/notarization once available
+(D4a), and clean Mac installation evidence. Development hashes/unsigned local bundles are
 not authenticated public delivery. No key use or signing is authorized here.
 
 Provide understandable manual recovery and uninstall instructions and accept them
@@ -181,7 +218,7 @@ it on fixture integrity, bundle checks or synthetic tests alone.
 ## Sequence and boundaries
 
 1. Let ba22 finish its owned slice and report exact source/artifact readiness.
-2. Main arranges review/normal GitHub-hosted CI and requests separately scoped
+2. Main arranges review/self-hosted CI and requests separately scoped
    system/live authority only when code is ready; then accept real Start/Stop and
    cleanup. No heavy slot is reserved or used by this plan.
 3. Fix actual findings, finish M3 and release-required M4 cases, then M5/issue #13.
@@ -190,8 +227,8 @@ it on fixture integrity, bundle checks or synthetic tests alone.
 Deferred from minimal first implementation: automatic update/rollback, advanced
 servicing and automatic VPN recovery. These remain broader desktop parity goals;
 NE/iOS is a separate stream. Core79/Windows18 native VM cases remain a separate
-hold, not a macOS prerequisite. The completed one-off local runner exception for
-PR #73 does not change the GitHub-hosted CI default.
+hold, not a macOS prerequisite. Per user policy, all CI for this
+workstream uses self-hosted runners until further explicit instruction.
 
 This documentation-only consolidation performs no builds, tests, GUI, root,
 network/VPN, launchctl, key/signing or system operations; it cancels no processes
