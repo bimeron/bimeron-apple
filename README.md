@@ -5,6 +5,12 @@ files, editing and deleting profiles, appearance settings, an action log, and a
 macOS menu bar menu. The connection screen reports the integration status;
 VPN controls will be implemented in the next stage.
 
+Closing the main window with the red close button or Cmd+W keeps Bimeron and
+its menu bar menu running. Choose Open Bimeron from the menu to reopen or bring
+forward the single main window. Explicit Quit actions and Cmd+Q retain their
+existing behavior. See the [window lifecycle workstream](docs/workstreams/window-lifecycle/README.md)
+for verification scope and limitations.
+
 On the Profiles page, Cmd+Z undoes the last deletion and Cmd+Shift+Z redoes it.
 Deletion history lasts until the app quits. Shift+Up/Down moves the selected
 profile by one row. Profile order is stored in `order.json` alongside profiles

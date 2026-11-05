@@ -24,8 +24,8 @@ public struct CoreCLI: Sendable {
         self.observer = observer
     }
 
-    internal init(testShellScript: URL, timeout: Duration) {
-        self.init(executableURL: URL(fileURLWithPath: "/bin/sh"), timeout: timeout)
+    internal init(testShellScript: URL, timeout: Duration, outputLimit: Int = 1_048_576) {
+        self.init(executableURL: URL(fileURLWithPath: "/bin/sh"), timeout: timeout, outputLimit: outputLimit)
         argumentPrefix = [testShellScript.path]
     }
 
