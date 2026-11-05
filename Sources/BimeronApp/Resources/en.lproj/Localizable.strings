@@ -269,3 +269,8 @@
 "Monotonic elapsed" = "Monotonic elapsed";
 "s" = "s";
 "B/s" = "B/s";
+
+"SSH file must use an absolute path." = "SSH file must use an absolute path.";
+"SSH file is missing or is not a regular file." = "SSH file is missing or is not a regular file.";
+"SSH file is not readable by this app." = "SSH file is not readable by this app.";
+"SSH file checks verify this app’s current read access only, not daemon access or host trust." = "SSH file checks verify this app’s current read access only, not daemon access or host trust.";

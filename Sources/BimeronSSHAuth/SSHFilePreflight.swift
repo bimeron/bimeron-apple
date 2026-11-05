@@ -15,7 +15,8 @@ public enum SSHFilePreflight {
         if let identity { try validateFile(identity, role: .identity) }
     }
 
-    private static func validateFile(_ path: String, role: SSHFileRole) throws {
+    /// Checks one file for current-process access without parsing its contents.
+    public static func validateFile(_ path: String, role: SSHFileRole) throws {
         guard path.hasPrefix("/"), !path.utf8.contains(0) else {
             throw SSHFilePreflightError.absolutePathRequired(role)
         }

@@ -269,3 +269,8 @@
 "Monotonic elapsed" = "Монотонное прошедшее время";
 "s" = "с";
 "B/s" = "Б/с";
+
+"SSH file must use an absolute path." = "Для SSH-файла требуется абсолютный путь.";
+"SSH file is missing or is not a regular file." = "SSH-файл отсутствует или не является обычным файлом.";
+"SSH file is not readable by this app." = "Это приложение не может прочитать SSH-файл.";
+"SSH file checks verify this app’s current read access only, not daemon access or host trust." = "Проверка SSH-файлов подтверждает только текущий доступ этого приложения для чтения, а не доступ демона или доверие к серверу.";

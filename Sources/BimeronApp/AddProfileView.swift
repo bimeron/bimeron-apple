@@ -1,5 +1,6 @@
 import AppKit
 import BimeronModel
+import BimeronSSHAuth
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -18,6 +19,8 @@ struct AddProfileView: View {
     @State private var pasteboardChangeCount = -1
     @State private var sshIdentityPath = ""
     @State private var sshKnownHostsPath = ""
+    @State private var sshIdentityIssue: String?
+    @State private var sshKnownHostsIssue: String?
     @State private var sshDefaults = (identity: "", knownHosts: "")
 
     private var validKey: Bool { Self.accepts(key) }
@@ -75,8 +78,10 @@ struct AddProfileView: View {
             }
 
             if isSSH {
-                sshFilePicker("SSH known_hosts file (optional)", path: $sshKnownHostsPath, defaultPath: sshDefaults.knownHosts)
-                sshFilePicker("SSH private key file (optional)", path: $sshIdentityPath, defaultPath: sshDefaults.identity)
+                sshFilePicker("SSH known_hosts file (optional)", path: $sshKnownHostsPath, defaultPath: sshDefaults.knownHosts, role: .knownHosts, error: $sshKnownHostsIssue)
+                sshFilePicker("SSH private key file (optional)", path: $sshIdentityPath, defaultPath: sshDefaults.identity, role: .identity, error: $sshIdentityIssue)
+                Text(model.t("SSH file checks verify this app’s current read access only, not daemon access or host trust."))
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             if let issue { Text(issue).font(.subheadline).foregroundStyle(.red) }
@@ -85,6 +90,11 @@ struct AddProfileView: View {
                 Spacer()
                 Button {
                     guard canSave else { return }
+                    if isSSH {
+                        sshKnownHostsIssue = sshFileIssue(sshKnownHostsPath, role: .knownHosts)
+                        sshIdentityIssue = sshFileIssue(sshIdentityPath, role: .identity)
+                        guard sshKnownHostsIssue == nil, sshIdentityIssue == nil else { return }
+                    }
                     busy = true
                     Task {
                         if await model.addInput(name: name, input: key, sshIdentityFile: isSSH ? Self.fileURL(for: sshIdentityPath) : nil,
@@ -148,13 +158,14 @@ struct AddProfileView: View {
         return (existingPath(["id_ed25519", "id_ecdsa", "id_rsa"]), existingPath(["known_hosts"]))
     }
 
-    private func sshFilePicker(_ title: String, path: Binding<String>, defaultPath: String) -> some View {
+    private func sshFilePicker(_ title: String, path: Binding<String>, defaultPath: String, role: SSHFileRole, error: Binding<String?>) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.t(title))
             HStack {
                 TextField(defaultPath.isEmpty ? model.t("File path") : defaultPath, text: path)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityLabel(model.t(title))
+                    .onChange(of: path.wrappedValue) { _, _ in error.wrappedValue = nil }
                     .onPasteCommand(of: [.fileURL]) { providers in
                         guard let provider = providers.first else { return }
                         provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
@@ -162,35 +173,55 @@ struct AddProfileView: View {
                                 URL(dataRepresentation: $0, relativeTo: nil)
                             }
                             guard let url, url.isFileURL else { return }
-                            Task { @MainActor in path.wrappedValue = url.path }
+                            Task { @MainActor in acceptSSHFile(url.absoluteString, path: path, role: role, error: error) }
                         }
                     }
                 if path.wrappedValue.isEmpty, !defaultPath.isEmpty {
-                    Button(model.t("Use default")) { path.wrappedValue = defaultPath }
+                    Button(model.t("Use default")) { acceptSSHFile(defaultPath, path: path, role: role, error: error) }
                         .accessibilityLabel(model.t("Use default") + ", " + model.t(title))
                         .help(defaultPath)
                 }
-                Button(model.t("Choose file…")) { chooseSSHFile(path) }
+                Button(model.t("Choose file…")) { chooseSSHFile(path, role: role, error: error) }
                     .accessibilityLabel(model.t("Choose file…") + ", " + model.t(title))
                 if !path.wrappedValue.isEmpty {
-                    Button(model.t("Remove")) { path.wrappedValue = "" }
+                    Button(model.t("Remove")) { path.wrappedValue = ""; error.wrappedValue = nil }
                         .accessibilityLabel(model.t("Remove") + ", " + model.t(title))
                 }
+            }
+            if let error = error.wrappedValue {
+                Text(model.t(error)).font(.subheadline).foregroundStyle(.red)
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(model.t(title))
     }
 
-    private func chooseSSHFile(_ path: Binding<String>) {
+    private func chooseSSHFile(_ path: Binding<String>, role: SSHFileRole, error: Binding<String?>) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         panel.showsHiddenFiles = true
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".ssh", directoryHint: .isDirectory)
         panel.begin { response in
-            if response == .OK, let url = panel.url { path.wrappedValue = url.path }
+            if response == .OK, let url = panel.url { acceptSSHFile(url.path, path: path, role: role, error: error) }
         }
+    }
+
+    private func sshFileIssue(_ candidate: String, role: SSHFileRole) -> String? {
+        do {
+            _ = try SSHFileSelection.validatedURL(for: candidate, role: role)
+            return nil
+        } catch let error as SSHFilePreflightError {
+            return SSHFileSelection.errorKey(error)
+        } catch {
+            return "SSH file is missing or is not a regular file."
+        }
+    }
+
+    private func acceptSSHFile(_ candidate: String, path: Binding<String>, role: SSHFileRole, error: Binding<String?>) {
+        error.wrappedValue = sshFileIssue(candidate, role: role)
+        guard error.wrappedValue == nil else { return }
+        path.wrappedValue = candidate
     }
 
     private static func suggestedName(for value: String) -> String? {
