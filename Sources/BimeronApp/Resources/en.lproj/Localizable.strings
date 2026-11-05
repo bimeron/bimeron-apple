@@ -255,3 +255,17 @@
 "Cancel check" = "Cancel check";
 "Allow executing the file you select for version, capabilities, and configuration validation?" = "Allow executing the file you select for version, capabilities, and configuration validation?";
 "Choose and allow execution…" = "Choose and allow execution…";
+
+// Connection statistics presentation.
+"Connection statistics" = "Connection statistics";
+"Unavailable" = "Unavailable";
+"Download total" = "Download total";
+"Upload total" = "Upload total";
+"Download rate" = "Download rate";
+"Upload rate" = "Upload rate";
+"Retained observations" = "Retained observations";
+"Bounded history; gaps are unavailable observations." = "Bounded history; gaps are unavailable observations.";
+"No retained observations" = "No retained observations";
+"Monotonic elapsed" = "Monotonic elapsed";
+"s" = "s";
+"B/s" = "B/s";

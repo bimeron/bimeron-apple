@@ -27,12 +27,7 @@ struct ProfilesView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(model.t("TRAFFIC"))
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
-                    Text("↓ 0 B   ↑ 0 B")
-                }
+                StatisticsView(snapshot: nil, translate: model.t, locale: Locale(identifier: model.language))
             }
             .padding(20)
             .frame(maxWidth: .infinity)
