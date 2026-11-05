@@ -7,8 +7,7 @@ then prove real operation and safe cleanup. This is a minimum working product
 plan, not a minimum macOS OS-version decision or the full desktop parity backlog.
 Desktop parity remains the broader goal.
 
-Main coordinator: `b9e3eb8c-abd0-4eed-af22-a85d67ba4d12` (migrated from
-`mcp:beafc30d-18e2-4108-a06d-f148d371a337`).
+Main coordinator: `e2dd3cf1-d30e-47aa-a0b3-3d32fc658e6d`.
 Active implementation owner **ba-22**:
 `mcp:c181aa1b-d247-4cbd-bb9a-396c4435b9a5`, branch
 `feat/ba22-bundled-core-control`, Apple base
@@ -38,8 +37,9 @@ and guarded merge belong to main.
     session keeps running; the next launch adopts its authoritative state (M1
     reopen reconciliation) without restarting or changing the session.
   - "Cancel": nothing changes.
-  The existing disabled Settings toggle "Disconnect VPN and stop the core service
-  on quit" becomes functional: when enabled, Quit disconnects without asking.
+  The dialog is always shown on Quit while connected; there is no setting to skip
+  it. The existing disabled Settings toggle "Disconnect VPN and stop the core
+  service on quit" is removed rather than made functional.
 - **D3 — GeoData: follow the Windows Desktop scenario.** Reuse the
   `bimeron-desktop` behavior (`docs/geodata-routing.md`, `src/GeoDataDownload.cpp`
   at `296130e`): explicit user-initiated download of the latest Loyalsoldier
