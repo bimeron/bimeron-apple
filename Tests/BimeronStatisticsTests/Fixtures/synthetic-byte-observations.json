@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "kind": "synthetic; not actual Core samples or captured daemon responses",
+    "core_revision": "c04f20d575e4aed979b1024a32b421e7e5de1afe",
+    "field_reference": "internal/telemetry/telemetry.go:30-45",
+    "time_reference": "elapsed_milliseconds is normalized simulated monotonic time, not a Core field",
+    "identity_reference": "synthetic caller-confirmed identity; association is not supplied by Core stats"
+  },
+  "samples": [
+    {"elapsed_milliseconds": 0, "bytes_up": 0, "bytes_down": 0, "unavailable": false},
+    {"elapsed_milliseconds": 250, "bytes_up": 10, "bytes_down": 20, "unavailable": false},
+    {"elapsed_milliseconds": 500, "bytes_up": 0, "bytes_down": 0, "unavailable": true},
+    {"elapsed_milliseconds": 750, "bytes_up": 0, "bytes_down": 0, "unavailable": false},
+    {"elapsed_milliseconds": 1000, "bytes_up": 0, "bytes_down": 0, "unavailable": false}
+  ]
+}

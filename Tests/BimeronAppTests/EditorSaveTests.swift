@@ -224,7 +224,9 @@ func editorShellFixturePreservesTypedFailures(mode: String) async throws {
     // A pre-cancelled invocation must never reach even the script's first write.
     let body = mode == "reject" ? "exit 7" : "exec /bin/sleep 2"
     try Data("printf launched > '\(marker.path)'\n\(body)\n".utf8).write(to: script)
-    let core = CoreCLI(testShellScript: script, timeout: .milliseconds(80))
+    // Only the intentional timeout uses a tiny budget.
+    let timeout: Duration = mode == "timeout" ? .milliseconds(80) : .seconds(2)
+    let core = CoreCLI(testShellScript: script, timeout: timeout)
     let task = Task {
         if mode == "cancel" { withUnsafeCurrentTask { $0?.cancel() } }
         return try await core.validate(fileURL: input)
