@@ -57,7 +57,7 @@ struct AddProfileView: View {
                     panel.canChooseDirectories = false
                     panel.allowsMultipleSelection = false
                     panel.begin { response in
-                        if response == .OK, let url = panel.url { key = url.path }
+                        if response == .OK, let url = panel.url { key = url.absoluteString }
                     }
                 }
                 Button(model.t("Create in editor")) { create() }
