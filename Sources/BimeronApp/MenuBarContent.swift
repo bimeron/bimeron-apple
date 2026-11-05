@@ -5,7 +5,7 @@ struct MenuBarContent: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Text(model.t("VPN is not connected to the app"))
+        Text(model.t(model.connection.statusKey))
         Divider()
         ForEach(model.profiles) { profile in
             Text(profile.document.name)

@@ -16,6 +16,7 @@ public struct DaemonLifecycle: Sendable {
     public private(set) var instance: String?
     public private(set) var session: DaemonSession?
     public private(set) var guardsSupported = false
+    public private(set) var actionError: String?
     private var replacement: DaemonProfile?
     private var pending = false
 
@@ -34,11 +35,14 @@ public struct DaemonLifecycle: Sendable {
         instance = response.instance
         if handshake { guardsSupported = response.daemon_session_guards == true }
         session = response.status.Session
-        if response.error != nil {
+        if let error = response.error {
+            if !handshake { actionError = error }
             replacement = nil
             pending = false
-            state = .cleanupUnconfirmed
-            return nil
+            if !["invalid_configuration", "ikev2_requires_foreground_user_session"].contains(error) {
+                state = .cleanupUnconfirmed
+                return nil
+            }
         }
         // Start acceptance completes the request even while the session is connecting.
         if state == .starting { pending = false }
@@ -71,6 +75,7 @@ public struct DaemonLifecycle: Sendable {
             return request
         }
         guard state == .stopped, profile.configPath.hasPrefix("/") else { return nil }
+        actionError = nil
         pending = true
         state = .starting
         return DaemonRequest(command: "start", instance: instance, config: profile.configPath)
@@ -79,6 +84,7 @@ public struct DaemonLifecycle: Sendable {
     public mutating func disconnect() -> DaemonRequest? {
         guard !pending, guardsSupported, state != .unknown, state != .starting,
               let instance, let session, session.active, !session.id.isEmpty else { return nil }
+        actionError = nil
         pending = true
         state = .stopping
         return DaemonRequest(command: "stop", instance: instance, session: session.id)

@@ -21,9 +21,12 @@ struct ProfilesView: View {
                     .font(.caption)
                     .foregroundStyle(AppPalette.blueDisabled)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(model.t("Core: not connected"))
+                    Text(model.t(model.connection.statusKey))
                         .font(.headline)
-                    Text(model.t("VPN connection will be added in the next stage"))
+                    if model.connection.active, let name = model.connection.profileName {
+                        Text(model.t("Active profile") + ": " + name).lineLimit(1)
+                    }
+                    Text(model.t("Untrusted development Core · administrator installation required"))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -31,13 +34,27 @@ struct ProfilesView: View {
                     Text(model.t("TRAFFIC"))
                         .font(.caption.bold())
                         .foregroundStyle(.secondary)
-                    Text("↓ 0 B   ↑ 0 B")
+                    Text("—")
                 }
             }
             .padding(20)
             .frame(maxWidth: .infinity)
             .background(AppPalette.surface(colorScheme), in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(AppPalette.border(colorScheme)))
+
+            if model.connection.installOpened {
+                Text(model.t("Complete macOS Installer, then wait for Core readiness. Start remains manual."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if model.connection.installError {
+                Text(model.t("Installer unavailable or built for another user. Rebuild this development app for your account."))
+                    .font(.caption).foregroundStyle(.red)
+            }
+
+            if let reason = model.selectedProfileStartErrorKey ?? model.connection.actionErrorKey {
+                Text(model.t(reason))
+                    .font(.caption).foregroundStyle(.red)
+            }
 
             HStack {
                 Text(model.t("Available profiles")).font(.title3.bold())
@@ -92,16 +109,16 @@ struct ProfilesView: View {
                     .controlSize(.large)
                     .disabled(model.selected == nil)
                 Spacer()
-                Button {} label: {
-                    Text(model.t("Connect"))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Color.accentColor.opacity(0.55), in: RoundedRectangle(cornerRadius: 9))
+                if model.connection.state == .unknown {
+                    Button(model.t("Install Core…")) { model.connection.openInstaller() }
+                        .disabled(model.connection.busy || model.connection.active)
                 }
-                    .buttonStyle(.plain)
-                    .disabled(true)
-                    .help(model.t("VPN connection will be added in the next stage"))
+                Button(model.t("Stop")) { Task { await model.connection.stop() } }
+                    .disabled(!model.connection.canStop)
+                Button(model.t("Start")) { Task { await model.startSelectedProfile() } }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(model.selected == nil || model.selectedProfileStartErrorKey != nil || !model.connection.canStart)
+
             }
             .frame(maxWidth: .infinity)
         }

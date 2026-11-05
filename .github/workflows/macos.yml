@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 30
     steps:
       - name: Validate manual commit
@@ -49,7 +49,22 @@ jobs:
         run: python3 scripts/test-check-app-bundle.py
       - name: Test
         run: swift test
-      - name: Build app
+      - uses: actions/checkout@v4
+        with:
+          repository: bimeron/bimeron-core
+          ref: 6b0d97a4ac96a903153a57d544751401b98d6909
+          path: .core-source
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.9'
+          cache: false
+      - name: Cache pinned Core dependencies
+        working-directory: .core-source
+        run: go mod download
+      - name: Build app with pinned development Core
+        env:
+          BIMERON_CORE_SOURCE: ${{ github.workspace }}/.core-source
         run: sh scripts/build-app.sh
       - name: Check bundle
         run: |

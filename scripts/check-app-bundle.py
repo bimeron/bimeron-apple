@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Check the assembled development app without launching it (stdlib only)."""
 import argparse
+import hashlib
+import json
 import os
 from pathlib import Path
 import plistlib
@@ -108,7 +110,25 @@ def check_bundle(app):
     nonempty(executable)
     require(os.access(executable, os.X_OK), f'Executable permission missing: {executable}')
     check_macho(executable.read_bytes())
+    core = contents / 'MacOS' / 'bimeron-core'
+    nonempty(core)
+    require(os.access(core, os.X_OK), 'Bundled Core is not executable')
+    check_macho(core.read_bytes())
     resources = contents / 'Resources'
+    install = resources / 'CoreInstall'
+    manifest = json.loads((install / 'manifest.json').read_text())
+    require(manifest.get('revision') == '6b0d97a4ac96a903153a57d544751401b98d6909'
+            and manifest.get('modified') is False and manifest.get('platform') == 'darwin'
+            and manifest.get('go_version') == 'go1.26.9'
+            and manifest.get('production_shipping') is False
+            and manifest.get('metadata_authenticated') is False
+            and manifest.get('provenance') == 'local-development-untrusted', 'Invalid development Core manifest')
+    require(hashlib.sha256(core.read_bytes()).hexdigest() == manifest.get('sha256'), 'Bundled Core digest mismatch')
+    package = install / 'Install Core.pkg'
+    nonempty(package)
+    require(hashlib.sha256(package.read_bytes()).hexdigest() == manifest.get('package_sha256'), 'Installer digest mismatch')
+    for name in ('LICENSE', 'THIRD_PARTY_NOTICES.txt'):
+        nonempty(install / name)
     bundle = resources / 'Bimeron_BimeronApp.bundle'
     for path in (resources / 'bimeron.icns', bundle / 'bimeron.icns',
                  bundle / 'blue-64.png', bundle / 'menu-disconnected-44.png'):
