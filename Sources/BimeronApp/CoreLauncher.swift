@@ -44,11 +44,15 @@ struct CoreLauncher: Sendable {
             guard values[.type] as? FileAttributeType == .typeDirectory,
                   let owner = values[.ownerAccountID] as? NSNumber,
                   let mode = values[.posixPermissions] as? NSNumber,
-                  (owner.uint32Value == 0 || owner.uint32Value == getuid()),
-                  mode.intValue & 0o022 == 0 else { throw Failure.failed }
+                  permitsBundleDirectory(owner: owner.uint32Value, mode: mode.intValue, uid: getuid()) else { throw Failure.failed }
             if current.path == "/" { break }
             current.deleteLastPathComponent()
         }
+    }
+
+    static func permitsBundleDirectory(owner: UInt32, mode: Int, uid: UInt32) -> Bool {
+        (owner == 0 || owner == uid) && mode & 0o002 == 0
+            && (owner == 0 || mode & 0o020 == 0)
     }
 
     static let appleScript = """
@@ -78,7 +82,9 @@ struct CoreLauncher: Sendable {
     }
 
     static let ancestorPredicate = """
-    [ "$1" = 0 ] && [ $((0$3 & 0022)) -eq 0 ]
+    set -e
+    [ "$1" = 0 ]
+    [ $((0$3 & 0022)) -eq 0 ]
     """
 
     static let script = """
@@ -87,7 +93,8 @@ struct CoreLauncher: Sendable {
         export PATH
         cd /
         protected() {
-          [ ! -L "$1" ] && [ -d "$1" ]
+          [ ! -L "$1" ]
+          [ -d "$1" ]
           /bin/sh -c '\(ancestorPredicate)' check "$(/usr/bin/stat -f %u "$1")" "$(/usr/bin/stat -f %g "$1")" "$(/usr/bin/stat -f %Lp "$1")"
           [ "$(/bin/ls -lde "$1" | /usr/bin/wc -l | /usr/bin/tr -d ' ')" = 1 ]
         }

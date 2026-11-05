@@ -53,3 +53,19 @@ private func shell(_ script: String, _ arguments: [String]) throws -> (Int32, Da
     try FileManager.default.setAttributes([.posixPermissions: 0o777], ofItemAtPath: directory.path)
     #expect(throws: CoreLauncher.Failure.failed) { try CoreLauncher.validateBundleAncestry(directory) }
 }
+
+@Test func protectedDirectoryRejectsRootOwnedSymlink() throws {
+    let prefix = try #require(CoreLauncher.script.range(of: "for dir in / /Library"))
+    let harness = String(CoreLauncher.script[..<prefix.lowerBound]) + "protected /tmp\nprintf PASSED"
+    let (status, output) = try shell(harness, [])
+    #expect(status != 0)
+    #expect(output.isEmpty)
+}
+
+@Test func applicationsAncestorAllowsRootAdminGroupWriteOnly() {
+    #expect(CoreLauncher.permitsBundleDirectory(owner: 0, mode: 0o775, uid: 501))
+    #expect(!CoreLauncher.permitsBundleDirectory(owner: 0, mode: 0o777, uid: 501))
+    #expect(!CoreLauncher.permitsBundleDirectory(owner: 501, mode: 0o775, uid: 501))
+    #expect(CoreLauncher.permitsBundleDirectory(owner: 501, mode: 0o755, uid: 501))
+    #expect(!CoreLauncher.permitsBundleDirectory(owner: 502, mode: 0o755, uid: 501))
+}

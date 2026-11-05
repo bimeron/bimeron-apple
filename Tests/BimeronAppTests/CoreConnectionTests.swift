@@ -199,6 +199,8 @@ private actor LaunchSpy {
     await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
     #expect(connection.launchError == .incompatible)
     await fixture.disappear()
+    await connection.refresh()
+    #expect(connection.launchError == nil)
     await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
     #expect(await spy.count == 1)
     #expect(connection.launchError == .cancelled)
@@ -270,4 +272,34 @@ private actor RetryHelloFixture {
     await connection.refresh()
     await connection.refresh()
     #expect(connection.journal.isEmpty)
+}
+
+@Test @MainActor func reachableUnknownSessionStateNeverPrompts() async {
+    for state in ["disconnected", "future-state"] {
+        let spy = LaunchSpy()
+        let connection = CoreConnection(client: DaemonClient(exchange: { request in
+            let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+                "daemon_session_guards": true,
+                "status": ["State": state, "Session": ["id": "live", "active": true]]]
+            return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+        }), launch: { await spy.called() }, pause: {})
+        await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+        #expect(connection.state == .unknown)
+        #expect(connection.reachable)
+        #expect(await spy.count == 0)
+    }
+}
+
+@Test @MainActor func incompatibleGuardedHelloKeepsRefusalVisible() async {
+    let spy = LaunchSpy()
+    let connection = CoreConnection(client: DaemonClient(exchange: { request in
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true, "error": "unsupported_client",
+            "status": ["State": "disconnected"]]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }), launch: { await spy.called() })
+    await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf"))
+    #expect(!connection.reachable)
+    #expect(connection.launchError == .incompatible)
+    #expect(await spy.count == 0)
 }

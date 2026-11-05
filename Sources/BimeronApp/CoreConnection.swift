@@ -97,7 +97,7 @@ import Observation
             await update()
             return
         }
-        if await client.state == .unknown {
+        if await !client.guardsSupported {
             try? await pause()
             await client.reconcile()
             if await client.incompatible {
@@ -106,7 +106,7 @@ import Observation
                 return
             }
         }
-        if await client.state == .unknown {
+        if await !client.guardsSupported {
             do {
                 try await launch()
                 for _ in 0..<waitAttempts {
@@ -144,9 +144,10 @@ import Observation
         actionError = await client.actionError
         let supported = await client.guardsSupported
         let observed = await client.state
-        state = supported ? observed : .unknown
-        reachable = supported
-        if reachable { launchError = nil }
+        let incompatible = await client.incompatible
+        reachable = supported && !incompatible
+        state = reachable ? observed : .unknown
+        if reachable || (launchError == .incompatible && !incompatible) { launchError = nil }
         reason = await client.reason
         let session = await client.session
         active = session?.active == true

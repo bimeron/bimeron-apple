@@ -29,7 +29,9 @@ silently. There is no separate Core launch action, launchd service, or autostart
 The administrator script refuses symlinks, non-root ownership, writable ancestry,
 and directory ACLs. Root-owned ancestors may use the admin group; the two
 Bimeron directories require root:wheel 0755. Before prompting, the GUI refuses
-a bundle or ancestor owned by another user or writable by group/other. Paths and
+the .app directory or any ancestor owned by another user or world-writable.
+Group write is accepted only on root-owned directories (such as /Applications).
+The bundled binaries are protected by root re-hashing the staged copies. Paths and
 hashes pass as osascript argv and AppleScript quotes each shell argument. It stages **both** bundled executables under
 `/Library/Application Support/Bimeron/DevCore`, verifies their SHA256 values from
 the development manifest, then installs root:wheel 0755 copies. Only those copies
@@ -87,3 +89,8 @@ the user approves. Hashes detect corruption and close the pre-check/copy race:
 root re-hashes staged copies in a 0700 mktemp directory before atomic moves.
 Protected copies remain after shutdown. Any process of the control user can
 control the daemon. Signing and SMAppService are the real production fix.
+
+A partially created Bimeron/ or DevCore/ directory with ownership other than
+root:wheel makes Start fail. An administrator must manually remove that directory
+before retrying Start; the app does not repair its ownership. The stderr read is
+bounded to 64 KiB; the temporary stderr file itself has no size bound.
