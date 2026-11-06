@@ -117,7 +117,6 @@
 "Show detailed connection statistics" = "Show detailed connection statistics";
 "Keep previous log entries" = "Keep previous log entries";
 "Connect automatically on launch" = "Connect automatically on launch";
-"Disconnect VPN on quit" = "Disconnect VPN on quit";
 "Connection settings will be available after Core integration." = "Connection settings will be available after Core integration.";
 "Bimeron Core" = "Bimeron Core";
 "Core is not connected to the GUI yet" = "Core is not connected to the GUI yet";
@@ -130,7 +129,6 @@
 "Close Bimeron" = "Close Bimeron";
 "What would you like to do with Bimeron?" = "What would you like to do with Bimeron?";
 "Application behavior, auto-connect, and Bimeron maintenance." = "Application behavior, auto-connect, and Bimeron maintenance.";
-"Disconnect VPN and stop the core service on quit" = "Disconnect VPN and stop the core service on quit";
 "Auto-connect profile" = "Auto-connect profile";
 "Select a profile" = "Select a profile";
 "Launch Bimeron with macOS" = "Launch Bimeron with macOS";
@@ -322,3 +320,8 @@
 "Core running" = "Core running";
 "Core not running" = "Core not running";
 "Bundled Core information unavailable" = "Bundled Core information unavailable";
+
+"Quit with an active VPN session?" = "Quit with an active VPN session?";
+"Disconnect and quit" = "Disconnect and quit";
+"Quit" = "Quit";
+"VPN could not be stopped in time. The app will stay open." = "VPN could not be stopped in time. The app will stay open.";

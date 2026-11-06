@@ -7,9 +7,13 @@ import Testing
 private actor ConnectionFixture {
     var requests: [DaemonRequest] = []
     var connected = false
+    var stopping = false
+    func adoptStoppingSession() { connected = true; stopping = true }
     var failedInactive = false
     func failInactive() { connected = false; failedInactive = true }
     var failStop = false
+    var delayStop = false
+    func setDelayStop() { delayStop = true }
     var startError: String?
     var pinnedMetadata = false
     var unavailable = false
@@ -21,11 +25,11 @@ private actor ConnectionFixture {
         requests.append(request)
         if unavailable { throw DaemonError.unavailable }
         if request.command == "start", startError == nil { connected = true }
-        if request.command == "stop", !failStop { connected = false }
+        if request.command == "stop", !failStop, !delayStop { connected = false }
         let session: [String: Any] = ["id": "session-1", "active": connected, "profile_id": "owned-profile"]
         var response: [String: Any] = ["version": 1, "id": request.id, "instance": "daemon-1",
                                       "daemon_session_guards": true,
-                                      "status": ["State": failedInactive ? "failed" : (connected ? "connected" : "disconnected"), "Session": session]]
+                                      "status": ["State": failedInactive ? "failed" : (stopping ? "stopping" : (connected ? "connected" : "disconnected")), "Session": session]]
         if failedInactive { response["status"] = ["State": "failed", "Session": session, "LastError": "old failure"] }
         if pinnedMetadata {
             response["core"] = ["revision": "6b0d97a4ac96a903153a57d544751401b98d6909", "modified": false, "platform": "darwin"]
@@ -580,4 +584,63 @@ private actor SlowHandshakeFixture {
         #expect(!connection.busy)
         #expect(connection.state == (initialPhase == "reconnecting" ? .stopped : .connecting))
     }
+}
+
+@Test @MainActor func quitWaitsForCleanupAndPreservesStopFailures() async {
+    for fails in [false, true] {
+        let fixture = ConnectionFixture()
+        let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+        await connection.refresh()
+        await connection.start(file: URL(fileURLWithPath: "/tmp/quit-fixture.conf"))
+        if fails { await fixture.setFailStop() }
+        let error = await connection.stopForQuit()
+        #expect((error != nil) == fails)
+        #expect((connection.state == .stopped) == !fails)
+        #expect(await fixture.commands().filter { $0 == "stop" }.count == 1)
+        #expect(await fixture.commands().allSatisfy { $0 != "shutdown" })
+    }
+}
+
+@Test @MainActor func quitTimeoutDoesNotClaimCleanup() async {
+    let fixture = ConnectionFixture()
+    await fixture.setDelayStop()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+                                    pause: { try await Task.sleep(for: .milliseconds(2)) })
+    await connection.refresh()
+    await connection.start(file: URL(fileURLWithPath: "/tmp/quit-fixture.conf"))
+    let error = await connection.stopForQuit(timeout: .milliseconds(1))
+    #expect(error == "VPN could not be stopped in time. The app will stay open.")
+    #expect(connection.active)
+    #expect(connection.state != .stopped)
+}
+
+@Test @MainActor func quitReportsInactiveStopFailureWithoutWaiting() async {
+    let fixture = StopRaceFixture()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+                                    pause: { Issue.record("Failed Stop must not wait for timeout") })
+    await connection.refresh()
+    let outcome = await QuitDecision.resolve(.disconnect) { await connection.stopForQuit() }
+    #expect(outcome == .error("Core could not finish stopping the connection. Check the failure reason and connection status."))
+    #expect(await fixture.stops == 1)
+    #expect(connection.actionError == nil)
+    #expect(connection.state == .failed)
+    #expect(!connection.active)
+}
+
+@Test @MainActor func quitIgnoresStaleActionErrorBeforeStop() async {
+    let fixture = ConnectionFixture()
+    await fixture.setStartError("invalid_configuration")
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+                                    pause: { try await Task.sleep(for: .milliseconds(2)) })
+    await connection.refresh()
+    await connection.start(file: URL(fileURLWithPath: "/tmp/rejected.conf"))
+    await fixture.adoptStoppingSession()
+    await connection.refreshForQuit()
+    // The prior Start error survives reconciliation while Stop is unavailable.
+    #expect(connection.actionErrorKey != nil)
+    #expect(!connection.canStop)
+    let outcome = await QuitDecision.resolve(.disconnect) { await connection.stopForQuit(timeout: .milliseconds(1)) }
+    #expect(outcome == .error("VPN could not be stopped in time. The app will stay open."))
+    #expect(await fixture.commands().filter { $0 == "stop" }.isEmpty)
+    #expect(connection.state == .stopping)
 }

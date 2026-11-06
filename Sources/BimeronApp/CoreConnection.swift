@@ -155,16 +155,40 @@ import Observation
         await update()
     }
 
-    func stop() async {
-        guard canStop else { return }
+    @discardableResult func stop() async -> Bool {
+        guard canStop else { return false }
         busy = true
         defer { busy = false }
         await client.reconcile(waitForInFlight: true)
         await update()
         // A session may have finished since the last status poll.
-        guard reachable, active, ![.unknown, .starting, .stopping].contains(state) else { return }
+        guard reachable, active, ![.unknown, .starting, .stopping].contains(state) else { return false }
         await client.disconnect()
         await update()
+        return true
+    }
+
+    func refreshForQuit() async {
+        await client.reconcile(waitForInFlight: true)
+        await update()
+    }
+
+    func stopForQuit(timeout: Duration = .seconds(15)) async -> String? {
+        let deadline = ContinuousClock.now + timeout
+        var attemptedStop = false
+        while ContinuousClock.now < deadline {
+            if canStop, await stop() { attemptedStop = true }
+            if attemptedStop {
+                if let actionErrorKey { return actionErrorKey }
+                if reachable && state == .failed && !active {
+                    return "Core could not finish stopping the connection. Check the failure reason and connection status."
+                }
+            }
+            if reachable && state == .stopped && !active { return nil }
+            do { try await pause() } catch { break }
+            await refreshForQuit()
+        }
+        return "VPN could not be stopped in time. The app will stay open."
     }
 
     private func update() async {

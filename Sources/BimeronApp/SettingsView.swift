@@ -40,8 +40,6 @@ struct SettingsView: View {
                         .labelsHidden()
                         .frame(width: 190)
                     }
-                    Toggle(model.t("Disconnect VPN and stop the core service on quit"), isOn: .constant(false))
-                        .disabled(true)
                     Toggle(model.t("Show system notifications"), isOn: .constant(true))
                         .disabled(true)
                     HStack {
