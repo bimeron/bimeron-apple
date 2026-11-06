@@ -117,7 +117,7 @@ def check_bundle(app):
     resources = contents / 'Resources'
     install = resources / 'CoreInstall'
     manifest = json.loads((install / 'manifest.json').read_text())
-    require(manifest.get('revision') == '6b0d97a4ac96a903153a57d544751401b98d6909'
+    require(manifest.get('revision') == 'baf3d0e1b061b6f1210b0d9aa040c9512fe646a1'
             and manifest.get('modified') is False and manifest.get('platform') == 'darwin'
             and manifest.get('go_version') == 'go1.26.9'
             and manifest.get('production_shipping') is False

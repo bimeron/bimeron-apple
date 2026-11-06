@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: bimeron/bimeron-core
-          ref: 6b0d97a4ac96a903153a57d544751401b98d6909
+          ref: baf3d0e1b061b6f1210b0d9aa040c9512fe646a1
           path: .core-source
           persist-credentials: false
       - uses: actions/setup-go@v5

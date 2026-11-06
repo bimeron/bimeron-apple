@@ -79,12 +79,12 @@ import Testing
 
 @Test func aboutShowsBundledCoreIdentityAndLocalizedRunningState() throws {
     let json = """
-    {"version":"0.1.0-ba22-dev","revision":"6b0d97a4ac96a903153a57d544751401b98d6909",
+    {"version":"0.1.0-ba26-dev","revision":"baf3d0e1b061b6f1210b0d9aa040c9512fe646a1",
      "sha256":"unused","detach_sha256":"unused","production_shipping":false,
      "provenance":"local-development-untrusted"}
     """
     let manifest = try JSONDecoder().decode(BundledCoreManifest.self, from: Data(json.utf8))
-    #expect(manifest.displayIdentity == "Core 0.1.0-ba22-dev (6b0d97a4)")
+    #expect(manifest.displayIdentity == "Core 0.1.0-ba26-dev (baf3d0e1)")
     #expect(Localization.text("Core running", language: "ru") == "Core запущен")
     #expect(Localization.text("Core not running", language: "ru") == "Core не запущен")
     for key in ["Core running", "Core not running", "Bundled Core information unavailable"] {

@@ -6,7 +6,7 @@ import Foundation
 import Observation
 
 @MainActor @Observable final class CoreConnection {
-    nonisolated static let revision = "6b0d97a4ac96a903153a57d544751401b98d6909"
+    nonisolated static let revision = "baf3d0e1b061b6f1210b0d9aa040c9512fe646a1"
     private let client: DaemonClient
     private(set) var state: LifecycleState = .unknown
     private(set) var busy = false
