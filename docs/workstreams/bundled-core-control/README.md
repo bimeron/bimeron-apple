@@ -125,3 +125,8 @@ Journal lines use Core event timestamps (RFC3339, including fractional seconds a
 timezone offsets), converted to the display timezone. Missing/unusable timestamps
 fall back to batch receive time. Core cursor order is retained even if its wall
 clock moves backwards; merging local diagnostics never reorders Core events.
+
+Background reconciliation and telemetry use a separate refresh-in-flight flag and
+never set the user-action busy flag. Start/Stop admission still follows session
+state and active/session guards. An action joins an in-flight handshake before
+proceeding; slow background telemetry cannot disable Stop during reconnecting.

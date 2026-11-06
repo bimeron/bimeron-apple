@@ -10,6 +10,7 @@ import Observation
     private let client: DaemonClient
     private(set) var state: LifecycleState = .unknown
     private(set) var busy = false
+    private var refreshing = false
     private(set) var actionError: String?
     private(set) var active = false
     private(set) var profileName: String?
@@ -99,9 +100,9 @@ import Observation
     }
 
     func refresh() async {
-        guard !busy else { return }
-        busy = true
-        defer { busy = false }
+        guard !busy, !refreshing else { return }
+        refreshing = true
+        defer { refreshing = false }
         await client.reconcile()
         await update()
         await pollTelemetry()
@@ -112,7 +113,7 @@ import Observation
         busy = true
         defer { busy = false }
         launchError = nil
-        await client.reconcile()
+        await client.reconcile(waitForInFlight: true)
         if await client.incompatible {
             launchError = .incompatible
             await update()
@@ -158,7 +159,7 @@ import Observation
         guard canStop else { return }
         busy = true
         defer { busy = false }
-        await client.reconcile()
+        await client.reconcile(waitForInFlight: true)
         await update()
         // A session may have finished since the last status poll.
         guard reachable, active, ![.unknown, .starting, .stopping].contains(state) else { return }

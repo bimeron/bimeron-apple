@@ -487,3 +487,97 @@ private actor StopRaceFixture {
     #expect(connection.reason == nil)
     #expect(connection.canStart)
 }
+
+private actor SlowTelemetryFixture {
+    let phase: String
+    var stopped = false
+    var eventWaiter: CheckedContinuation<Void, Never>?
+    var commands: [String] = []
+    init(phase: String) { self.phase = phase }
+    func releaseEvents() { eventWaiter?.resume(); eventWaiter = nil }
+    func exchange(_ request: DaemonRequest) async throws -> DaemonResponse {
+        commands.append(request.command)
+        if request.command == "events" {
+            await withCheckedContinuation { eventWaiter = $0 }
+        }
+        if request.command == "stop" { stopped = true }
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true,
+            "status": ["State": stopped ? "disconnected" : phase,
+                "LastError": stopped ? "" : "network_unavailable",
+                "Session": ["id": "session", "active": !stopped]]]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }
+}
+
+@Test @MainActor func slowTelemetryDoesNotDisableStopDuringConnectionProgress() async {
+    for phase in ["connecting", "reconnecting"] {
+        let fixture = SlowTelemetryFixture(phase: phase)
+        let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+        let refresh = Task { await connection.refresh() }
+        while await fixture.eventWaiter == nil { await Task.yield() }
+        #expect(!connection.busy)
+        #expect(connection.canStop)
+        #expect(!connection.canStart)
+        #expect(connection.reason == "network_unavailable")
+        // A second monitor refresh must not start another telemetry batch.
+        await connection.refresh()
+        #expect(await fixture.commands.filter { $0 == "events" }.count == 1)
+        await connection.stop()
+        #expect(await fixture.commands.filter { $0 == "stop" }.count == 1)
+        #expect(connection.state == .stopped)
+        await fixture.releaseEvents()
+        await refresh.value
+        #expect(connection.state == .stopped)
+        #expect(connection.canStart)
+    }
+}
+
+private actor SlowHandshakeFixture {
+    var phase: String
+    var holdHello = false
+    var waiter: CheckedContinuation<Void, Never>?
+    var commands: [String] = []
+    init(phase: String) { self.phase = phase }
+    func suspendNextHello() { holdHello = true }
+    func releaseHello() { waiter?.resume(); waiter = nil }
+    func exchange(_ request: DaemonRequest) async throws -> DaemonResponse {
+        commands.append(request.command)
+        if request.command == "hello", holdHello {
+            holdHello = false
+            await withCheckedContinuation { waiter = $0 }
+        }
+        if request.command == "stop" { phase = "disconnected" }
+        if request.command == "start" { phase = "connecting" }
+        let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
+            "daemon_session_guards": true,
+            "status": ["State": phase, "Session": ["id": "session", "active": phase != "disconnected"]]]
+        return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
+    }
+}
+
+@Test @MainActor func backgroundHandshakeDoesNotDisableOrDropUserActions() async {
+    for initialPhase in ["reconnecting", "disconnected"] {
+        let fixture = SlowHandshakeFixture(phase: initialPhase)
+        let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+        await connection.refresh()
+        await fixture.suspendNextHello()
+        let refresh = Task { await connection.refresh() }
+        while await fixture.waiter == nil { await Task.yield() }
+        #expect(!connection.busy)
+        #expect(connection.canStop == (initialPhase == "reconnecting"))
+        #expect(connection.canStart == (initialPhase == "disconnected"))
+        let action = Task {
+            if initialPhase == "reconnecting" { await connection.stop() }
+            else { await connection.start(file: URL(fileURLWithPath: "/tmp/test.conf")) }
+        }
+        while !connection.busy { await Task.yield() }
+        await fixture.releaseHello()
+        await action.value
+        await refresh.value
+        let command = initialPhase == "reconnecting" ? "stop" : "start"
+        #expect(await fixture.commands.filter { $0 == command }.count == 1)
+        #expect(!connection.busy)
+        #expect(connection.state == (initialPhase == "reconnecting" ? .stopped : .connecting))
+    }
+}

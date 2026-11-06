@@ -13,6 +13,7 @@ public actor DaemonClient {
     private var lifecycle = DaemonLifecycle()
     private var generation = 0
     private var operation: Task<DaemonResponse, Error>?
+    private var reconciliation: Task<Void, Never>?
 
     public init(expectedRevision: String? = nil) {
         self.expectedRevision = expectedRevision
@@ -39,6 +40,8 @@ public actor DaemonClient {
         generation += 1
         operation?.cancel()
         operation = nil
+        reconciliation?.cancel()
+        reconciliation = nil
         lifecycle.loseIPC()
     }
 
@@ -48,10 +51,23 @@ public actor DaemonClient {
         return try await exchange(request)
     }
 
-    public func reconcile() async {
+    public func reconcile(waitForInFlight: Bool = false) async {
+        if waitForInFlight, let reconciliation {
+            await reconciliation.value
+            return
+        }
         guard operation == nil else { return }
         incompatible = false
-        await perform(DaemonRequest(command: "hello"), handshake: true)
+        // User actions join an in-flight background handshake rather than being dropped.
+        let epoch = generation
+        let task = Task { await self.perform(DaemonRequest(command: "hello"), handshake: true) }
+        reconciliation = task
+        await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
+        if epoch == generation { reconciliation = nil }
     }
 
     public func connect(_ profile: DaemonProfile) async {
