@@ -138,7 +138,7 @@ public struct DaemonLoggedEvent: Codable, Sendable {
     public let sequence: UInt64
     public let event: Event
     public struct Event: Codable, Sendable {
-        public let Time: String
+        public let Time: String?
         public let State: String
         public let Message: String
         public let LastError: String?

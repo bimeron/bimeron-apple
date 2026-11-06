@@ -211,7 +211,8 @@ import Observation
                 guard events.allSatisfy({ $0.sequence > cursor && $0.sequence <= next }),
                       zip(events, events.dropFirst()).allSatisfy({ $0.sequence < $1.sequence }) else { return }
                 if response.dropped == true { journal.append(LogEntry(message: "Core event history gap")) }
-                journal.append(contentsOf: events.map { LogEntry(message: $0.event.line) })
+                let receivedAt = Date.now
+                journal.append(contentsOf: events.map { LogEntry(coreEvent: $0.event, receivedAt: receivedAt) })
                 journal = Array(journal.suffix(500))
                 cursor = next
             }

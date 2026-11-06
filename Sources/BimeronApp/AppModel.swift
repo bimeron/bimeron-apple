@@ -15,7 +15,7 @@ import Observation
     private(set) var orderBusy = false
     var alertMessage: String?
     private var diagnosticHistory = DiagnosticHistory()
-    var log: [LogEntry] { (diagnosticHistory.entries + connection.journal).sorted { $0.date < $1.date } }
+    var log: [LogEntry] { LogEntry.merging(core: connection.journal, local: diagnosticHistory.entries) }
     var language: String { didSet { defaults.set(language, forKey: "language") } }
     var theme: String { didSet { defaults.set(theme, forKey: "theme") } }
     private let defaults: UserDefaults

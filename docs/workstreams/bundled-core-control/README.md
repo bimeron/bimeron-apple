@@ -120,3 +120,8 @@ so the card shows Not connected and hides that historical reason across repeated
 polls. Active sessions are adopted normally. A failure transition observed during
 this app run, or a failure after its own explicit Start, remains visible with its
 reason. This presentation rule does not change daemon state or retry admission.
+
+Journal lines use Core event timestamps (RFC3339, including fractional seconds and
+timezone offsets), converted to the display timezone. Missing/unusable timestamps
+fall back to batch receive time. Core cursor order is retained even if its wall
+clock moves backwards; merging local diagnostics never reorders Core events.
