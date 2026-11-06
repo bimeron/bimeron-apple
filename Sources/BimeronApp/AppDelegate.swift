@@ -22,12 +22,14 @@ import AppKit
             sender.activate(ignoringOtherApps: true)
             let alert = NSAlert()
             alert.messageText = model.t("Quit with an active VPN session?")
-            alert.addButton(withTitle: model.t("Disconnect and quit"))
-            alert.addButton(withTitle: model.t("Quit, keep VPN running"))
+            alert.addButton(withTitle: model.t("Quit")).keyEquivalent = "\r"
+            let disconnect = alert.addButton(withTitle: model.t("Disconnect and quit"))
+            disconnect.hasDestructiveAction = true
+            disconnect.keyEquivalent = ""
             alert.addButton(withTitle: model.t("Cancel")).keyEquivalent = "\u{1b}"
             let choice: QuitDecision.Choice = switch alert.runModal() {
-            case .alertFirstButtonReturn: .disconnect
-            case .alertSecondButtonReturn: .keepRunning
+            case .alertFirstButtonReturn: .keepRunning
+            case .alertSecondButtonReturn: .disconnect
             default: .cancel
             }
             let outcome = await QuitDecision.resolve(choice) { await self.model.connection.stopForQuit() }

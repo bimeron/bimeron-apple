@@ -323,5 +323,5 @@
 
 "Quit with an active VPN session?" = "Quit with an active VPN session?";
 "Disconnect and quit" = "Disconnect and quit";
-"Quit, keep VPN running" = "Quit, keep VPN running";
+"Quit" = "Quit";
 "VPN could not be stopped in time. The app will stay open." = "VPN could not be stopped in time. The app will stay open.";

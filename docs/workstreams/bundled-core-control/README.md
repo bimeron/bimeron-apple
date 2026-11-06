@@ -132,8 +132,8 @@ state and active/session guards. An action joins an in-flight handshake before
 proceeding; slow background telemetry cannot disable Stop during reconnecting.
 
 Quit confirmation (#82): all app quit requests refresh Core status even with the
-main window closed. An active reachable session offers Disconnect and quit,
-Quit, keep VPN running, or Cancel. Disconnect uses guarded Stop and waits for
+main window closed. An active reachable session offers Quit (the default, keeping VPN running),
+Disconnect and quit (destructive), or Cancel (Escape). Disconnect uses guarded Stop and waits for
 Core's authoritative stopped/inactive cleanup state. Stop errors or a bounded
 15-second polling deadline (plus an in-flight socket exchange, at most 5 seconds)
 keep the GUI open and show a localized error. No quit path sends shutdown.
