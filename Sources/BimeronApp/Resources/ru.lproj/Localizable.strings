@@ -117,7 +117,6 @@
 "Show detailed connection statistics" = "Показывать подробную статистику соединений";
 "Keep previous log entries" = "Сохранять предыдущие записи журнала";
 "Connect automatically on launch" = "Автоматически подключать при запуске";
-"Disconnect VPN on quit" = "При выходе отключать VPN";
 "Connection settings will be available after Core integration." = "Параметры подключения станут доступны после интеграции с Core.";
 "Bimeron Core" = "Core Bimeron";
 "Core is not connected to the GUI yet" = "Core пока не подключён к GUI";
@@ -130,7 +129,6 @@
 "Close Bimeron" = "Закрыть Bimeron";
 "What would you like to do with Bimeron?" = "Что сделать с Bimeron?";
 "Application behavior, auto-connect, and Bimeron maintenance." = "Поведение приложения, автоподключение и обслуживание Bimeron.";
-"Disconnect VPN and stop the core service on quit" = "При выходе отключать VPN и завершать службу core";
 "Auto-connect profile" = "Профиль для автоподключения";
 "Select a profile" = "Выберите профиль";
 "Launch Bimeron with macOS" = "Запускать Bimeron вместе с macOS";
@@ -322,3 +320,8 @@
 "Core running" = "Core запущен";
 "Core not running" = "Core не запущен";
 "Bundled Core information unavailable" = "Информация о встроенном Core недоступна";
+
+"Quit with an active VPN session?" = "Выйти при активном VPN-подключении?";
+"Disconnect and quit" = "Отключить и выйти";
+"Quit, keep VPN running" = "Выйти, VPN оставить";
+"VPN could not be stopped in time. The app will stay open." = "Не удалось вовремя отключить VPN. Приложение останется открытым.";

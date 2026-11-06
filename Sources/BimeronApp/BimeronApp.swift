@@ -2,7 +2,7 @@ import SwiftUI
 
 @main struct BimeronApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var model = AppModel()
+    private var model: AppModel { appDelegate.model }
 
     private static let menuIcon: NSImage = {
         let image = NSImage(contentsOf: Bundle.module.url(forResource: "menu-disconnected-44", withExtension: "png")!)!

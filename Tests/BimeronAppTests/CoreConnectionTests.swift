@@ -10,6 +10,8 @@ private actor ConnectionFixture {
     var failedInactive = false
     func failInactive() { connected = false; failedInactive = true }
     var failStop = false
+    var delayStop = false
+    func setDelayStop() { delayStop = true }
     var startError: String?
     var pinnedMetadata = false
     var unavailable = false
@@ -21,7 +23,7 @@ private actor ConnectionFixture {
         requests.append(request)
         if unavailable { throw DaemonError.unavailable }
         if request.command == "start", startError == nil { connected = true }
-        if request.command == "stop", !failStop { connected = false }
+        if request.command == "stop", !failStop, !delayStop { connected = false }
         let session: [String: Any] = ["id": "session-1", "active": connected, "profile_id": "owned-profile"]
         var response: [String: Any] = ["version": 1, "id": request.id, "instance": "daemon-1",
                                       "daemon_session_guards": true,
@@ -580,4 +582,32 @@ private actor SlowHandshakeFixture {
         #expect(!connection.busy)
         #expect(connection.state == (initialPhase == "reconnecting" ? .stopped : .connecting))
     }
+}
+
+@Test @MainActor func quitWaitsForCleanupAndPreservesStopFailures() async {
+    for fails in [false, true] {
+        let fixture = ConnectionFixture()
+        let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }))
+        await connection.refresh()
+        await connection.start(file: URL(fileURLWithPath: "/tmp/quit-fixture.conf"))
+        if fails { await fixture.setFailStop() }
+        let error = await connection.stopForQuit()
+        #expect((error != nil) == fails)
+        #expect((connection.state == .stopped) == !fails)
+        #expect(await fixture.commands().filter { $0 == "stop" }.count == 1)
+        #expect(await fixture.commands().allSatisfy { $0 != "shutdown" })
+    }
+}
+
+@Test @MainActor func quitTimeoutDoesNotClaimCleanup() async {
+    let fixture = ConnectionFixture()
+    await fixture.setDelayStop()
+    let connection = CoreConnection(client: DaemonClient(exchange: { try await fixture.exchange($0) }),
+                                    pause: { try await Task.sleep(for: .milliseconds(2)) })
+    await connection.refresh()
+    await connection.start(file: URL(fileURLWithPath: "/tmp/quit-fixture.conf"))
+    let error = await connection.stopForQuit(timeout: .milliseconds(1))
+    #expect(error == "VPN could not be stopped in time. The app will stay open.")
+    #expect(connection.active)
+    #expect(connection.state != .stopped)
 }

@@ -167,6 +167,23 @@ import Observation
         await update()
     }
 
+    func refreshForQuit() async {
+        await client.reconcile(waitForInFlight: true)
+        await update()
+    }
+
+    func stopForQuit(timeout: Duration = .seconds(15)) async -> String? {
+        let deadline = ContinuousClock.now + timeout
+        while ContinuousClock.now < deadline {
+            if canStop { await stop() }
+            if let actionErrorKey { return actionErrorKey }
+            if reachable && state == .stopped && !active { return nil }
+            do { try await pause() } catch { break }
+            await refreshForQuit()
+        }
+        return "VPN could not be stopped in time. The app will stay open."
+    }
+
     private func update() async {
         actionError = await client.actionError
         let supported = await client.guardsSupported
