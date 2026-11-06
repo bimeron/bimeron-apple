@@ -32,7 +32,7 @@ private actor ConnectionFixture {
                                       "status": ["State": failedInactive ? "failed" : (stopping ? "stopping" : (connected ? "connected" : "disconnected")), "Session": session]]
         if failedInactive { response["status"] = ["State": "failed", "Session": session, "LastError": "old failure"] }
         if pinnedMetadata {
-            response["core"] = ["revision": "6b0d97a4ac96a903153a57d544751401b98d6909", "modified": false, "platform": "darwin"]
+            response["core"] = ["revision": "baf3d0e1b061b6f1210b0d9aa040c9512fe646a1", "modified": false, "platform": "darwin"]
         }
         if request.command == "start", let startError { response["error"] = startError }
         if request.command == "stop", failStop { response["error"] = "cleanup_failed" }
@@ -173,19 +173,20 @@ private actor LaunchSpy {
     try Data("tampered".utf8).write(to: directory.appending(path: "bimeron-core"))
     let manifest = BundledCoreManifest(sha256: String(repeating: "0", count: 64),
         detach_sha256: String(repeating: "0", count: 64), revision: CoreConnection.revision,
-        production_shipping: false, provenance: "local-development-untrusted", version: "0.1.0-ba22-dev")
+        production_shipping: false, provenance: "local-development-untrusted", version: "0.1.0-ba26-dev")
     #expect(throws: CoreLauncher.Failure.failed) {
         try CoreLauncher.verifyPayloads(binaries: directory, manifest: manifest)
     }
 }
 
-@Test @MainActor func reconnectingStatusAndEventReasonArePreserved() async throws {
+@Test(arguments: ["retry reason", "macos_network_setup_failed: networksetup command failed: exit status 1"])
+@MainActor func reconnectingStatusAndEventReasonArePreserved(reason: String) async throws {
     let client = DaemonClient(exchange: { request in
         let body: [String: Any] = ["version": 1, "id": request.id, "instance": "instance",
             "daemon_session_guards": true,
-            "status": ["State": "reconnecting", "LastError": "retry reason"],
+            "status": ["State": "reconnecting", "LastError": reason],
             "cursor": 1, "events": [["sequence": 1, "event": ["Time": "2026-11-05T00:00:00Z",
-                "State": "reconnecting", "Message": "Retry", "LastError": "retry reason"]]]]
+                "State": "reconnecting", "Message": "Retry", "LastError": reason]]]]
         return try DaemonProtocol.decode(JSONSerialization.data(withJSONObject: body) + Data([10]), request: request)
     })
     let connection = CoreConnection(client: client)
@@ -193,8 +194,8 @@ private actor LaunchSpy {
     #expect(connection.reachable)
     #expect(connection.state == .reconnecting)
     #expect(connection.statusKey == "Core: reconnecting")
-    #expect(connection.reason == "retry reason")
-    #expect(connection.journal.map(\.message) == ["[reconnecting] Retry Reason: retry reason"])
+    #expect(connection.reason == reason)
+    #expect(connection.journal.map(\.message) == ["[reconnecting] Retry Reason: \(reason)"])
     await connection.refresh()
     #expect(connection.journal.count == 1)
 }

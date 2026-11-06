@@ -9,8 +9,8 @@ import platform
 import subprocess
 import tempfile
 
-REVISION = '6b0d97a4ac96a903153a57d544751401b98d6909'
-VERSION = '0.1.0-ba22-dev'
+REVISION = 'baf3d0e1b061b6f1210b0d9aa040c9512fe646a1'
+VERSION = '0.1.0-ba26-dev'
 GO_VERSION = 'go1.26.9'
 
 

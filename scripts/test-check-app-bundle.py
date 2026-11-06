@@ -47,7 +47,7 @@ class BundleTests(unittest.TestCase):
         (self.contents / 'MacOS/bimeron-detach').chmod(0o755)
         for name in ('LICENSE', 'THIRD_PARTY_NOTICES.txt'):
             (self.install / name).write_text('synthetic notice')
-        self.manifest = dict(revision='6b0d97a4ac96a903153a57d544751401b98d6909', modified=False,
+        self.manifest = dict(revision='baf3d0e1b061b6f1210b0d9aa040c9512fe646a1', modified=False,
                              platform='darwin', go_version='go1.26.9', production_shipping=False,
                              metadata_authenticated=False, provenance='local-development-untrusted',
                              sha256=hashlib.sha256(core.read_bytes()).hexdigest(),

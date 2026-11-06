@@ -1,11 +1,16 @@
-# Bundled development Core and guarded GUI control (ba-22 / ba-24)
+# Bundled development Core and guarded GUI control (ba-22 / ba-24 / ba-26)
 
 Tracks #79 and #77, related to #13. Production shipping is **false**. No signing key,
 Apple review, authenticated release pin, updater, rollback, or service repair is
 provided by this change.
 
 The development app contains one native Core executable built from Git object
-`6b0d97a4ac96a903153a57d544751401b98d6909`, its notices, and a native C detach helper.
+`baf3d0e1b061b6f1210b0d9aa040c9512fe646a1`, its notices, and a native C detach helper.
+The ba-26 pin includes Core #102: Stop during connecting/reconnecting preserves
+cancellation after successful rollback. Detailed failure reasons are retained in
+status and Journal. The recipe sets `0.1.0-ba26-dev`; the build scripts generate
+the Core and unchanged detach helper digests from their binaries.
+
 The builder makes an isolated shared clone and checks out that full commit; it
 never builds from or modifies the source repository's working tree. The recipe
 requires Go 1.26.9, native Darwin architecture, `CGO_ENABLED=0`, `-mod=readonly`,
