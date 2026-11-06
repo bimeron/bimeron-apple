@@ -5,11 +5,15 @@ public actor DaemonClient {
     /// Must enforce an I/O deadline and responseLimit while receiving, before buffering untrusted input.
     public typealias FramedExchange = @Sendable (DaemonRequest) async throws -> Data
     public typealias Exchange = @Sendable (DaemonRequest) async throws -> DaemonResponse
+    public private(set) var incompatible = false
+    public var instance: String? { lifecycle.instance }
+    public var reason: String? { lifecycle.reason }
     private let expectedRevision: String?
     private let exchange: Exchange
     private var lifecycle = DaemonLifecycle()
     private var generation = 0
     private var operation: Task<DaemonResponse, Error>?
+    private var reconciliation: Task<Void, Never>?
 
     public init(expectedRevision: String? = nil) {
         self.expectedRevision = expectedRevision
@@ -36,12 +40,34 @@ public actor DaemonClient {
         generation += 1
         operation?.cancel()
         operation = nil
+        reconciliation?.cancel()
+        reconciliation = nil
         lifecycle.loseIPC()
     }
 
-    public func reconcile() async {
+    public func read(_ request: DaemonRequest) async throws -> DaemonResponse {
+        guard ["events", "stats_snapshot"].contains(request.command),
+              !incompatible, lifecycle.guardsSupported else { throw DaemonError.invalidProtocol }
+        return try await exchange(request)
+    }
+
+    public func reconcile(waitForInFlight: Bool = false) async {
+        if waitForInFlight, let reconciliation {
+            await reconciliation.value
+            return
+        }
         guard operation == nil else { return }
-        await perform(DaemonRequest(command: "hello"), handshake: true)
+        incompatible = false
+        // User actions join an in-flight background handshake rather than being dropped.
+        let epoch = generation
+        let task = Task { await self.perform(DaemonRequest(command: "hello"), handshake: true) }
+        reconciliation = task
+        await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
+        if epoch == generation { reconciliation = nil }
     }
 
     public func connect(_ profile: DaemonProfile) async {
@@ -70,9 +96,11 @@ public actor DaemonClient {
             operation = nil
             if handshake, let expectedRevision,
                response.core?.revision != expectedRevision || response.core?.modified != false || response.core?.platform != "darwin" {
+                incompatible = true
                 lifecycle.loseIPC()
                 return
             }
+            if handshake { incompatible = response.error != nil || response.daemon_session_guards != true }
             if let next = lifecycle.observe(response, handshake: handshake) {
                 await perform(next)
             }

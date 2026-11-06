@@ -5,7 +5,6 @@
 "About" = "О программе";
 "Disconnected" = "Отключено";
 "VPN is not connected to the app" = "VPN не подключён к приложению";
-"VPN connection will be added in the next stage" = "Подключение VPN появится в следующем этапе";
 "TRAFFIC" = "ТРАФИК";
 "Available profiles" = "Доступные профили";
 "No profiles yet" = "Профилей пока нет";
@@ -126,7 +125,6 @@
 "No entries yet" = "Записей пока нет";
 "Save log…" = "Сохранить журнал…";
 "Clear" = "Очистить";
-"Core: not connected" = "Core: не подключено";
 "Open Bimeron" = "Открыть Bimeron";
 "Quit Bimeron" = "Выйти из Bimeron";
 "Close Bimeron" = "Закрыть Bimeron";
@@ -140,7 +138,6 @@
 "Service: not connected" = "Служба: не подключена";
 "Stop" = "Остановить";
 "Check for Core updates" = "Проверить обновление Core";
-"Service controls will be available after Core integration." = "Управление службой станет доступно после интеграции с Core.";
 "Enable beta Core updates" = "Включить бета-обновления Core";
 "Save diagnostics report…" = "Сохранить отчёт диагностики…";
 "Russian" = "Русский";
@@ -291,20 +288,37 @@
 
 "Core: connection failed" = "Core: ошибка подключения";
 
-"Untrusted development Core · administrator installation required" = "Недоверенная версия Core для разработки · требуется установка администратором";
 
-"Install Core…" = "Установить Core…";
 
 "Start" = "Запустить";
 
-"Complete macOS Installer, then wait for Core readiness. Start remains manual." = "Завершите установку macOS и дождитесь готовности Core. Запуск выполняется вручную.";
 
-"Installer unavailable or built for another user. Rebuild this development app for your account." = "Установщик недоступен или собран для другого пользователя. Пересоберите приложение для своей учётной записи.";
 
 "Active profile" = "Активный профиль";
 
-"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
 
-"IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
 
-"Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";
+"Administrator approval was cancelled. Core was not started." = "Запрос прав администратора отменён. Core не запущен.";
+"Core could not be installed or launched. Check administrator access and the app bundle." = "Не удалось установить или запустить Core. Проверьте права администратора и приложение.";
+"Core did not become ready in time. Try Start again." = "Core не ответил вовремя. Нажмите «Запустить» ещё раз.";
+"A different or incompatible Core is running. Stop it explicitly before trying again." = "Запущен другой или несовместимый Core. Остановите его перед повторной попыткой.";
+"Core reachable" = "Core доступен";
+"Core unavailable" = "Core недоступен";
+
+"Bimeron needs administrator approval to install and start its development Core." = "Bimeron требуется разрешение администратора для установки и запуска Core для разработки.";
+
+"Not connected" = "Не подключено";
+"Select a profile and press Start." = "Выберите профиль и нажмите «Запустить».";
+
+"Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core отклонил конфигурацию. Измените или проверьте выбранный профиль перед повторной попыткой.";
+"IKEv2 is unavailable through daemon Start. Select another protocol." = "Запуск IKEv2 через службу Core недоступен. Выберите другой протокол.";
+"Core could not finish stopping the connection. Check the failure reason and connection status." = "Core не удалось завершить остановку подключения. Проверьте причину ошибки и состояние подключения.";
+"Core could not start the connection. Check the failure reason before trying again." = "Core не удалось запустить подключение. Проверьте причину ошибки перед повторной попыткой.";
+"A connection is already running. Stop it before starting another." = "Подключение уже запущено. Остановите его перед запуском другого.";
+"The connection changed before the request completed. Check its current status and try again." = "Подключение изменилось до завершения запроса. Проверьте его текущее состояние и повторите попытку.";
+"Core is shutting down. Wait for it to stop, then try Start again." = "Core завершает работу. Дождитесь остановки и снова нажмите «Запустить».";
+"Core could not complete the request. Check the connection status before trying again." = "Core не удалось выполнить запрос. Проверьте состояние подключения перед повторной попыткой.";
+
+"Core running" = "Core запущен";
+"Core not running" = "Core не запущен";
+"Bundled Core information unavailable" = "Информация о встроенном Core недоступна";

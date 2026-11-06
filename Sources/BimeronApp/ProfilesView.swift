@@ -23,33 +23,27 @@ struct ProfilesView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.t(model.connection.statusKey))
                         .font(.headline)
-                    if model.connection.active, let name = model.connection.profileName {
-                        Text(model.t("Active profile") + ": " + name).lineLimit(1)
-                    }
-                    Text(model.t("Untrusted development Core · administrator installation required"))
+                        .lineLimit(1)
+                    Text(statusSubtitle)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(model.t("TRAFFIC"))
                         .font(.caption.bold())
                         .foregroundStyle(.secondary)
-                    Text("—")
+                    Text(StatisticsPresentation(snapshot: model.connection.statistics)
+                        .compactTraffic(connected: model.connection.state == .connected,
+                                        locale: Locale(identifier: model.language)))
+                        .monospacedDigit()
+                        .lineLimit(1)
                 }
             }
             .padding(20)
             .frame(maxWidth: .infinity)
             .background(AppPalette.surface(colorScheme), in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(AppPalette.border(colorScheme)))
-
-            if model.connection.installOpened {
-                Text(model.t("Complete macOS Installer, then wait for Core readiness. Start remains manual."))
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            if model.connection.installError {
-                Text(model.t("Installer unavailable or built for another user. Rebuild this development app for your account."))
-                    .font(.caption).foregroundStyle(.red)
-            }
 
             if let reason = model.selectedProfileStartErrorKey ?? model.connection.actionErrorKey {
                 Text(model.t(reason))
@@ -109,10 +103,6 @@ struct ProfilesView: View {
                     .controlSize(.large)
                     .disabled(model.selected == nil)
                 Spacer()
-                if model.connection.state == .unknown {
-                    Button(model.t("Install Core…")) { model.connection.openInstaller() }
-                        .disabled(model.connection.busy || model.connection.active)
-                }
                 Button(model.t("Stop")) { Task { await model.connection.stop() } }
                     .disabled(!model.connection.canStop)
                 Button(model.t("Start")) { Task { await model.startSelectedProfile() } }
@@ -142,6 +132,15 @@ struct ProfilesView: View {
             }
             return .handled
         }
+    }
+
+    private var statusSubtitle: String {
+        if let reason = model.connection.reason, !reason.isEmpty { return reason }
+        if model.connection.active, let name = model.connection.profileName {
+            return model.t("Active profile") + ": " + name
+        }
+        if model.connection.isQuietIdle { return model.t("Select a profile and press Start.") }
+        return model.t(model.connection.reachable ? "Core reachable" : "Core unavailable")
     }
 
     private func handleArrow(_ direction: Int, shift: Bool) {

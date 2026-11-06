@@ -17,7 +17,7 @@ struct LogView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 5) {
                     ForEach(model.log) { entry in
-                        Text("[\(entry.date.formatted(Date.FormatStyle(date: .omitted, time: .standard).locale(Locale(identifier: model.language))))] \(entry.message)")
+                        Text("[\(entry.displayedTime(locale: Locale(identifier: model.language)))] \(entry.message)")
                             .font(.system(.body, design: .monospaced))
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)

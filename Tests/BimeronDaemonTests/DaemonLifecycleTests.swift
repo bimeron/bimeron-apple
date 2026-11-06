@@ -114,13 +114,35 @@ final class DaemonLifecycleTests: XCTestCase {
         XCTAssertFalse(lifecycle.guardsSupported)
     }
 
-    func testCleanupRequiresDisconnectedAndInactive() throws {
-        for observation in [try response(state: "disconnected", active: true), try response(state: "failed")] {
+    func testActiveTerminalObservationDoesNotStartSameProfile() throws {
+        for observation in [try response(state: "disconnected", active: true), try response(state: "failed", profile: "A", active: true)] {
             var lifecycle = DaemonLifecycle()
             _ = lifecycle.observe(observation, handshake: true)
             XCTAssertNil(lifecycle.connect(DaemonProfile(id: "A", configPath: "/A")))
+            XCTAssertThrowsError(try DaemonProtocol.authorizeMutation(
+                DaemonRequest(command: "start", instance: "one", config: "/A"), hello: observation))
         }
     }
+    func testInactiveTerminalSessionsCanStartButDoNotConfirmFailureCleanup() throws {
+        for terminal in ["disconnected", "failed"] {
+            var lifecycle = DaemonLifecycle()
+            let hello = try response(state: terminal)
+            _ = lifecycle.observe(hello, handshake: true)
+            let request = try XCTUnwrap(lifecycle.connect(DaemonProfile(id: "A", configPath: "/A")))
+            XCTAssertEqual(request.command, "start")
+            XCTAssertNoThrow(try DaemonProtocol.authorizeMutation(request, hello: hello))
+            XCTAssertEqual(hello.status.cleanupConfirmed, terminal == "disconnected")
+        }
+        for state in ["connecting", "connected", "reconnecting", "stopping", "future-state"] {
+            let hello = try response(state: state)
+            var lifecycle = DaemonLifecycle()
+            _ = lifecycle.observe(hello, handshake: true)
+            XCTAssertNil(lifecycle.connect(DaemonProfile(id: "A", configPath: "/A")))
+            XCTAssertThrowsError(try DaemonProtocol.authorizeMutation(
+                DaemonRequest(command: "start", instance: "one", config: "/A"), hello: hello))
+        }
+    }
+
     func testCoreGuardRejectionsNeverRetryOrResumeSwitch() throws {
         // Core local contract: 10e29d5dbb26743776d3586dd1a8b506b4c100f3.
         for error in ["stale_instance", "stale_session", "session_already_running"] {

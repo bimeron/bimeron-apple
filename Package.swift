@@ -7,6 +7,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [.executable(name: "Bimeron", targets: ["BimeronApp"])],
     targets: [
+        .executableTarget(name: "CoreDetach"),
         .target(name: "BimeronGeoData"),
         .testTarget(name: "BimeronGeoDataTests", dependencies: ["BimeronGeoData"]),
         .target(name: "BimeronModel"),

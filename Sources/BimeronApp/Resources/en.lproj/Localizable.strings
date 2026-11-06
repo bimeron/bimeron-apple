@@ -5,7 +5,6 @@
 "About" = "About";
 "Disconnected" = "Disconnected";
 "VPN is not connected to the app" = "VPN is not connected to the app";
-"VPN connection will be added in the next stage" = "VPN connection will be added in the next stage";
 "TRAFFIC" = "TRAFFIC";
 "Available profiles" = "Available profiles";
 "No profiles yet" = "No profiles yet";
@@ -126,7 +125,6 @@
 "No entries yet" = "No entries yet";
 "Save log…" = "Save log…";
 "Clear" = "Clear";
-"Core: not connected" = "Core: not connected";
 "Open Bimeron" = "Open Bimeron";
 "Quit Bimeron" = "Quit Bimeron";
 "Close Bimeron" = "Close Bimeron";
@@ -140,7 +138,6 @@
 "Service: not connected" = "Service: not connected";
 "Stop" = "Stop";
 "Check for Core updates" = "Check for Core updates";
-"Service controls will be available after Core integration." = "Service controls will be available after Core integration.";
 "Enable beta Core updates" = "Enable beta Core updates";
 "Save diagnostics report…" = "Save diagnostics report…";
 "Russian" = "Russian";
@@ -291,20 +288,37 @@
 
 "Core: connection failed" = "Core: connection failed";
 
-"Untrusted development Core · administrator installation required" = "Untrusted development Core · administrator installation required";
 
-"Install Core…" = "Install Core…";
 
 "Start" = "Start";
 
-"Complete macOS Installer, then wait for Core readiness. Start remains manual." = "Complete macOS Installer, then wait for Core readiness. Start remains manual.";
 
-"Installer unavailable or built for another user. Rebuild this development app for your account." = "Installer unavailable or built for another user. Rebuild this development app for your account.";
 
 "Active profile" = "Active profile";
 
+
+
+"Administrator approval was cancelled. Core was not started." = "Administrator approval was cancelled. Core was not started.";
+"Core could not be installed or launched. Check administrator access and the app bundle." = "Core could not be installed or launched. Check administrator access and the app bundle.";
+"Core did not become ready in time. Try Start again." = "Core did not become ready in time. Try Start again.";
+"A different or incompatible Core is running. Stop it explicitly before trying again." = "A different or incompatible Core is running. Stop it explicitly before trying again.";
+"Core reachable" = "Core reachable";
+"Core unavailable" = "Core unavailable";
+
+"Bimeron needs administrator approval to install and start its development Core." = "Bimeron needs administrator approval to install and start its development Core.";
+
+"Not connected" = "Not connected";
+"Select a profile and press Start." = "Select a profile and press Start.";
+
 "Core rejected the configuration. Edit or validate the selected profile before trying again." = "Core rejected the configuration. Edit or validate the selected profile before trying again.";
-
 "IKEv2 is unavailable through daemon Start. Select another protocol." = "IKEv2 is unavailable through daemon Start. Select another protocol.";
+"Core could not finish stopping the connection. Check the failure reason and connection status." = "Core could not finish stopping the connection. Check the failure reason and connection status.";
+"Core could not start the connection. Check the failure reason before trying again." = "Core could not start the connection. Check the failure reason before trying again.";
+"A connection is already running. Stop it before starting another." = "A connection is already running. Stop it before starting another.";
+"The connection changed before the request completed. Check its current status and try again." = "The connection changed before the request completed. Check its current status and try again.";
+"Core is shutting down. Wait for it to stop, then try Start again." = "Core is shutting down. Wait for it to stop, then try Start again.";
+"Core could not complete the request. Check the connection status before trying again." = "Core could not complete the request. Check the connection status before trying again.";
 
-"Core rejected the action. Check the profile and Core status before trying again." = "Core rejected the action. Check the profile and Core status before trying again.";
+"Core running" = "Core running";
+"Core not running" = "Core not running";
+"Bundled Core information unavailable" = "Bundled Core information unavailable";

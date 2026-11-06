@@ -8,14 +8,16 @@ public struct DaemonSession: Codable, Equatable, Sendable {
 }
 
 public struct DaemonStatus: Codable, Equatable, Sendable {
+    public let LastError: String?
     public let State: String
     public let Session: DaemonSession?
+    public var startPermitted: Bool { ["disconnected", "failed"].contains(State) && Session?.active != true }
     public var cleanupConfirmed: Bool { State == "disconnected" && Session?.active != true }
 }
 
 /// Ownership is captured with status; individual byte fields are independently atomic.
-public struct DaemonStatisticsSnapshot: Decodable, Sendable {
-    public struct Counters: Decodable, Sendable {
+public struct DaemonStatisticsSnapshot: Codable, Sendable {
+    public struct Counters: Codable, Sendable {
         public let bytes_up: Int64
         public let bytes_down: Int64
         public let unavailable: Bool?
@@ -24,7 +26,10 @@ public struct DaemonStatisticsSnapshot: Decodable, Sendable {
     public let counters: Counters?
 }
 
-public struct DaemonResponse: Decodable, Sendable {
+public struct DaemonResponse: Codable, Sendable {
+    public let events: [DaemonLoggedEvent]?
+    public let cursor: UInt64?
+    public let dropped: Bool?
     public let core: DaemonBuildIdentity?
     public let version: Int
     public let id: String
@@ -43,8 +48,10 @@ public struct DaemonRequest: Encodable, Sendable {
     public let instance: String?
     public let session: String?
     public let config: String?
+    public let after: UInt64?
 
-    public init(command: String, instance: String? = nil, session: String? = nil, config: String? = nil) {
+    public init(command: String, instance: String? = nil, session: String? = nil, config: String? = nil, after: UInt64? = nil) {
+        self.after = after
         id = UUID().uuidString
         self.command = command
         self.instance = instance
@@ -81,7 +88,7 @@ public enum DaemonProtocol {
               request.instance == hello.instance,
               request.command != "stop" || (request.session != nil && request.session == hello.status.Session?.id
                   && hello.status.Session?.active == true),
-              request.command != "start" || hello.status.cleanupConfirmed else {
+              request.command != "start" || hello.status.startPermitted else {
             throw DaemonError.invalidProtocol
         }
     }
@@ -121,8 +128,22 @@ public enum DaemonProtocol {
 }
 
 /// Self-reported compatibility metadata, never a signature or trust assertion.
-public struct DaemonBuildIdentity: Decodable, Sendable {
+public struct DaemonBuildIdentity: Codable, Sendable {
     public let revision: String?
     public let modified: Bool
     public let platform: String
+}
+
+public struct DaemonLoggedEvent: Codable, Sendable {
+    public let sequence: UInt64
+    public let event: Event
+    public struct Event: Codable, Sendable {
+        public let Time: String?
+        public let State: String
+        public let Message: String
+        public let LastError: String?
+        public var line: String {
+            "[\(State)] \(Message)" + ((LastError?.isEmpty == false) ? " Reason: \(LastError!)" : "")
+        }
+    }
 }

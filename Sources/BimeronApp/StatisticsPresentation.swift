@@ -19,6 +19,13 @@ struct StatisticsPresentation {
         rate = snapshot.status == .connected ? latest.rate : nil
     }
 
+    func compactTraffic(connected: Bool, locale: Locale) -> String {
+        guard connected else { return "↓ 0 B   ↑ 0 B" }
+        guard let totals else { return "↓ —   ↑ —" }
+        func value(_ bytes: Int64) -> String { bytes == 0 ? "0 B" : Self.bytes(bytes, locale: locale) }
+        return "↓ \(value(totals.bytesDown))   ↑ \(value(totals.bytesUp))"
+    }
+
     static func bytes(_ value: Int64, locale: Locale) -> String {
         value.formatted(.byteCount(style: .file).locale(locale))
     }
